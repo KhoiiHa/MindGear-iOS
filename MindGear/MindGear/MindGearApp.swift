@@ -23,9 +23,15 @@ struct MindGearApp: App {
         }
     }()
 
+    // Beispiel-Daten für die Channels
+    let channels = [
+        Channel(id: "1", name: "Joe Rogan", description: "Ein bekannter Podcast über eine Vielzahl von Themen."),
+        Channel(id: "2", name: "Chris Williamson", description: "Podcast über Persönlichkeitsentwicklung und Selbstverbesserung.")
+    ]
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            HomeView(channels: channels)  // channels an HomeView übergeben
         }
         .modelContainer(sharedModelContainer)
     }
