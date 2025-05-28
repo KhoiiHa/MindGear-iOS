@@ -1,79 +1,80 @@
 ![MindGear Icon](https://res.cloudinary.com/dpaehynl2/image/upload/v1747665413/ChatGPT_Image_18._Mai_2025_16_37_57_rkbu11.png)
 
-# **MindGear – Mentale Stärke beginnt hier** 🧠🎧
+# **MindGear – Mentale Stärke für moderne Männer** 🧠🎧
 
-*iOS-App für mentale Gesundheit, speziell für Männer*
+*iOS-App zur Selbstentwicklung und mentalen Gesundheit – speziell für Männer*
 
-> ⚠️ Aktiver Entwicklungsstatus – Teil meines öffentlich zugänglichen GitHub-Portfolios.
+> ⚠️ Aktiver Entwicklungsstatus – Bestandteil meines öffentlich zugänglichen GitHub-Portfolios.
 
-**MindGear** ist eine native iOS-App, die Männern dabei hilft, sich aktiv mit ihrer **mentalen Gesundheit** auseinanderzusetzen.
+**MindGear** ist eine native iOS-App für Männer, die in herausfordernden Zeiten Orientierung, mentale Stärke und neue Impulse suchen.  
+Die App bietet eine kuratierte Auswahl an YouTube-Videos und Podcasts von bekannten Denkern, Mentoren und Interviewern wie:
 
-Sie bietet eine kuratierte Auswahl an inspirierenden **YouTube-Videos und Podcasts** zu Themen wie:
+- Joe Rogan, Chris Williamson, Lex Fridman  
+- The Diary of a CEO, HealthyGamerGG, Shi Heng Yi  
+- Jordan B. Peterson, Simon Sinek, Jay Shetty u. v. m.
 
-- Mentale Stärke 💪  
-- Persönlichkeitsentwicklung 🌱  
-- Emotionale Intelligenz 🧘
-
-Die App richtet sich an Studierende, Berufstätige und Sportler, die ihre innere Stärke gezielt fördern möchten – direkt über ihr iPhone.
+Durch thematische Empfehlungen und Favoritenfunktion unterstützt MindGear dich dabei, neue Perspektiven zu gewinnen und deine innere Widerstandskraft zu stärken.
 
 ---
 
 ## 🧩 **Features (MVP)**
 
-- ✅ **YouTube-Integration** (via WebView)  
+- ✅ **YouTube-Integration (WebView)**  
   → Videos direkt in der App abspielen
 
 - ✅ **Favoriten-Funktion**  
-  → Merken und verwalten inspirierender Inhalte
+  → Eigene Inspirationssammlung speichern
 
-- ✅ **Tägliche Empfehlungen**  
-  → Jeden Tag neue Impulse entdecken
+- ✅ **Tägliche Empfehlung**  
+  → Jeden Tag ein neuer Impuls
 
-- ✅ **Suchfunktion**  
-  → Videos nach Themen, Kanälen & Keywords filtern
+- ✅ **Suchfunktion & Filter**  
+  → Inhalte nach Keywords und Kanälen durchsuchen
 
 - ✅ **Dark Mode Support**  
-  → Angenehme Nutzung bei Tag & Nacht
+  → Angenehmes Design bei Tag & Nacht
 
-- ✅ **100% kostenfreie Entwicklung**  
-  → Keine kostenpflichtigen APIs oder Services erforderlich
+- ✅ **100 % kostenfreie Entwicklung**  
+  → Kein Abo, keine Bezahlschranken
 
 ---
 
 ## 🛠️ **Tech Stack & Architektur**
 
-- **SwiftUI** – Modernes deklaratives UI-Framework  
-- **MVVM** – Saubere Trennung von Logik & UI  
-- **SwiftData** – Lokale Speicherung für Favoriten  
-- **WebKit (WebView)** – Direkte YouTube-Einbettung  
-- **JSON-Handling** – Geplante Anbindung für Videodaten
+- **SwiftUI** – Deklaratives UI-Framework von Apple  
+- **MVVM** – Strukturierte Trennung von Logik und Darstellung  
+- **SwiftData** – Lokale Favoriten-Speicherung  
+- **WebKit/WebView** – Einbettung externer Videos  
+- **JSON-Handling** – Strukturierte Datenbasis für Videoinhalte
 
 ---
 
-## 🧪 **In Entwicklung (Next Steps)**
+## 🧪 **In Planung (Next Steps)**
 
 - [ ] Benutzer-Profile & Einstellungen  
-- [ ] Push-Benachrichtigungen  
-- [ ] Video-Kategorisierung (z. B. Disziplin, Fokus, Resilienz)  
-- [ ] Offline-Modus für gespeicherte Inhalte
+- [ ] Push-Benachrichtigungen (Reminder)  
+- [ ] Thematische Playlists & Kategorien  
+- [ ] Offline-Modus für gespeicherte Inhalte  
+- [ ] Fortschrittsanzeige & tägliche Routinen
 
 ---
 
 ## 📆 **Projektstatus**
 
 - 🔄 **Letztes Update:** Mai 2025  
-- 🚧 **Aktueller Fokus:** UI-Umsetzung & API-Logik  
-- 🎯 **Ziel:** Erste testbare Version im Frühjahr 2025
+- 🧱 **Aktueller Fokus:** UI-Struktur & Datenmodellierung  
+- 🎯 **Ziel:** Erste testbare Version im Sommer 2025
 
 ---
 
 ## 🤝 **Kontakt & Mitwirken**
 
-Dieses Projekt ist Teil meines öffentlichen **Mobile-App-Portfolios** – ich freue mich über Feedback oder Ideen:
+Dieses Projekt ist Teil meines Portfolios als Mobile App Developer.  
+Ich freue mich über Rückmeldungen, Hinweise oder Kooperationen:
 
 📫 GitHub Issues | 📬 Xing / LinkedIn (auf Anfrage)
 
 ---
 
-**🚀 "Mentale Stärke beginnt hier" – MindGear kommt bald.**  
-Bleib dran und entdecke deine innere Stärke neu.
+**🚀 MindGear – Denkanstöße. Klarheit. Stärke.**  
+*Entdecke deine mentale Power – täglich neu.*
