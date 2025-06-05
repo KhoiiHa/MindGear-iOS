@@ -1,7 +1,8 @@
-![MindGear Icon](https://res.cloudinary.com/dpaehynl2/image/upload/v1747665413/ChatGPT_Image_18._Mai_2025_16_37_57_rkbu11.png)
+<p align="center">
+  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1747665413/ChatGPT_Image_18._Mai_2025_16_37_57_rkbu11.png" alt="MindGear Icon" width="120" />
+</p>
 
-# **MindGear – Mentale Stärke für moderne Männer** 🧠🎧
-
+# **MindGear – Mentale Stärke für moderne Männer** 🧠🎧  
 *iOS-App zur Selbstentwicklung und mentalen Gesundheit – speziell für Männer*
 
 > ⚠️ Aktiver Entwicklungsstatus – Bestandteil meines öffentlich zugänglichen GitHub-Portfolios.
@@ -46,6 +47,29 @@ Durch thematische Empfehlungen und Favoritenfunktion unterstützt MindGear dich 
 - **SwiftData** – Lokale Favoriten-Speicherung  
 - **WebKit/WebView** – Einbettung externer Videos  
 - **JSON-Handling** – Strukturierte Datenbasis für Videoinhalte
+
+---
+
+## ✨ **Design-Inspiration (Figma UI Kits)**
+
+Die visuelle Gestaltung von MindGear basiert auf einer Auswahl hochwertiger UI-Vorlagen aus der Figma Community, die speziell in Bezug auf Klarheit, Zielgruppenansprache und Dark-Mode-Ästhetik ausgewählt wurden:
+
+- 🥇 [Onboarding Screens – Simple & Smart](https://www.figma.com/community/file/1281617727220411922)  
+  *Reduziertes, modernes Einstiegslayout – diente als Grundlage für den Startscreen.*
+
+- 🥈 [Freud – Mental Health App Kit](https://www.figma.com/community/file/1419755383210168032)  
+  *Modulare Komponenten für Favoriten-, Profil- und Empfehlungsscreens.*
+
+- 🥉 [Meditation Mobile App (DesignWave Studio)](https://www.figma.com/community/file/1218131950418014247)  
+  *Inspiriert durch typografische Klarheit und visuelle Ruhe.*
+
+- 🧩 [Lumina – Productivity App (Dark Mode)](https://www.figma.com/community/file/1374035111201279802)  
+  *Strukturiertes Dark-UI mit technischer Präzision für Fokusbereiche.*
+
+- 🔄 [Mental Wellness Mobile App – Modern UI Kit](https://www.figma.com/community/file/1379207519852717015)  
+  *Ergänzende UI-Bausteine für Navigation, Buttons und Tab-Leisten.*
+
+Diese Vorlagen wurden in Moodboard und Prototyping-Phase ausgewertet und selektiv ins Designsystem der App übernommen.
 
 ---
 
