@@ -48,7 +48,7 @@ struct ContentView: View {
 
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
-            for index in offsets {
+            for index in offsets.sorted(by: >) {
                 modelContext.delete(items[index])
             }
         }
