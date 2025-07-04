@@ -1,10 +1,3 @@
-//
-//  MindGear_iOSApp.swift
-//  MindGear_iOS
-//
-//  Created by Vu Minh Khoi Ha on 19.05.25.
-//
-
 import SwiftUI
 import SwiftData
 
@@ -25,7 +18,7 @@ struct MindGear_iOSApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainTabView()
         }
         .modelContainer(sharedModelContainer)
     }
