@@ -5,27 +5,26 @@ struct VideoListView: View {
 
     var body: some View {
         NavigationView {
-            List {
-                ForEach(viewModel.videos) { video in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(video.title)
-                                .font(.headline)
-                            Text(video.description)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        Spacer()
-                        Button(action: {
-                            viewModel.toggleFavorite(for: video)
-                        }) {
-                            Image(systemName: video.isFavorite ? "heart.fill" : "heart")
-                                .foregroundColor(video.isFavorite ? .red : .gray)
-                        }
-                        .buttonStyle(BorderlessButtonStyle())
+            List(viewModel.videos) { video in
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text(video.title)
+                            .font(.headline)
+                        Text(video.description)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                     }
-                    .padding(.vertical, 4)
+                    Spacer()
+                    Button(action: {
+                        // Optional: toggleFavorite ohne Context verwenden, falls nicht benötigt
+                        // viewModel.toggleFavorite(video: video)
+                    }) {
+                        Image(systemName: "heart")
+                            .foregroundColor(.gray)
+                    }
+                    .buttonStyle(BorderlessButtonStyle())
                 }
+                .padding(.vertical, 4)
             }
             .navigationTitle("Videos")
         }
@@ -34,6 +33,8 @@ struct VideoListView: View {
 
 struct VideoListView_Previews: PreviewProvider {
     static var previews: some View {
-        VideoListView()
+        NavigationStack {
+            VideoListView()
+        }
     }
 }
