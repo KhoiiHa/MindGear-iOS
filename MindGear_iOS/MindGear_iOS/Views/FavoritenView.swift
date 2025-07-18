@@ -19,12 +19,37 @@ struct FavoritenView: View {
                         .foregroundColor(.secondary)
                 } else {
                     ForEach(viewModel.favorites, id: \.id) { favorite in
-                        VStack(alignment: .leading) {
-                            Text(favorite.title)
-                                .font(.headline)
-                            Text(favorite.videoDescription)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                        HStack(spacing: 12) {
+                            if let url = URL(string: favorite.thumbnailURL) {
+                                AsyncImage(url: url) { phase in
+                                    switch phase {
+                                    case .empty:
+                                        ProgressView()
+                                            .frame(width: 80, height: 60)
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 80, height: 60)
+                                            .cornerRadius(8)
+                                    case .failure:
+                                        Image(systemName: "photo")
+                                            .frame(width: 80, height: 60)
+                                            .foregroundColor(.gray)
+                                    @unknown default:
+                                        EmptyView()
+                                    }
+                                }
+                            }
+
+                            VStack(alignment: .leading) {
+                                Text(favorite.title)
+                                    .font(.headline)
+                                Text(favorite.videoDescription)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(2)
+                            }
                         }
                     }
                     .onDelete { indexSet in

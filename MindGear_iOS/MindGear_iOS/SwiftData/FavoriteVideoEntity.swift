@@ -13,11 +13,11 @@ final class FavoriteVideoEntity {
     @Attribute(.unique) var id: UUID
     var title: String
     var videoDescription: String
-    var thumbnailURL: URL
-    var videoURL: URL
+    var thumbnailURL: String
+    var videoURL: String
     var category: String
 
-    init(id: UUID, title: String, videoDescription: String, thumbnailURL: URL, videoURL: URL, category: String) {
+    init(id: UUID, title: String, videoDescription: String, thumbnailURL: String, videoURL: String, category: String) {
         self.id = id
         self.title = title
         self.videoDescription = videoDescription
