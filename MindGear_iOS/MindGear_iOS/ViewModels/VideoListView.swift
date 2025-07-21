@@ -5,7 +5,7 @@ struct VideoListView: View {
 
     var body: some View {
         NavigationView {
-            List(viewModel.videos) { video in
+            List(viewModel.filteredVideos) { video in
                 HStack(spacing: 12) {
                     // Thumbnail
                     if let url = URL(string: video.thumbnailURL) {
@@ -45,6 +45,7 @@ struct VideoListView: View {
                 .padding(.vertical, 6)
             }
             .navigationTitle("Videos")
+            .searchable(text: $viewModel.searchText, prompt: "Suche Videos")
             .task {
                 await viewModel.loadVideos()
             }

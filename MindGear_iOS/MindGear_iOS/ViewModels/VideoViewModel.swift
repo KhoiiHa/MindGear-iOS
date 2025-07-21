@@ -4,10 +4,11 @@ import Foundation
 class VideoViewModel: ObservableObject {
     @Published var videos: [Video] = []
     @Published var errorMessage: String? = nil
+    @Published var searchText: String = ""
 
-    // Temporarily hardcode API credentials (later move to secure storage)
-    private let apiKey = "AIzaSyDOl0c6scnoCOouZvf9Rsynzac4O30_Sb4" // Replace with your actual API key
-    private let playlistId = "YOUR_PLAYLIST_ID" // Replace with your actual playlist ID
+    // Dynamically load API credentials from Config.plist
+    private let apiKey = ConfigManager.apiKey
+    private let playlistId = ConfigManager.playlistId
 
     func loadVideos() async {
         do {
@@ -41,6 +42,17 @@ class VideoViewModel: ObservableObject {
     func toggleFavorite(for video: Video) {
         if let index = videos.firstIndex(of: video) {
             videos[index].isFavorite.toggle()
+        }
+    }
+
+    var filteredVideos: [Video] {
+        if searchText.isEmpty {
+            return videos
+        } else {
+            return videos.filter {
+                $0.title.localizedCaseInsensitiveContains(searchText) ||
+                $0.description.localizedCaseInsensitiveContains(searchText)
+            }
         }
     }
 }
