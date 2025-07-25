@@ -1,0 +1,95 @@
+import SwiftUI
+
+/// Zeigt alle Videos der Playlist an und bietet Suche sowie Favoritenfilter.
+struct VideoListView: View {
+    /// Hält den Zustand der geladenen Videos
+    @StateObject private var viewModel = VideoViewModel()
+
+    var body: some View {
+        NavigationView {
+            Group {
+                if viewModel.isLoading {
+                    ProgressView("Lade Videos…")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if viewModel.filteredVideos.isEmpty {
+                    Text("Keine Videos gefunden")
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    List(viewModel.filteredVideos) { video in
+                        HStack(spacing: 12) {
+                            // Thumbnail
+                            if let url = URL(string: video.thumbnailURL) {
+                                AsyncImage(url: url) { phase in
+                                    switch phase {
+                                    case .empty:
+                                        ProgressView()
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 80, height: 60)
+                                            .cornerRadius(8)
+                                    case .failure:
+                                        Image(systemName: "photo")
+                                            .frame(width: 80, height: 60)
+                                            .foregroundColor(.gray)
+                                    @unknown default:
+                                        EmptyView()
+                                    }
+                                }
+                            }
+
+                            // Titel und Beschreibung
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(video.title)
+                                    .font(.headline)
+                                    .lineLimit(1)
+                                Text(video.description)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(2)
+                            }
+
+                            Spacer()
+                        }
+                        .padding(.vertical, 6)
+                    }
+                }
+            }
+            .navigationTitle("Videos")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Toggle(isOn: $viewModel.showFavoritesOnly) {
+                        Image(systemName: viewModel.showFavoritesOnly ? "heart.fill" : "heart")
+                            .foregroundColor(viewModel.showFavoritesOnly ? .red : .gray)
+                    }
+                    .toggleStyle(.button)
+                    .accessibilityLabel("Nur Favoriten anzeigen")
+                }
+            }
+            .searchable(text: $viewModel.searchText, prompt: "Suche Videos")
+            .task { await viewModel.loadVideos() }
+            // Einfache Fehlerdarstellung
+            .alert(
+                isPresented: Binding(
+                    get: { viewModel.errorMessage != nil },
+                    set: { newValue in if !newValue { viewModel.errorMessage = nil } }
+                ),
+                content: {
+                    Alert(
+                        title: Text("Fehler"),
+                        message: Text(viewModel.errorMessage ?? "Ein unbekannter Fehler ist aufgetreten."),
+                        dismissButton: .default(Text("OK")) { viewModel.errorMessage = nil }
+                    )
+                }
+            )
+        }
+    }
+}
+
+struct VideoListView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationStack { VideoListView() }
+    }
+}
