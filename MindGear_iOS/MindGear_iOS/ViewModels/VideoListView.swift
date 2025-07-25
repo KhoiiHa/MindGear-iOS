@@ -45,6 +45,16 @@ struct VideoListView: View {
                 .padding(.vertical, 6)
             }
             .navigationTitle("Videos")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Toggle(isOn: $viewModel.showFavoritesOnly) {
+                        Image(systemName: viewModel.showFavoritesOnly ? "heart.fill" : "heart")
+                            .foregroundColor(viewModel.showFavoritesOnly ? .red : .gray)
+                    }
+                    .toggleStyle(.button)
+                    .accessibilityLabel("Nur Favoriten anzeigen")
+                }
+            }
             .searchable(text: $viewModel.searchText, prompt: "Suche Videos")
             .task {
                 await viewModel.loadVideos()

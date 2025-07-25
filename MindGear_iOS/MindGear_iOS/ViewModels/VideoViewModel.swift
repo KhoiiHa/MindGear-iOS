@@ -45,14 +45,18 @@ class VideoViewModel: ObservableObject {
         }
     }
 
+    @Published var showFavoritesOnly: Bool = false
+
     var filteredVideos: [Video] {
-        if searchText.isEmpty {
-            return videos
-        } else {
-            return videos.filter {
-                $0.title.localizedCaseInsensitiveContains(searchText) ||
-                $0.description.localizedCaseInsensitiveContains(searchText)
-            }
+        return videos.filter { video in
+            let matchesSearch = searchText.isEmpty ||
+                video.title.localizedCaseInsensitiveContains(searchText) ||
+                video.description.localizedCaseInsensitiveContains(searchText) ||
+                video.category.localizedCaseInsensitiveContains(searchText)
+
+            let matchesFavorites = !showFavoritesOnly || video.isFavorite
+
+            return matchesSearch && matchesFavorites
         }
     }
 }
