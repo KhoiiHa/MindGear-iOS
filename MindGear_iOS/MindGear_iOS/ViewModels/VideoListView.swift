@@ -2,20 +2,20 @@ import SwiftUI
 import SwiftData
 
 struct VideoListView: View {
-    @Environment(\.modelContext) private var context
     @StateObject private var viewModel: VideoViewModel
 
-    init() {
-        _viewModel = StateObject(wrappedValue: VideoViewModel(context: nil))
+    init(context: ModelContext) {
+        _viewModel = StateObject(wrappedValue: VideoViewModel(context: context))
     }
 
     var body: some View {
         NavigationView {
             List(viewModel.filteredVideos) { video in
-                HStack(spacing: 12) {
-                    // Thumbnail
-                    if let url = URL(string: video.thumbnailURL) {
-                        AsyncImage(url: url) { phase in
+                NavigationLink(destination: VideoDetailView(video: video)) {
+                    HStack(spacing: 12) {
+                        // Thumbnail
+                        if let url = URL(string: video.thumbnailURL) {
+                            AsyncImage(url: url) { phase in
                             switch phase {
                             case .empty:
                                 ProgressView()
@@ -46,9 +46,10 @@ struct VideoListView: View {
                             .lineLimit(2)
                     }
 
-                    Spacer()
+                        Spacer()
+                    }
+                    .padding(.vertical, 6)
                 }
-                .padding(.vertical, 6)
             }
             .navigationTitle("Videos")
             .toolbar {
@@ -63,7 +64,6 @@ struct VideoListView: View {
             }
             .searchable(text: $viewModel.searchText, prompt: "Suche Videos")
             .task {
-                viewModel.updateContext(context)
                 await viewModel.loadVideos()
             }
             .alert(
@@ -102,7 +102,8 @@ struct VideoListView: View {
 struct VideoListView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack {
-            VideoListView()
+            let container = try! ModelContainer(for: FavoriteVideoEntity.self)
+            VideoListView(context: container.mainContext)
         }
     }
 }
