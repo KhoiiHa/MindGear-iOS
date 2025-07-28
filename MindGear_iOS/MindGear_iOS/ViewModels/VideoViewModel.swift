@@ -10,9 +10,15 @@ class VideoViewModel: ObservableObject {
     private let apiKey = ConfigManager.apiKey
     private let playlistId = ConfigManager.playlistId
 
+    private let apiService: APIServiceProtocol
+
+    init(apiService: APIServiceProtocol = APIService.shared) {
+        self.apiService = apiService
+    }
+
     func loadVideos() async {
         do {
-            let items = try await APIService.shared.fetchVideos(from: playlistId, apiKey: apiKey)
+            let items = try await apiService.fetchVideos(from: playlistId, apiKey: apiKey)
             self.videos = items.map { item in
                 Video(
                     id: UUID(),

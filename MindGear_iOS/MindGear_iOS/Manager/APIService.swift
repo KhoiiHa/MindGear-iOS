@@ -1,6 +1,10 @@
 import Foundation
 
-final class APIService {
+protocol APIServiceProtocol {
+    func fetchVideos(from playlistId: String, apiKey: String) async throws -> [YouTubeVideoItem]
+}
+
+final class APIService: APIServiceProtocol {
     static let shared = APIService()
 
     private init() {}
