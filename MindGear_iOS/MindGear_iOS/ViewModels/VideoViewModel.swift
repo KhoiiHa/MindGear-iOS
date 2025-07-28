@@ -19,7 +19,7 @@ class VideoViewModel: ObservableObject {
                     title: item.snippet.title,
                     description: item.snippet.description,
                     thumbnailURL: item.snippet.thumbnails.medium.url,
-                    videoURL: "", // To be improved later
+                    videoURL: "https://www.youtube.com/watch?v=\(item.snippet.resourceId.videoId)",
                     category: "YouTube"
                 )
             }
