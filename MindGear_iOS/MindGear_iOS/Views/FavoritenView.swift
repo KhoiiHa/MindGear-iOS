@@ -20,7 +20,14 @@ struct FavoritenView: View {
                 } else {
                     ForEach(viewModel.favorites, id: \.id) { favorite in
                         HStack(spacing: 12) {
-                            if let url = URL(string: favorite.thumbnailURL) {
+                            if let data = favorite.thumbnailData,
+                               let uiImage = UIImage(data: data) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 80, height: 60)
+                                    .cornerRadius(8)
+                            } else if let url = URL(string: favorite.thumbnailURL) {
                                 AsyncImage(url: url) { phase in
                                     switch phase {
                                     case .empty:
@@ -55,19 +62,21 @@ struct FavoritenView: View {
                     .onDelete { indexSet in
                         for index in indexSet {
                             let favorite = viewModel.favorites[index]
-                            FavoritesManager.shared.toggleFavorite(
-                                video: Video(
-                                    id: favorite.id,
-                                    title: favorite.title,
-                                    description: favorite.videoDescription,
-                                    thumbnailURL: favorite.thumbnailURL,
-                                    videoURL: favorite.videoURL,
-                                    category: favorite.category
-                                ),
-                                context: context
-                            )
+                            Task {
+                                await FavoritesManager.shared.toggleFavorite(
+                                    video: Video(
+                                        id: favorite.id,
+                                        title: favorite.title,
+                                        description: favorite.videoDescription,
+                                        thumbnailURL: favorite.thumbnailURL,
+                                        videoURL: favorite.videoURL,
+                                        category: favorite.category
+                                    ),
+                                    context: context
+                                )
+                                viewModel.loadFavorites(context: context)
+                            }
                         }
-                        viewModel.loadFavorites(context: context)
                     }
                 }
             }

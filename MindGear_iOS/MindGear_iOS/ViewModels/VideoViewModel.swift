@@ -1,23 +1,37 @@
 import Foundation
+import SwiftData
 
 @MainActor
 class VideoViewModel: ObservableObject {
     @Published var videos: [Video] = []
     @Published var errorMessage: String? = nil
     @Published var searchText: String = ""
+    @Published var offlineMessage: String? = nil
 
     // Dynamically load API credentials from Config.plist
     private let apiKey = ConfigManager.apiKey
     private let playlistId = ConfigManager.playlistId
 
     private let apiService: APIServiceProtocol
+    private var context: ModelContext
 
-    init(apiService: APIServiceProtocol = APIService.shared) {
+    init(apiService: APIServiceProtocol = APIService.shared, context: ModelContext? = nil) {
         self.apiService = apiService
+        if let context {
+            self.context = context
+        } else {
+            let container = try! ModelContainer(for: FavoriteVideoEntity.self)
+            self.context = ModelContext(container)
+        }
+    }
+
+    func updateContext(_ context: ModelContext) {
+        self.context = context
     }
 
     func loadVideos() async {
         do {
+            offlineMessage = nil
             let items = try await apiService.fetchVideos(from: playlistId, apiKey: apiKey)
             self.videos = items.map { item in
                 Video(
@@ -34,7 +48,24 @@ class VideoViewModel: ObservableObject {
             case .invalidURL:
                 errorMessage = "Ungültige URL. Bitte überprüfe die API-Einstellungen."
             case .networkError:
-                errorMessage = "Netzwerkfehler. Bitte überprüfe deine Internetverbindung."
+                let favorites = FavoritesManager.shared.getAllFavorites(context: context)
+                if favorites.isEmpty {
+                    errorMessage = "Netzwerkfehler. Bitte überprüfe deine Internetverbindung."
+                } else {
+                    errorMessage = nil
+                    offlineMessage = "Offline-Modus: Zeige gespeicherte Favoriten"
+                    self.videos = favorites.map { fav in
+                        Video(
+                            id: fav.id,
+                            title: fav.title,
+                            description: fav.videoDescription,
+                            thumbnailURL: fav.thumbnailURL,
+                            videoURL: fav.videoURL,
+                            category: fav.category,
+                            isFavorite: true
+                        )
+                    }
+                }
             case .decodingError:
                 errorMessage = "Fehler beim Verarbeiten der Daten. Versuche es später erneut."
             case .unknown:
