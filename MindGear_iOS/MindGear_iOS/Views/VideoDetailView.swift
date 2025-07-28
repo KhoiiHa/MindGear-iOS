@@ -1,8 +1,10 @@
 import SwiftUI
+import WebKit
 
 struct VideoDetailView: View {
     let video: Video
     @State private var isFavorite: Bool
+    @State private var loadError = false
 
     init(video: Video) {
         self.video = video
@@ -12,27 +14,14 @@ struct VideoDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // Thumbnail
-                if let url = URL(string: video.thumbnailURL) {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .empty:
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFit()
-                                .cornerRadius(12)
-                        case .failure:
-                            Image(systemName: "photo")
-                                .resizable()
-                                .scaledToFit()
-                                .foregroundColor(.gray)
-                        @unknown default:
-                            EmptyView()
-                        }
-                    }
+                if let url = URL(string: video.videoURL) {
+                    VideoWebView(url: url, loadFailed: $loadError)
+                        .frame(height: 200)
+                        .cornerRadius(12)
+                } else {
+                    Text("Ungültige Video-URL")
+                        .foregroundColor(.red)
+                        .frame(maxWidth: .infinity)
                 }
 
                 // Title
@@ -66,6 +55,11 @@ struct VideoDetailView: View {
             .padding()
         }
         .navigationTitle("Details")
+        .alert("Video konnte nicht geladen werden", isPresented: $loadError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Bitte überprüfe deine Internetverbindung oder die Video-URL.")
+        }
     }
 }
 
@@ -79,5 +73,40 @@ struct VideoDetailView_Previews: PreviewProvider {
             videoURL: "https://youtube.com/watch?v=xyz",
             category: "Motivation"
         ))
+    }
+}
+
+struct VideoWebView: UIViewRepresentable {
+    let url: URL
+    @Binding var loadFailed: Bool
+
+    func makeUIView(context: Context) -> WKWebView {
+        let webView = WKWebView()
+        webView.navigationDelegate = context.coordinator
+        return webView
+    }
+
+    func updateUIView(_ uiView: WKWebView, context: Context) {
+        uiView.load(URLRequest(url: url))
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, WKNavigationDelegate {
+        var parent: VideoWebView
+
+        init(_ parent: VideoWebView) {
+            self.parent = parent
+        }
+
+        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            parent.loadFailed = true
+        }
+
+        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            parent.loadFailed = true
+        }
     }
 }

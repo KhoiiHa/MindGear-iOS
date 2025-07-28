@@ -21,6 +21,11 @@ struct Snippet: Decodable {
     let title: String
     let description: String
     let thumbnails: Thumbnails
+    let resourceId: ResourceID
+}
+
+struct ResourceID: Decodable {
+    let videoId: String
 }
 
 struct Thumbnails: Decodable {
