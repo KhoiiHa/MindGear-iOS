@@ -75,11 +75,19 @@ Diese Vorlagen wurden in Moodboard und Prototyping-Phase ausgewertet und selekti
 
 ## 🧪 **In Planung (Next Steps)**
 
-- [ ] Benutzer-Profile & Einstellungen  
-- [ ] Push-Benachrichtigungen (Reminder)  
-- [ ] Thematische Playlists & Kategorien  
-- [ ] Offline-Modus für gespeicherte Inhalte  
+- [ ] Benutzer-Profile & Einstellungen
+- [ ] Push-Benachrichtigungen (Reminder)
+- [ ] Thematische Playlists & Kategorien
+- [ ] Offline-Modus für gespeicherte Inhalte
 - [ ] Fortschrittsanzeige & tägliche Routinen
+
+### Vorbereitete Module
+
+- `AppTheme` für konsistente Farben & Typografie
+- `AnimationHelper` für gemeinsame Übergänge
+- `NotificationManager` als Basis für Reminder
+- `AnalyticsManager` für Logging und Auswertung
+- `OnboardingView` als Einstiegspunkt
 
 ---
 
