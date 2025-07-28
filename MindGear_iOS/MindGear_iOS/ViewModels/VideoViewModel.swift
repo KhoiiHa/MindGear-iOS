@@ -15,17 +15,8 @@ class VideoViewModel: ObservableObject {
     private let apiService: APIServiceProtocol
     private var context: ModelContext
 
-    init(apiService: APIServiceProtocol = APIService.shared, context: ModelContext? = nil) {
+    init(apiService: APIServiceProtocol = APIService.shared, context: ModelContext) {
         self.apiService = apiService
-        if let context {
-            self.context = context
-        } else {
-            let container = try! ModelContainer(for: FavoriteVideoEntity.self)
-            self.context = ModelContext(container)
-        }
-    }
-
-    func updateContext(_ context: ModelContext) {
         self.context = context
     }
 
@@ -33,15 +24,21 @@ class VideoViewModel: ObservableObject {
         do {
             offlineMessage = nil
             let items = try await apiService.fetchVideos(from: playlistId, apiKey: apiKey)
+            let favorites = FavoritesManager.shared.getAllFavorites(context: context)
             self.videos = items.map { item in
-                Video(
+                let url = "https://www.youtube.com/watch?v=\(item.snippet.resourceId.videoId)"
+                var video = Video(
                     id: UUID(),
                     title: item.snippet.title,
                     description: item.snippet.description,
                     thumbnailURL: item.snippet.thumbnails.medium.url,
-                    videoURL: "https://www.youtube.com/watch?v=\(item.snippet.resourceId.videoId)",
+                    videoURL: url,
                     category: "YouTube"
                 )
+                if favorites.contains(where: { $0.videoURL == url }) {
+                    video.isFavorite = true
+                }
+                return video
             }
         } catch let error as AppError {
             switch error {
@@ -76,9 +73,10 @@ class VideoViewModel: ObservableObject {
         }
     }
 
-    func toggleFavorite(for video: Video) {
+    func toggleFavorite(for video: Video) async {
+        await FavoritesManager.shared.toggleFavorite(video: video, context: context)
         if let index = videos.firstIndex(of: video) {
-            videos[index].isFavorite.toggle()
+            videos[index].isFavorite = FavoritesManager.shared.isFavorite(video: video, context: context)
         }
     }
 

@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct HomeView: View {
+    @Environment(\.modelContext) private var context
+
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
@@ -24,7 +26,7 @@ struct HomeView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
 
-                NavigationLink(destination: VideoListView()) {
+                NavigationLink(destination: VideoListView(context: context)) {
                     Text("Jetzt starten")
                         .font(.headline)
                         .foregroundColor(.white)
@@ -44,6 +46,8 @@ struct HomeView: View {
 
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
+        let container = try! ModelContainer(for: FavoriteVideoEntity.self)
         HomeView()
+            .modelContainer(container)
     }
 }

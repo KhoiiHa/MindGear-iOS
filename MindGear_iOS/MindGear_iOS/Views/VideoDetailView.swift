@@ -1,10 +1,12 @@
 import SwiftUI
 import WebKit
+import SwiftData
 
 struct VideoDetailView: View {
     let video: Video
     @State private var isFavorite: Bool
     @State private var loadError = false
+    @Environment(\.modelContext) private var context
 
     init(video: Video) {
         self.video = video
@@ -36,7 +38,10 @@ struct VideoDetailView: View {
 
                 // Favorite button
                 Button(action: {
-                    isFavorite.toggle()
+                    Task {
+                        await FavoritesManager.shared.toggleFavorite(video: video, context: context)
+                        isFavorite = FavoritesManager.shared.isFavorite(video: video, context: context)
+                    }
                 }) {
                     HStack {
                         Image(systemName: isFavorite ? "heart.fill" : "heart")

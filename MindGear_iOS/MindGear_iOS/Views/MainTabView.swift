@@ -9,6 +9,8 @@
 import SwiftUI
 
 struct MainTabView: View {
+    @Environment(\.modelContext) private var context
+
     var body: some View {
         TabView {
             HomeView()
@@ -17,7 +19,7 @@ struct MainTabView: View {
                     Text("Home")
                 }
 
-            VideoListView()
+            VideoListView(context: context)
                 .tabItem {
                     Image(systemName: "play.rectangle.fill")
                     Text("Videos")
@@ -40,6 +42,8 @@ struct MainTabView: View {
 
 struct MainTabView_Previews: PreviewProvider {
     static var previews: some View {
+        let container = try! ModelContainer(for: FavoriteVideoEntity.self)
         MainTabView()
+            .modelContainer(container)
     }
 }
