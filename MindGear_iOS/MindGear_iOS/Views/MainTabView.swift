@@ -28,6 +28,12 @@ struct MainTabView: View {
                     Image(systemName: "heart.fill")
                     Text("Favoriten")
                 }
+
+            SettingsView()
+                .tabItem {
+                    Image(systemName: "gearshape.fill")
+                    Text("Einstellungen")
+                }
         }
     }
 }
