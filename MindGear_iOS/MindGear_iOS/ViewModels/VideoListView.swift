@@ -1,7 +1,13 @@
 import SwiftUI
+import SwiftData
 
 struct VideoListView: View {
-    @StateObject private var viewModel = VideoViewModel()
+    @Environment(\.modelContext) private var context
+    @StateObject private var viewModel: VideoViewModel
+
+    init() {
+        _viewModel = StateObject(wrappedValue: VideoViewModel(context: nil))
+    }
 
     var body: some View {
         NavigationView {
@@ -57,6 +63,7 @@ struct VideoListView: View {
             }
             .searchable(text: $viewModel.searchText, prompt: "Suche Videos")
             .task {
+                viewModel.updateContext(context)
                 await viewModel.loadVideos()
             }
             .alert(
@@ -77,6 +84,16 @@ struct VideoListView: View {
                         })
                     )
                 }
+            )
+            .overlay(
+                Group {
+                    if let message = viewModel.offlineMessage {
+                        Text(message)
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .padding(.top, 8)
+                    }
+                }, alignment: .top
             )
         }
     }

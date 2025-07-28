@@ -19,8 +19,8 @@ class FavoritenViewModel: ObservableObject {
         favorites = FavoritesManager.shared.getAllFavorites(context: context)
     }
 
-    func toggleFavorite(video: Video, context: ModelContext) {
-        FavoritesManager.shared.toggleFavorite(video: video, context: context)
+    func toggleFavorite(video: Video, context: ModelContext) async {
+        await FavoritesManager.shared.toggleFavorite(video: video, context: context)
         loadFavorites(context: context)
     }
 

@@ -13,18 +13,18 @@ final class FavoritesManagerTests: XCTestCase {
         context = ModelContext(container)
     }
 
-    func testToggleAndFetchFavorites() throws {
+    func testToggleAndFetchFavorites() async throws {
         let video = Video(id: UUID(), title: "t", description: "d", thumbnailURL: "u", videoURL: "v", category: "c")
         let manager = FavoritesManager.shared
 
         XCTAssertFalse(manager.isFavorite(video: video, context: context))
-        manager.toggleFavorite(video: video, context: context)
+        await manager.toggleFavorite(video: video, context: context)
         XCTAssertTrue(manager.isFavorite(video: video, context: context))
 
         let all = manager.getAllFavorites(context: context)
         XCTAssertEqual(all.count, 1)
 
-        manager.toggleFavorite(video: video, context: context)
+        await manager.toggleFavorite(video: video, context: context)
         XCTAssertFalse(manager.isFavorite(video: video, context: context))
         XCTAssertTrue(manager.getAllFavorites(context: context).isEmpty)
     }
