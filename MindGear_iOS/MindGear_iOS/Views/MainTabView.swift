@@ -32,6 +32,18 @@ struct MainTabView: View {
                     Text("Favoriten")
                 }
 
+            CategoriesView()
+                .tabItem {
+                    Image(systemName: "square.grid.2x2.fill")
+                    Text("Kategorien")
+                }
+
+            PlaylistView()
+                .tabItem {
+                    Image(systemName: "music.note.list")
+                    Text("Playlists")
+                }
+
             SettingsView()
                 .tabItem {
                     Image(systemName: "gearshape.fill")
