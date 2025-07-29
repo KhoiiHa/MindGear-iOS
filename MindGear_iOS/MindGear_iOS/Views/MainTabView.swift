@@ -7,6 +7,7 @@
 
 
 import SwiftUI
+import SwiftData
 
 struct MainTabView: View {
     @Environment(\.modelContext) private var context

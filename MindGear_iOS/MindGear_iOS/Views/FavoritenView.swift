@@ -3,13 +3,7 @@ import SwiftData
 
 struct FavoritenView: View {
     @Environment(\.modelContext) private var context
-    @StateObject private var viewModel: FavoritenViewModel
-
-    init() {
-        let container = try! ModelContainer(for: FavoriteVideoEntity.self)
-        let context = container.mainContext
-        _viewModel = StateObject(wrappedValue: FavoritenViewModel(context: context))
-    }
+    @StateObject private var viewModel = FavoritenViewModel()
 
     var body: some View {
         NavigationView {
@@ -74,7 +68,7 @@ struct FavoritenView: View {
                                     ),
                                     context: context
                                 )
-                                viewModel.loadFavorites(context: context)
+                                viewModel.loadFavorites()
                             }
                         }
                     }
@@ -82,14 +76,11 @@ struct FavoritenView: View {
             }
             .navigationTitle("Favoriten")
             .onAppear {
-                viewModel.loadFavorites(context: context)
+                Task {
+                    viewModel.loadFavorites()
+                }
             }
         }
     }
 }
 
-struct FavoritenView_Previews: PreviewProvider {
-    static var previews: some View {
-        FavoritenView()
-    }
-}

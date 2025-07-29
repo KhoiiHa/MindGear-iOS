@@ -7,24 +7,27 @@
 
 import Foundation
 import SwiftData
+import SwiftUI
 
 class FavoritenViewModel: ObservableObject {
     @Published var favorites: [FavoriteVideoEntity] = []
 
-    init(context: ModelContext) {
-        loadFavorites(context: context)
+    @Environment(\.modelContext) private var context
+
+    init() {
+        loadFavorites()
     }
 
-    func loadFavorites(context: ModelContext) {
+    func loadFavorites() {
         favorites = FavoritesManager.shared.getAllFavorites(context: context)
     }
 
-    func toggleFavorite(video: Video, context: ModelContext) async {
+    func toggleFavorite(video: Video) async {
         await FavoritesManager.shared.toggleFavorite(video: video, context: context)
-        loadFavorites(context: context)
+        loadFavorites()
     }
 
-    func isFavorite(video: Video, context: ModelContext) -> Bool {
+    func isFavorite(video: Video) -> Bool {
         FavoritesManager.shared.isFavorite(video: video, context: context)
     }
 }
