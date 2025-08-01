@@ -14,8 +14,44 @@ struct ConfigManager {
         return getValue(for: "API_KEY")
     }
 
-    static var playlistId: String {
-        return getValue(for: "PLAYLIST_ID")
+    static var chrisWillxChannelId: String {
+        return getValue(for: "CHRISWILLX_CHANNEL_ID")
+    }
+
+    static var jayShettyChannelId: String {
+        return getValue(for: "JAYSHETTY_CHANNEL_ID")
+    }
+
+    static var recommendedPlaylistId: String {
+        return getValue(for: "RECOMMENDED_PLAYLIST")
+    }
+
+    static var shawnRyanPlaylistId: String {
+        return getValue(for: "SHAWNRYAN_PLAYLIST")
+    }
+
+    static var jayShettyPlaylistId: String {
+        return getValue(for: "JAYSHETTY_PLAYLIST")
+    }
+
+    static var diaryOfACeoPlaylistId: String {
+        return getValue(for: "DIARYOFACEO_PLAYLIST")
+    }
+
+    static var theoVonPlaylistId: String {
+        return getValue(for: "THEOVON_PLAYLIST")
+    }
+
+    static var jordanBPetersonPlaylistId: String {
+        return getValue(for: "JORDANBPETERSON_PLAYLIST")
+    }
+
+    static var simonSinekPlaylistId: String {
+        return getValue(for: "SIMONSINEK_PLAYLIST")
+    }
+
+    static var shiHengYiPlaylistId: String {
+        return getValue(for: "SHIHENGYI_PLAYLIST")
     }
 
     private static func getValue(for key: String) -> String {

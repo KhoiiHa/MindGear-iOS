@@ -10,12 +10,13 @@ class VideoViewModel: ObservableObject {
 
     // Dynamically load API credentials from Config.plist
     private let apiKey = ConfigManager.apiKey
-    private let playlistId = ConfigManager.playlistId
+    private let playlistId: String
 
     private let apiService: APIServiceProtocol
     private var context: ModelContext
 
-    init(apiService: APIServiceProtocol = APIService.shared, context: ModelContext) {
+    init(playlistId: String, apiService: APIServiceProtocol = APIService.shared, context: ModelContext) {
+        self.playlistId = playlistId
         self.apiService = apiService
         self.context = context
     }
@@ -25,8 +26,9 @@ class VideoViewModel: ObservableObject {
             offlineMessage = nil
             let items = try await apiService.fetchVideos(from: playlistId, apiKey: apiKey)
             let favorites = FavoritesManager.shared.getAllFavorites(context: context)
-            self.videos = items.map { item in
-                let url = "https://www.youtube.com/watch?v=\(item.snippet.resourceId.videoId)"
+            self.videos = items.compactMap { item in
+                guard let videoId = item.snippet.resourceId?.videoId else { return nil }
+                let url = "https://www.youtube.com/watch?v=\(videoId)"
                 var video = Video(
                     id: UUID(),
                     title: item.snippet.title,

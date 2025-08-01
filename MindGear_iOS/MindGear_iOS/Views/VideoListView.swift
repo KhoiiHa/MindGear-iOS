@@ -5,50 +5,18 @@ struct VideoListView: View {
     @StateObject private var viewModel: VideoViewModel
 
     init(context: ModelContext) {
-        _viewModel = StateObject(wrappedValue: VideoViewModel(context: context))
+        _viewModel = StateObject(
+            wrappedValue: VideoViewModel(
+                playlistId: ConfigManager.recommendedPlaylistId,
+                context: context
+            )
+        )
     }
-
     var body: some View {
         NavigationView {
             List(viewModel.filteredVideos) { video in
                 NavigationLink(destination: VideoDetailView(video: video)) {
-                    HStack(spacing: 12) {
-                        // Thumbnail
-                        if let url = URL(string: video.thumbnailURL) {
-                            AsyncImage(url: url) { phase in
-                            switch phase {
-                            case .empty:
-                                ProgressView()
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 80, height: 60)
-                                    .cornerRadius(8)
-                            case .failure:
-                                Image(systemName: "photo")
-                                    .frame(width: 80, height: 60)
-                                    .foregroundColor(.gray)
-                            @unknown default:
-                                EmptyView()
-                            }
-                        }
-                    }
-
-                    // Title & Description
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(video.title)
-                            .font(.headline)
-                            .lineLimit(1)
-                        Text(video.description)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .lineLimit(2)
-                    }
-
-                        Spacer()
-                    }
-                    .padding(.vertical, 6)
+                    VideoRow(video: video)
                 }
             }
             .navigationTitle("Videos")

@@ -21,7 +21,7 @@ struct Snippet: Decodable {
     let title: String
     let description: String
     let thumbnails: Thumbnails
-    let resourceId: ResourceID
+    let resourceId: ResourceID?
 }
 
 struct ResourceID: Decodable {
@@ -34,4 +34,18 @@ struct Thumbnails: Decodable {
 
 struct Thumbnail: Decodable {
     let url: String
+}
+
+// Für YouTube Search (channelId → Videos)
+struct YouTubeSearchResponse: Decodable {
+    let items: [YouTubeSearchVideoItem]
+}
+
+struct YouTubeSearchVideoItem: Decodable {
+    let id: SearchVideoID
+    let snippet: Snippet
+}
+
+struct SearchVideoID: Decodable {
+    let videoId: String
 }

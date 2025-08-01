@@ -38,7 +38,7 @@ struct MainTabView: View {
                     Text("Kategorien")
                 }
 
-            PlaylistView()
+            PlaylistView(playlistId: ConfigManager.recommendedPlaylistId, context: context)
                 .tabItem {
                     Image(systemName: "music.note.list")
                     Text("Playlists")

@@ -5,24 +5,29 @@
 //  Created by Vu Minh Khoi Ha on 29.07.25.
 //
 
-
-
 import SwiftUI
+import SwiftData
 
 struct PlaylistView: View {
+    @StateObject private var viewModel: VideoViewModel
+
+    init(playlistId: String, context: ModelContext) {
+        _viewModel = StateObject(wrappedValue: VideoViewModel(playlistId: playlistId, context: context))
+    }
+
     var body: some View {
         NavigationStack {
-            Text("🎵 Playlist Übersicht kommt bald!")
-                .font(.title2)
-                .fontWeight(.medium)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding()
-                .navigationTitle("Playlisten")
+            List(viewModel.filteredVideos) { video in
+                VideoRow(video: video)
+            }
+            .task {
+                await viewModel.loadVideos()
+            }
+            .navigationTitle("🎥 Playlist")
         }
     }
 }
 
 #Preview {
-    PlaylistView()
+    EmptyView()
 }
