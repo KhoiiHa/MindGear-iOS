@@ -14,6 +14,10 @@ struct PlaylistView: View {
     init(playlistId: String, context: ModelContext) {
         _viewModel = StateObject(wrappedValue: VideoViewModel(playlistId: playlistId, context: context))
     }
+    
+    private var title: String {
+        viewModel.filteredVideos.first?.category ?? "🎥 Playlist"
+    }
 
     var body: some View {
         NavigationStack {
@@ -23,7 +27,7 @@ struct PlaylistView: View {
             .task {
                 await viewModel.loadVideos()
             }
-            .navigationTitle("🎥 Playlist")
+            .navigationTitle(title)
         }
     }
 }

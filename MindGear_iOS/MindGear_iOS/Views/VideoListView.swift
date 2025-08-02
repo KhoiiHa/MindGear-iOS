@@ -4,10 +4,10 @@ import SwiftData
 struct VideoListView: View {
     @StateObject private var viewModel: VideoViewModel
 
-    init(context: ModelContext) {
+    init(playlistID: String, context: ModelContext) {
         _viewModel = StateObject(
             wrappedValue: VideoViewModel(
-                playlistId: ConfigManager.recommendedPlaylistId,
+                playlistId: playlistID,
                 context: context
             )
         )
@@ -71,7 +71,7 @@ struct VideoListView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack {
             let container = try! ModelContainer(for: FavoriteVideoEntity.self)
-            VideoListView(context: container.mainContext)
+            VideoListView(playlistID: ConfigManager.recommendedPlaylistId, context: container.mainContext)
         }
     }
 }

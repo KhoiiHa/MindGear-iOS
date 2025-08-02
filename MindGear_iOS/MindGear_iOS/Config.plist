@@ -3,26 +3,40 @@
 <plist version="1.0">
 <dict>
 	<key>RECOMMENDED_PLAYLIST</key>
-	<string>PL3mRdhbSFXrNZM4txh582a1Q5_SzCFcmC</string>
+	<string>PLkL7BvJXiqSSAplLnPAyhA13Hk2rQQDmo</string>
 	<key>API_KEY</key>
 	<string>AIzaSyDOl0c6scnoCOouZvf9Rsynzac4O30_Sb4</string>
-	<key>CHRISWILLX_PLAYLIST</key>
-	<string>PLkL7BvJXiqSQu3i72hSrG4vUkDuaneHuB</string>
 	<key>CHRISWILLX_CHANNEL_ID</key>
 	<string>UCmblfJ2d1yQfLrNlVJXL7Zw</string>
-	<key>SHAWNRYAN_PLAYLIST</key>
-	<string>PL4pqo9Uoh0Wu2SY7VR-W33uxteqG1GV0m</string>
+	<key>CHRISWILLX_PLAYLIST</key>
+	<string>PLkL7BvJXiqSQu3i72hSrG4vUkDuaneHuB</string>
+	<key>JAYSHETTY_CHANNEL_ID</key>
+	<string>UCbK_QsfaFZG6PdQeCvaYXJQ</string>
 	<key>JAYSHETTY_PLAYLIST</key>
 	<string>PL-Woi1-PlvaI7Ll2B6edg3DXmBCBecxAQ</string>
+	<key>DIARYOFACEO_CHANNEL_ID</key>
+	<string>UCGq-a57w-aPwyi3pW7XLiHw</string>
 	<key>DIARYOFACEO_PLAYLIST</key>
 	<string>PL22egh3ok4cNCrImscfKlQg9ITY7WE_rG</string>
 	<key>THEOVON_PLAYLIST</key>
 	<string>PLY155lJX6_wdbj68FsShve_TtAmdYej8s</string>
+	<key>THEOVON_CHANNEL_ID</key>
+	<string>UC5AQEUAwCh1sGDvkQtkDWUQ</string>
+	<key>JORDANBPETERSON_CHANNEL_ID</key>
+	<string>UCL_f53ZEJxp8TtlOkHwMV9Q</string>
 	<key>JORDANBPETERSON_PLAYLIST</key>
 	<string>PL22J3VaeABQCD4cmJ109SEuUDVvwkwNLF</string>
+	<key>SIMONSINEK_CHANNEL_ID</key>
+	<string>UCPmfPl-BsCd3wmE8i45LAoA</string>
 	<key>SIMONSINEK_PLAYLIST</key>
 	<string>PLgCOAz4cqZMTQ4Blgkfr4IqU2YAJWJzN1</string>
+	<key>SHIHENGYI_CHANNEL_ID</key>
+	<string>UCs0I10G-oIitfWdbhQW_2dQ</string>
 	<key>SHIHENGYI_PLAYLIST</key>
 	<string>PL2OhuBUEg0TSLpy9yQ3pUD1qQQQ0KAtdX</string>
+	<key>SHAWNRYAN_CHANNEL_ID</key>
+	<string>UCs0I10G-oIitfWdbhQW_2dQ</string>
+	<key>SHAWNRYAN_PLAYLIST</key>
+	<string>PL4pqo9Uoh0Wu2SY7VR-W33uxteqG1GV0m</string>
 </dict>
 </plist>

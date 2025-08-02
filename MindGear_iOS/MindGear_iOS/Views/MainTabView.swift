@@ -20,7 +20,7 @@ struct MainTabView: View {
                     Text("Home")
                 }
 
-            VideoListView(context: context)
+            VideoListView(playlistID: ConfigManager.recommendedPlaylistId, context: context)
                 .tabItem {
                     Image(systemName: "play.rectangle.fill")
                     Text("Videos")

@@ -27,13 +27,22 @@ class VideoViewModel: ObservableObject {
             let items = try await apiService.fetchVideos(from: playlistId, apiKey: apiKey)
             let favorites = FavoritesManager.shared.getAllFavorites(context: context)
             self.videos = items.compactMap { item in
-                guard let videoId = item.snippet.resourceId?.videoId else { return nil }
+                guard
+                    let snippet = item.snippet,
+                    let videoId = snippet.resourceId?.videoId,
+                    let title = snippet.title,
+                    let description = snippet.description,
+                    let thumbnailURL = snippet.thumbnails?.medium?.url
+                else {
+                    return nil
+                }
+
                 let url = "https://www.youtube.com/watch?v=\(videoId)"
                 var video = Video(
                     id: UUID(),
-                    title: item.snippet.title,
-                    description: item.snippet.description,
-                    thumbnailURL: item.snippet.thumbnails.medium.url,
+                    title: title,
+                    description: description,
+                    thumbnailURL: thumbnailURL,
                     videoURL: url,
                     category: "YouTube"
                 )
