@@ -20,6 +20,7 @@ struct VideoDetailView: View {
                     VideoWebView(url: url, loadFailed: $loadError)
                         .frame(height: 200)
                         .cornerRadius(12)
+                        .shadow(radius: 4)
                 } else {
                     Text("Ungültige Video-URL")
                         .foregroundColor(.red)
@@ -46,7 +47,7 @@ struct VideoDetailView: View {
                     HStack {
                         Image(systemName: isFavorite ? "heart.fill" : "heart")
                             .foregroundColor(isFavorite ? .red : .gray)
-                        Text(isFavorite ? "Favorit" : "Als Favorit markieren")
+                        Text(isFavorite ? "Als Favorit entfernen" : "Favorit")
                             .foregroundColor(.accentColor)
                     }
                     .padding()

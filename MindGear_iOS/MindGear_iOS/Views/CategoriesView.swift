@@ -11,12 +11,26 @@ struct CategoriesView: View {
     @Environment(\.modelContext) private var modelContext
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List(categories) { category in
                 NavigationLink {
                     switch category.name {
+                    case "Mindset":
+                        PlaylistView(playlistId: ConfigManager.recommendedPlaylistId, context: modelContext)
+                    case "Disziplin & Fokus":
+                        PlaylistView(playlistId: ConfigManager.shawnRyanPlaylistId, context: modelContext)
                     case "Emotionale Intelligenz":
                         PlaylistView(playlistId: ConfigManager.jayShettyPlaylistId, context: modelContext)
+                    case "Beziehungen":
+                        PlaylistView(playlistId: ConfigManager.simonSinekPlaylistId, context: modelContext)
+                    case "Innere Ruhe & Achtsamkeit":
+                        PlaylistView(playlistId: ConfigManager.shiHengYiPlaylistId, context: modelContext)
+                    case "Motivation & Energie":
+                        PlaylistView(playlistId: ConfigManager.stevenBartlettPlaylistId, context: modelContext)
+                    case "Werte & Purpose":
+                        PlaylistView(playlistId: ConfigManager.jordanPetersonPlaylistId, context: modelContext)
+                    case "Impulse & Perspektiven":
+                        PlaylistView(playlistId: ConfigManager.theoVonPlaylistId, context: modelContext)
                     default:
                         Text("📦 Noch keine Playlist verknüpft")
                     }

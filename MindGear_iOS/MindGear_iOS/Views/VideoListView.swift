@@ -13,7 +13,7 @@ struct VideoListView: View {
         )
     }
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List(viewModel.filteredVideos) { video in
                 NavigationLink(destination: VideoDetailView(video: video)) {
                     VideoRow(video: video)

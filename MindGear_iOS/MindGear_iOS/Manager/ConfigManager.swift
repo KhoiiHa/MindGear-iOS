@@ -22,9 +22,6 @@ struct ConfigManager {
         return getValue(for: "JAYSHETTY_CHANNEL_ID")
     }
 
-    static var recommendedPlaylistId: String {
-        return getValue(for: "RECOMMENDED_PLAYLIST")
-    }
 
     static var shawnRyanPlaylistId: String {
         return getValue(for: "SHAWNRYAN_PLAYLIST")
@@ -32,6 +29,10 @@ struct ConfigManager {
 
     static var jayShettyPlaylistId: String {
         return getValue(for: "JAYSHETTY_PLAYLIST")
+    }
+
+    static var recommendedPlaylistId: String {
+        return getValue(for: "RECOMMENDED_PLAYLIST")
     }
 
     static var diaryOfACeoPlaylistId: String {
