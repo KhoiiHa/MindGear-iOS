@@ -2,7 +2,7 @@
 //  CategoriesView.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 29.07.25.
+//  Created by Vu Minh Khoi Ha on 05.08.25.
 //
 
 import SwiftUI
@@ -26,9 +26,9 @@ struct CategoriesView: View {
                     case "Innere Ruhe & Achtsamkeit":
                         PlaylistView(playlistId: ConfigManager.shiHengYiPlaylistId, context: modelContext)
                     case "Motivation & Energie":
-                        PlaylistView(playlistId: ConfigManager.stevenBartlettPlaylistId, context: modelContext)
+                        PlaylistView(playlistId: ConfigManager.diaryOfACeoPlaylistId, context: modelContext)
                     case "Werte & Purpose":
-                        PlaylistView(playlistId: ConfigManager.jordanPetersonPlaylistId, context: modelContext)
+                        PlaylistView(playlistId: ConfigManager.jordanBPetersonPlaylistId, context: modelContext)
                     case "Impulse & Perspektiven":
                         PlaylistView(playlistId: ConfigManager.theoVonPlaylistId, context: modelContext)
                     default:
@@ -49,8 +49,8 @@ struct CategoriesView: View {
     }
 }
 
-struct CategoriesView_Previews {
-    #Preview {
+struct CategoriesView_Previews: PreviewProvider {
+    static var previews: some View {
         CategoriesView()
     }
 }

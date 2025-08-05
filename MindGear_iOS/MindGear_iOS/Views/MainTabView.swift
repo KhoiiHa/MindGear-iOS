@@ -38,6 +38,12 @@ struct MainTabView: View {
                     Text("Kategorien")
                 }
 
+            MentorsView(mentors: allMentors)
+                .tabItem {
+                    Image(systemName: "person.2.fill")
+                    Text("Mentoren")
+                }
+
             PlaylistView(playlistId: ConfigManager.recommendedPlaylistId, context: context)
                 .tabItem {
                     Image(systemName: "music.note.list")

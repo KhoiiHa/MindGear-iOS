@@ -2,11 +2,10 @@
 //  CategoryData.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 01.08.25.
+//  Created by Vu Minh Khoi Ha on 05.08.25.
 //
 
 import Foundation
-
 
 struct Category: Identifiable {
     let id = UUID()
