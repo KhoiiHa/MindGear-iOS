@@ -92,3 +92,4 @@ struct MentorDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 }
+

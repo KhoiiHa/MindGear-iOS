@@ -12,22 +12,28 @@ import SwiftUI
 class FavoritenViewModel: ObservableObject {
     @Published var favorites: [FavoriteVideoEntity] = []
 
-    @Environment(\.modelContext) private var context
+    var context: ModelContext?
 
-    init() {
-        loadFavorites()
+    init(context: ModelContext? = nil) {
+        self.context = context
+        if let context = context {
+            loadFavorites(context: context)
+        }
     }
 
-    func loadFavorites() {
-        favorites = FavoritesManager.shared.getAllFavorites(context: context)
+    func loadFavorites(context: ModelContext? = nil) {
+        guard let ctx = context ?? self.context else { return }
+        favorites = FavoritesManager.shared.getAllFavorites(context: ctx)
     }
 
     func toggleFavorite(video: Video) async {
-        await FavoritesManager.shared.toggleFavorite(video: video, context: context)
-        loadFavorites()
+        guard let ctx = context else { return }
+        await FavoritesManager.shared.toggleFavorite(video: video, context: ctx)
+        loadFavorites(context: ctx)
     }
 
     func isFavorite(video: Video) -> Bool {
-        FavoritesManager.shared.isFavorite(video: video, context: context)
+        guard let ctx = context else { return false }
+        return FavoritesManager.shared.isFavorite(video: video, context: ctx)
     }
 }

@@ -5,6 +5,7 @@ import SwiftData
 struct VideoDetailView: View {
     let video: Video
     @State private var isFavorite: Bool
+    @StateObject private var favoritesViewModel = FavoritenViewModel()
     @State private var loadError = false
     @Environment(\.modelContext) private var context
 
@@ -40,8 +41,8 @@ struct VideoDetailView: View {
                 // Favorite button
                 Button(action: {
                     Task {
-                        await FavoritesManager.shared.toggleFavorite(video: video, context: context)
-                        isFavorite = FavoritesManager.shared.isFavorite(video: video, context: context)
+                        await favoritesViewModel.toggleFavorite(video: video)
+                        isFavorite = favoritesViewModel.isFavorite(video: video)
                     }
                 }) {
                     HStack {
@@ -65,6 +66,10 @@ struct VideoDetailView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text("Bitte überprüfe deine Internetverbindung oder die Video-URL.")
+        }
+        .onAppear {
+            favoritesViewModel.context = context
+            isFavorite = favoritesViewModel.isFavorite(video: video)
         }
     }
 }

@@ -3,7 +3,7 @@ import SwiftData
 
 struct FavoritenView: View {
     @Environment(\.modelContext) private var context
-    @StateObject private var viewModel = FavoritenViewModel()
+    @StateObject private var viewModel = FavoritenViewModel() 
 
     var body: some View {
         NavigationView {
@@ -68,7 +68,7 @@ struct FavoritenView: View {
                                     ),
                                     context: context
                                 )
-                                viewModel.loadFavorites()
+                                viewModel.loadFavorites(context: context)
                             }
                         }
                     }
@@ -76,11 +76,9 @@ struct FavoritenView: View {
             }
             .navigationTitle("Favoriten")
             .onAppear {
-                Task {
-                    viewModel.loadFavorites()
-                }
+                viewModel.context = context
+                viewModel.loadFavorites(context: context)
             }
         }
     }
 }
-
