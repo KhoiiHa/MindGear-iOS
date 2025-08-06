@@ -4,15 +4,29 @@ import SwiftData
 struct FavoritenView: View {
     @Environment(\.modelContext) private var context
     @StateObject private var viewModel = FavoritenViewModel() 
+    @State private var searchText = ""
+
+    private var filteredFavorites: [FavoriteVideoEntity] {
+        if searchText.isEmpty {
+            return viewModel.favorites
+        } else {
+            return viewModel.favorites.filter { favorite in
+                favorite.title.localizedCaseInsensitiveContains(searchText) ||
+                favorite.videoDescription.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+    }
 
     var body: some View {
         NavigationView {
             List {
-                if viewModel.favorites.isEmpty {
-                    Text("Keine Favoriten gespeichert.")
+                if filteredFavorites.isEmpty {
+                    Text(viewModel.favorites.isEmpty
+                         ? "Keine Favoriten gespeichert."
+                         : "Keine Favoriten gefunden.")
                         .foregroundColor(.secondary)
                 } else {
-                    ForEach(viewModel.favorites, id: \.id) { favorite in
+                    ForEach(filteredFavorites, id: \.id) { favorite in
                         HStack(spacing: 12) {
                             if let data = favorite.thumbnailData,
                                let uiImage = UIImage(data: data) {
@@ -55,7 +69,7 @@ struct FavoritenView: View {
                     }
                     .onDelete { indexSet in
                         for index in indexSet {
-                            let favorite = viewModel.favorites[index]
+                            let favorite = filteredFavorites[index]
                             Task {
                                 await FavoritesManager.shared.toggleFavorite(
                                     video: Video(
@@ -75,6 +89,7 @@ struct FavoritenView: View {
                 }
             }
             .navigationTitle("Favoriten")
+            .searchable(text: $searchText, prompt: "Favoriten durchsuchen")
             .onAppear {
                 viewModel.context = context
                 viewModel.loadFavorites(context: context)

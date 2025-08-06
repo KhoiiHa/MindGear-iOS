@@ -14,26 +14,7 @@ struct CategoriesView: View {
         NavigationStack {
             List(categories) { category in
                 NavigationLink {
-                    switch category.name {
-                    case "Mindset":
-                        PlaylistView(playlistId: ConfigManager.recommendedPlaylistId, context: modelContext)
-                    case "Disziplin & Fokus":
-                        PlaylistView(playlistId: ConfigManager.shawnRyanPlaylistId, context: modelContext)
-                    case "Emotionale Intelligenz":
-                        PlaylistView(playlistId: ConfigManager.jayShettyPlaylistId, context: modelContext)
-                    case "Beziehungen":
-                        PlaylistView(playlistId: ConfigManager.simonSinekPlaylistId, context: modelContext)
-                    case "Innere Ruhe & Achtsamkeit":
-                        PlaylistView(playlistId: ConfigManager.shiHengYiPlaylistId, context: modelContext)
-                    case "Motivation & Energie":
-                        PlaylistView(playlistId: ConfigManager.diaryOfACeoPlaylistId, context: modelContext)
-                    case "Werte & Purpose":
-                        PlaylistView(playlistId: ConfigManager.jordanBPetersonPlaylistId, context: modelContext)
-                    case "Impulse & Perspektiven":
-                        PlaylistView(playlistId: ConfigManager.theoVonPlaylistId, context: modelContext)
-                    default:
-                        Text("📦 Noch keine Playlist verknüpft")
-                    }
+                    CategoryDetailView(category: category, modelContext: modelContext)
                 } label: {
                     HStack {
                         Text(category.icon)
