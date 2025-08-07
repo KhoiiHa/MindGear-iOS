@@ -21,7 +21,7 @@ struct HomeView: View {
                         Text("👋 Willkommen zurück!")
                             .font(.title)
                             .bold()
-                        Text("Was möchtest du heute entdecken?")
+                        Text("Welche Perspektive bringt dich heute weiter?")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -64,6 +64,16 @@ struct HomeView: View {
             .navigationTitle("🏠 Startseite")
         }
     }
+}
+
+// MARK: - SwiftLint Test
+
+func throwingFunction() throws -> String {
+    return "Das ist ein Test für SwiftLint"
+}
+
+func testForceTry() {
+    let _ = try! throwingFunction() // ⛔️ force_try
 }
 
 struct HomeView_Previews: PreviewProvider {

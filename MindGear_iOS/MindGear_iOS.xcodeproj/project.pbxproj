@@ -6,7 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A64571912E454C650066E038 /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = A64571902E454C5F0066E038 /* .swiftlint.yml */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		A64571902E454C5F0066E038 /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 		A6A2C70F2DDB8AB70045251D /* MindGear_iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MindGear_iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -32,6 +37,7 @@
 		A6A2C7062DDB8AB70045251D = {
 			isa = PBXGroup;
 			children = (
+				A64571902E454C5F0066E038 /* .swiftlint.yml */,
 				A6A2C7112DDB8AB70045251D /* MindGear_iOS */,
 				A6A2C7102DDB8AB70045251D /* Products */,
 			);
@@ -55,6 +61,7 @@
 				A6A2C70B2DDB8AB70045251D /* Sources */,
 				A6A2C70C2DDB8AB70045251D /* Frameworks */,
 				A6A2C70D2DDB8AB70045251D /* Resources */,
+				A6C881EB2E4542E500D9276C /* Run SwiftLint */,
 			);
 			buildRules = (
 			);
@@ -94,6 +101,8 @@
 			);
 			mainGroup = A6A2C7062DDB8AB70045251D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A6A2C7102DDB8AB70045251D /* Products */;
 			projectDirPath = "";
@@ -109,10 +118,32 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A64571912E454C650066E038 /* .swiftlint.yml in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		A6C881EB2E4542E500D9276C /* Run SwiftLint */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Run SwiftLint";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if which swiftlint > /dev/null; then\n  swiftlint\nelse\n  echo \"⚠️ SwiftLint ist nicht installiert. Installiere es mit: brew install swiftlint\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		A6A2C70B2DDB8AB70045251D /* Sources */ = {
@@ -268,9 +299,13 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "de.KhoiiHa.MindGear-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -296,9 +331,13 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "de.KhoiiHa.MindGear-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

@@ -1,0 +1,45 @@
+# .swiftlint.yml – speziell für MindGear & ähnliche SwiftUI-Projekte
+
+disabled_rules:
+  - trailing_whitespace         # OK beim Schreiben, nicht schlimm
+  - force_cast                  # lieber später als Fehler blockieren
+  - force_try                   # bewusst erlaubt beim Prototyping
+  - line_length                 # Lesbarkeit hat Vorrang
+  - identifier_name            # z. B. i, x, y sind in SwiftUI OK
+
+opt_in_rules:
+  - unused_declaration          # hilft beim Aufräumen
+  - attributes
+  - closure_end_indentation
+  - explicit_init
+  - empty_count
+  - vertical_parameter_alignment
+  - redundant_optional_initialization
+
+included:
+  - MindGear_iOS
+
+excluded:
+  - Pods
+  - Carthage
+  - .git
+  - DerivedData
+
+reporter: xcode
+
+# Anpassung für bessere Lesbarkeit
+cyclomatic_complexity:
+  warning: 10
+  error: 20
+
+function_body_length:
+  warning: 50
+  error: 100
+
+type_body_length:
+  warning: 200
+  error: 350
+
+file_length:
+  warning: 400
+  error: 600
