@@ -131,6 +131,7 @@
 			files = (
 			);
 			inputFileListPaths = (
+				"",
 			);
 			inputPaths = (
 			);
@@ -138,10 +139,11 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
+				"$(DERIVED_FILE_DIR)/swiftlint_dummy.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if which swiftlint > /dev/null; then\n  swiftlint\nelse\n  echo \"⚠️ SwiftLint ist nicht installiert. Installiere es mit: brew install swiftlint\"\nfi\n";
+			shellScript = "if which swiftlint > /dev/null; then\n  swiftlint\n  touch \"${DERIVED_FILE_DIR}/swiftlint_dummy.txt\"\nelse\n  echo \"⚠️ SwiftLint ist nicht installiert. Installiere es mit: brew install swiftlint\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
