@@ -4,7 +4,6 @@ disabled_rules:
   - trailing_whitespace         # OK beim Schreiben, nicht schlimm
   - force_cast                  # lieber später als Fehler blockieren
   - force_try                   # bewusst erlaubt beim Prototyping
-  - line_length                 # Lesbarkeit hat Vorrang
   - identifier_name            # z. B. i, x, y sind in SwiftUI OK
 
 opt_in_rules:
@@ -15,6 +14,9 @@ opt_in_rules:
   - empty_count
   - vertical_parameter_alignment
   - redundant_optional_initialization
+  - todo
+  - unused_optional_binding
+  # - print_statement   # optional aktivieren bei Bedarf
 
 included:
   - MindGear_iOS
@@ -43,3 +45,7 @@ type_body_length:
 file_length:
   warning: 400
   error: 600
+
+line_length:
+  warning: 140
+  error: 200
