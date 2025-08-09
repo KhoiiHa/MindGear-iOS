@@ -14,11 +14,18 @@ struct VideoDetailView: View {
         self._isFavorite = State(initialValue: video.isFavorite)
     }
 
+    // Baut eine stabile YouTube-Embed-URL aus beliebigen Eingaben (ID, watch-URL, youtu.be)
+    private func makeYouTubeEmbedURL(from raw: String) -> URL? {
+        let id = Video.extractVideoID(from: raw)
+        guard !id.isEmpty else { return nil }
+        return URL(string: "https://www.youtube.com/embed/\(id)")
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                if let url = URL(string: video.videoURL) {
-                    VideoWebView(url: url, loadFailed: $loadError)
+                if let embedURL = makeYouTubeEmbedURL(from: video.videoURL) {
+                    VideoWebView(url: embedURL, loadFailed: $loadError)
                         .frame(height: 200)
                         .cornerRadius(12)
                         .shadow(radius: 4)
@@ -81,7 +88,7 @@ struct VideoDetailView_Previews: PreviewProvider {
             title: "Beispielvideo",
             description: "Dies ist eine Beschreibung.",
             thumbnailURL: "https://placehold.co/600x400",
-            videoURL: "https://youtube.com/watch?v=xyz",
+            videoURL: "xyz",
             category: "Motivation"
         ))
     }
@@ -92,8 +99,12 @@ struct VideoWebView: UIViewRepresentable {
     @Binding var loadFailed: Bool
 
     func makeUIView(context: Context) -> WKWebView {
-        let webView = WKWebView()
+        let config = WKWebViewConfiguration()
+        // Erlaubt die Inline-Wiedergabe, damit der Player im View eingebettet bleibt
+        config.allowsInlineMediaPlayback = true
+        let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
+        webView.scrollView.isScrollEnabled = false
         return webView
     }
 
@@ -113,10 +124,12 @@ struct VideoWebView: UIViewRepresentable {
         }
 
         func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            print("❌ WKWebView Fehler:", error.localizedDescription)
             parent.loadFailed = true
         }
 
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            print("❌ WKWebView Fehler:", error.localizedDescription)
             parent.loadFailed = true
         }
     }

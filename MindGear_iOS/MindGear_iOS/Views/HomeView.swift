@@ -43,9 +43,12 @@ struct HomeView: View {
                             .font(.headline)
 
                         ForEach(playlists) { playlist in
-                            NavigationLink(
-                                destination: VideoListView(playlistID: playlist.playlistID, context: context)
-                            ) {
+                            NavigationLink {
+                                VideoListView(playlistID: playlist.playlistID, context: context)
+                                    .onAppear {
+                                        print("➡️ Navigated to VideoListView with playlistID: \(playlist.playlistID)")
+                                    }
+                            } label: {
                                 PlaylistCard(
                                     title: playlist.title,
                                     subtitle: "Playlist von \(playlist.subtitle)",

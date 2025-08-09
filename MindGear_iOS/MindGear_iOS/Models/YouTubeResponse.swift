@@ -10,6 +10,8 @@ import Foundation
 // MARK: - PlaylistItems API
 
 struct YouTubeResponse: Decodable {
+    // Token für die nächste Seite (Pagination). Optional, wenn keine weiteren Ergebnisse vorhanden sind.
+    let nextPageToken: String?
     let items: [YouTubeVideoItem]
 }
 
