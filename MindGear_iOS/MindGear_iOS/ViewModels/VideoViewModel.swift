@@ -8,6 +8,45 @@ class VideoViewModel: ObservableObject {
     @Published var videos: [Video] = []
     @Published var errorMessage: String? = nil
     @Published var searchText: String = ""
+    @Published var filteredVideos: [Video] = []
+    private var searchTask: Task<Void, Never>? = nil
+
+    /// Normalisiert Strings (diakritik-insensitiv, lowercase) für eine robuste Suche
+    private func norm(_ s: String) -> String {
+        s.folding(options: .diacriticInsensitive, locale: .current).lowercased()
+    }
+
+    /// Wendet die Suche auf `videos` an und aktualisiert `filteredVideos`
+    private func applySearch() {
+        let q = norm(searchText.trimmingCharacters(in: .whitespacesAndNewlines))
+        let base = videos
+        let filteredByQuery: [Video]
+        if q.isEmpty {
+            filteredByQuery = base
+        } else {
+            filteredByQuery = base.filter { v in
+                let title = norm(v.title)
+                let desc  = norm(v.description)
+                let cat   = norm(v.category)
+                return title.contains(q) || desc.contains(q) || cat.contains(q)
+            }
+        }
+        if showFavoritesOnly {
+            filteredVideos = filteredByQuery.filter { $0.isFavorite }
+        } else {
+            filteredVideos = filteredByQuery
+        }
+    }
+
+    /// Debounce für die Suchanfrage (~250ms). Aus der View via `.onChange(of:)` aufrufen.
+    func updateQuery(_ text: String) {
+        self.searchText = text
+        searchTask?.cancel()
+        searchTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 250_000_000)
+            applySearch()
+        }
+    }
     @Published var offlineMessage: String? = nil
 
     // Pagination-Status
@@ -79,6 +118,7 @@ class VideoViewModel: ObservableObject {
             }
             // Merken: Diese Playlist wurde in dieser Session bereits einmal geladen
             Self.loadedOnce.insert(self.playlistId)
+            applySearch()
         } catch let error as AppError {
             switch error {
             case .invalidURL:
@@ -109,6 +149,7 @@ class VideoViewModel: ObservableObject {
                             isFavorite: true
                         )
                     }
+                    applySearch()
                 }
             case .decodingError:
                 // Underlying Error (falls vorhanden) in die Konsole schreiben
@@ -173,6 +214,7 @@ class VideoViewModel: ObservableObject {
             let existingURLs = Set(self.videos.map { $0.videoURL })
             let uniqueNewVideos = newVideos.filter { !existingURLs.contains($0.videoURL) }
             self.videos.append(contentsOf: uniqueNewVideos)
+            applySearch()
             // Token für die nächste Seite aktualisieren
             self.nextPageToken = response.nextPageToken
         } catch {
@@ -187,20 +229,9 @@ class VideoViewModel: ObservableObject {
         if let index = videos.firstIndex(of: video) {
             videos[index].isFavorite = FavoritesManager.shared.isVideoFavorite(video: video, context: context)
         }
+        applySearch()
     }
 
-    @Published var showFavoritesOnly: Bool = false
+    @Published var showFavoritesOnly: Bool = false { didSet { applySearch() } }
 
-    var filteredVideos: [Video] {
-        return videos.filter { video in
-            let matchesSearch = searchText.isEmpty ||
-                video.title.localizedCaseInsensitiveContains(searchText) ||
-                video.description.localizedCaseInsensitiveContains(searchText) ||
-                video.category.localizedCaseInsensitiveContains(searchText)
-
-            let matchesFavorites = !showFavoritesOnly || video.isFavorite
-
-            return matchesSearch && matchesFavorites
-        }
-    }
 }

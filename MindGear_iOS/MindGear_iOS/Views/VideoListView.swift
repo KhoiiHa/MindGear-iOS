@@ -87,6 +87,9 @@ struct VideoListView: View {
                         }
                     }
                     .searchable(text: searchTextBinding, prompt: "Suche Videos")
+                    .onChange(of: viewModel.searchText, initial: false) { _, newValue in
+                        viewModel.updateQuery(newValue)
+                    }
                     // Pull-to-Refresh: manuelles Neuladen der aktuellen Playlist
                     .refreshable {
                         await viewModel.loadVideos(forceReload: true)
@@ -112,6 +115,16 @@ struct VideoListView: View {
                             }
                         }, alignment: .top
                     )
+                    .overlay {
+                        if !viewModel.searchText.isEmpty && viewModel.filteredVideos.isEmpty {
+                            ContentUnavailableView(
+                                "Keine Treffer",
+                                systemImage: "magnifyingglass",
+                                description: Text("Bitte Begriff anpassen.")
+                            )
+                        }
+                    }
+                    .animation(.default, value: viewModel.filteredVideos)
                 
 #if DEBUG
                 // DebugBadge zeigt im Debug-Build die aktuelle Playlist-ID an
@@ -130,7 +143,7 @@ struct VideoListView: View {
 struct VideoListView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack {
-            let container = try! ModelContainer(for: FavoriteVideoEntity.self)
+            let container = try! ModelContainer(for: FavoriteVideoEntity.self, FavoriteMentorEntity.self)
             VideoListView(playlistID: ConfigManager.recommendedPlaylistId, context: container.mainContext)
         }
     }

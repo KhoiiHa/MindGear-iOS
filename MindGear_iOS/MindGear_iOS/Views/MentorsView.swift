@@ -12,6 +12,28 @@ struct MentorsView: View {
     let mentors: [Mentor]
     @State private var searchText = ""
     @State private var refreshID = UUID()
+    @State private var displayedMentors: [Mentor] = []
+    @State private var searchTask: Task<Void, Never>? = nil
+
+    // Normalisiert Strings für eine robuste, akzent-insensitive Suche
+    private func norm(_ s: String) -> String {
+        s.folding(options: .diacriticInsensitive, locale: .current).lowercased()
+    }
+
+    // Wendet die Suche auf die Quellliste an und aktualisiert die Anzeige
+    @MainActor
+    private func applySearch() {
+        let q = norm(searchText.trimmingCharacters(in: .whitespacesAndNewlines))
+        guard !q.isEmpty else {
+            displayedMentors = mentors
+            return
+        }
+        displayedMentors = mentors.filter { m in
+            let name = norm(m.name)
+            let channel = norm(m.channelId)
+            return name.contains(q) || channel.contains(q)
+        }
+    }
     @Environment(\.modelContext) private var modelContext
 
     // Hilfsfunktion, um zu prüfen, ob ein Mentor in den Favoriten ist
@@ -19,14 +41,6 @@ struct MentorsView: View {
         FavoritesManager.shared.isMentorFavorite(mentor: mentor, context: modelContext)
     }
 
-    // Gefilterte Liste der Mentoren basierend auf dem Suchtext
-    private var filteredMentors: [Mentor] {
-        if searchText.isEmpty {
-            return mentors
-        } else {
-            return mentors.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
-        }
-    }
 
     // Zeigt ein sicheres Avatarbild: lädt nur gültige http/https-URLs, sonst Fallback-Avatar
     private func avatarView(for mentor: Mentor) -> some View {
@@ -77,7 +91,7 @@ struct MentorsView: View {
         // Navigation Stack für die Navigation zwischen Ansichten
         NavigationStack {
             // Liste der gefilterten Mentoren
-            List(filteredMentors) { mentor in
+            List(displayedMentors) { mentor in
                 NavigationLink(destination: MentorDetailView(mentor: mentor, context: modelContext)
                     .onDisappear {
                         refreshID = UUID()
@@ -101,6 +115,24 @@ struct MentorsView: View {
             // Suchleiste zur Filterung der Mentoren
             .searchable(text: $searchText, prompt: "Mentor suchen")
             .navigationTitle("Mentoren")
+            .onAppear { displayedMentors = mentors }
+            .onChange(of: searchText, initial: false) { _, _ in
+                searchTask?.cancel()
+                searchTask = Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 250_000_000) // 250ms Debounce
+                    applySearch()
+                }
+            }
+            .overlay {
+                if displayedMentors.isEmpty && !searchText.isEmpty {
+                    ContentUnavailableView(
+                        "Keine Treffer",
+                        systemImage: "magnifyingglass",
+                        description: Text("Passe den Suchbegriff an.")
+                    )
+                }
+            }
+            .animation(.default, value: displayedMentors)
         }
     }
 }

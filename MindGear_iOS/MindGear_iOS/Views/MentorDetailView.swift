@@ -15,7 +15,7 @@ struct MentorDetailView: View {
 
     init(mentor: Mentor, context: ModelContext) {
         self.modelContext = context
-        _viewModel = StateObject(wrappedValue: MentorViewModel(mentor: mentor))
+        _viewModel = StateObject(wrappedValue: MentorViewModel(mentor: mentor, context: context))
     }
 
     var body: some View {
@@ -100,7 +100,7 @@ struct MentorDetailView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     Task { @MainActor in
-                        await viewModel.toggleFavorite(context: modelContext)
+                        await viewModel.toggleFavorite()
                     }
                 } label: {
                     Image(systemName: viewModel.isFavorite ? "heart.fill" : "heart")
@@ -110,10 +110,6 @@ struct MentorDetailView: View {
             }
         }
         // Synchronisieren des Favoritenstatus beim Anzeigen der Ansicht
-        .onAppear {
-            Task { @MainActor in
-                viewModel.syncFavorite(context: modelContext)
-            }
-        }
+        .onAppear { viewModel.startObservingFavorites() }
     }
 }

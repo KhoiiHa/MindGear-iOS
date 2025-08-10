@@ -58,11 +58,13 @@ struct VideoDetailView: View {
                         Text(isFavorite ? "Als Favorit entfernen" : "Favorit")
                             .foregroundColor(.accentColor)
                     }
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(8)
                 }
+                .accessibilityLabel(isFavorite ? "Favorit entfernen" : "Als Favorit speichern")
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color(.systemGray6))
+                .cornerRadius(8)
+                .animation(.easeInOut, value: isFavorite)
 
                 Spacer()
             }
@@ -75,6 +77,9 @@ struct VideoDetailView: View {
             Text("Bitte überprüfe deine Internetverbindung oder die Video-URL.")
         }
         .onAppear {
+            isFavorite = favoritesViewModel.isFavorite(video: video)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .favoritesDidChange)) { _ in
             isFavorite = favoritesViewModel.isFavorite(video: video)
         }
     }
@@ -97,6 +102,7 @@ struct VideoDetailView_Previews: PreviewProvider {
     }
 }
 
+// SwiftUI Wrapper für WKWebView zur Einbettung von YouTube-Videos
 struct VideoWebView: UIViewRepresentable {
     let url: URL
     @Binding var loadFailed: Bool
@@ -112,7 +118,9 @@ struct VideoWebView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: WKWebView, context: Context) {
-        uiView.load(URLRequest(url: url))
+        if uiView.url != url {
+            uiView.load(URLRequest(url: url))
+        }
     }
 
     func makeCoordinator() -> Coordinator {
