@@ -6,19 +6,22 @@
 //
 
 import SwiftUI
+import SwiftData
 
+@MainActor
 struct MentorDetailView: View {
-    @Environment(\.modelContext) private var modelContext
+    private var modelContext: ModelContext
     @StateObject var viewModel: MentorViewModel
 
-    init(mentor: Mentor) {
+    init(mentor: Mentor, context: ModelContext) {
+        self.modelContext = context
         _viewModel = StateObject(wrappedValue: MentorViewModel(mentor: mentor))
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .center, spacing: 16) {
-                // Profilbild
+                // Profilbild anzeigen
                 if let url = URL(string: viewModel.mentor.profileImageURL) {
                     AsyncImage(url: url) { image in
                         image
@@ -32,18 +35,18 @@ struct MentorDetailView: View {
                     .shadow(radius: 8)
                 }
 
-                // Name
+                // Name des Mentors anzeigen
                 Text(viewModel.mentor.name)
                     .font(.title)
                     .fontWeight(.bold)
 
-                // Bio
+                // Biografie des Mentors anzeigen
                 Text(viewModel.mentor.bio)
                     .font(.body)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
 
-                // Social Links (optional)
+                // Soziale Links anzeigen, falls vorhanden
                 if let socials = viewModel.mentor.socials, !socials.isEmpty {
                     HStack(spacing: 16) {
                         ForEach(socials) { social in
@@ -55,12 +58,13 @@ struct MentorDetailView: View {
                         }
                     }
                 } else {
+                    // Hinweis, wenn keine Social-Links verfügbar sind
                     Text("Keine Social-Links verfügbar.")
                         .font(.footnote)
                         .foregroundColor(.gray)
                 }
 
-                // Playlists (optional, als NavigationLink)
+                // Playlists anzeigen und Navigation ermöglichen, falls vorhanden
                 if let playlists = viewModel.mentor.playlists, !playlists.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Playlists")
@@ -74,12 +78,13 @@ struct MentorDetailView: View {
                     }
                     .padding(.top)
                 } else {
+                    // Hinweis, wenn keine Playlists verknüpft sind
                     Text("Keine Playlists verknüpft.")
                         .font(.footnote)
                         .foregroundColor(.gray)
                 }
 
-                // Kanal-Link
+                // Link zum YouTube-Kanal des Mentors
                 if let url = URL(string: "https://youtube.com/channel/\(viewModel.mentor.channelId)") {
                     Link("YouTube-Kanal ansehen", destination: url)
                         .padding(.top, 16)
@@ -90,6 +95,25 @@ struct MentorDetailView: View {
         }
         .navigationTitle("Mentor-Profil")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            // Herz-Button zum Favorisieren mit roter Farbe bei Favorit
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    Task { @MainActor in
+                        await viewModel.toggleFavorite(context: modelContext)
+                    }
+                } label: {
+                    Image(systemName: viewModel.isFavorite ? "heart.fill" : "heart")
+                        .foregroundColor(viewModel.isFavorite ? .red : .primary)
+                }
+                .animation(.easeInOut, value: viewModel.isFavorite)
+            }
+        }
+        // Synchronisieren des Favoritenstatus beim Anzeigen der Ansicht
+        .onAppear {
+            Task { @MainActor in
+                viewModel.syncFavorite(context: modelContext)
+            }
+        }
     }
 }
-

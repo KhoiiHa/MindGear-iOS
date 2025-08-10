@@ -26,7 +26,7 @@ struct MainTabView: View {
                     Text("Videos")
                 }
 
-            FavoritenView()
+            FavoritenView(context: context)
                 .tabItem {
                     Image(systemName: "heart.fill")
                     Text("Favoriten")
@@ -61,7 +61,7 @@ struct MainTabView: View {
 
 struct MainTabView_Previews: PreviewProvider {
     static var previews: some View {
-        let container = try! ModelContainer(for: FavoriteVideoEntity.self)
+        let container = try! ModelContainer(for: FavoriteVideoEntity.self, FavoriteMentorEntity.self)
         MainTabView()
             .modelContainer(container)
     }

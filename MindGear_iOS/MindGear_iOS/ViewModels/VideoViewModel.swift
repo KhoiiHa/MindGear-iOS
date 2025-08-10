@@ -42,7 +42,7 @@ class VideoViewModel: ObservableObject {
             let items = response.items
             self.nextPageToken = response.nextPageToken
             // nextPageToken kommt von der ersten Seite
-            let favorites = FavoritesManager.shared.getAllFavorites(context: context)
+            let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
             self.videos = items.compactMap { item in
                 guard
                     let snippet = item.snippet,
@@ -88,7 +88,7 @@ class VideoViewModel: ObservableObject {
                 if let underlyingError = (error as LocalizedError).errorDescription {
                     print("Network error occurred: \(underlyingError)")
                 }
-                let favorites = FavoritesManager.shared.getAllFavorites(context: context)
+                let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
                 if favorites.isEmpty {
                     if let apiErrorMessage = errorMessage, !apiErrorMessage.isEmpty {
                         errorMessage = apiErrorMessage
@@ -135,7 +135,7 @@ class VideoViewModel: ObservableObject {
         defer { isLoadingMore = false }
         do {
             let response = try await apiService.fetchVideos(from: playlistId, apiKey: apiKey, pageToken: token)
-            let favorites = FavoritesManager.shared.getAllFavorites(context: context)
+            let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
             let newVideos: [Video] = response.items.compactMap { item in
                 guard
                     let snippet = item.snippet,
@@ -183,9 +183,9 @@ class VideoViewModel: ObservableObject {
 
     /// Wechselt den Favoritenstatus eines Videos und aktualisiert die Ansicht entsprechend.
     func toggleFavorite(for video: Video) async {
-        await FavoritesManager.shared.toggleFavorite(video: video, context: context)
+        await FavoritesManager.shared.toggleVideoFavorite(video: video, context: context)
         if let index = videos.firstIndex(of: video) {
-            videos[index].isFavorite = FavoritesManager.shared.isFavorite(video: video, context: context)
+            videos[index].isFavorite = FavoritesManager.shared.isVideoFavorite(video: video, context: context)
         }
     }
 

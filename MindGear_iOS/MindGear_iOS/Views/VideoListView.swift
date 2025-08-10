@@ -3,11 +3,13 @@ import SwiftData
 
 struct VideoListView: View {
     let playlistID: String // Playlist-ID für Debugging speichern
+    private let context: ModelContext
     @StateObject private var viewModel: VideoViewModel
 
     // Expliziter Initializer: setzt Playlist-ID und erstellt das ViewModel mit SwiftData-Context
     init(playlistID: String, context: ModelContext) {
         self.playlistID = playlistID
+        self.context = context
         _viewModel = StateObject(
             wrappedValue: VideoViewModel(
                 playlistId: playlistID,
@@ -48,7 +50,7 @@ struct VideoListView: View {
     private var videosList: some View {
         List {
             ForEach(viewModel.filteredVideos) { (video: Video) in
-                NavigationLink(destination: VideoDetailView(video: video)) {
+                NavigationLink(destination: VideoDetailView(video: video, context: context)) {
                     VideoRow(video: video)
                 }
                 .onAppear {

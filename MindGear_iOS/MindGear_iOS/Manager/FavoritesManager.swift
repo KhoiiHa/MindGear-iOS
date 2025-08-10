@@ -1,25 +1,57 @@
+// Notification.Name-Erweiterung für Favoriten-Änderungen
+extension Notification.Name {
+    static let favoritesDidChange = Notification.Name("favoritesDidChange")
+}
+
 import Foundation
 import SwiftData
 
+// Diese Datei verwaltet Favoriten für Videos und Mentoren.
+// Sie ermöglicht das Speichern, Abrufen und Verwalten von Favoriten, um Nutzern eine personalisierte Erfahrung zu bieten.
+
+
+@MainActor
 final class FavoritesManager {
     static let shared = FavoritesManager()
 
     private init() {}
 
-    func isFavorite(video: Video, context: ModelContext) -> Bool {
+    // Prüft, ob ein Video als Favorit markiert ist ✅
+    func isVideoFavorite(video: Video, context: ModelContext) -> Bool {
         do {
-            let results = try context.fetch(FetchDescriptor<FavoriteVideoEntity>())
-            return results.contains(where: { $0.id == video.id })
+            let vid = video.id
+            let descriptor = FetchDescriptor<FavoriteVideoEntity>(
+                predicate: #Predicate { $0.id == vid }
+            )
+            return try !context.fetch(descriptor).isEmpty
         } catch {
-            print("Error checking favorite status: \(error)")
+            print("Error checking video favorite status:", error)
             return false
         }
     }
 
-    func toggleFavorite(video: Video, context: ModelContext) async {
+    // Prüft, ob der Mentor als Favorit gespeichert ist
+    func isMentorFavorite(mentor: Mentor, context: ModelContext) -> Bool {
         do {
-            let results = try context.fetch(FetchDescriptor<FavoriteVideoEntity>())
-            if let existing = results.first(where: { $0.id == video.id }) {
+            let cid = mentor.channelId
+            let descriptor = FetchDescriptor<FavoriteMentorEntity>(
+                predicate: #Predicate { $0.id == cid }
+            )
+            return try !context.fetch(descriptor).isEmpty
+        } catch {
+            print("Error checking mentor favorite status:", error)
+            return false
+        }
+    }
+
+    // Schaltet den Favoritenstatus eines Videos um (hinzufügen oder entfernen)
+    func toggleVideoFavorite(video: Video, context: ModelContext) async {
+        do {
+            let vid = video.id
+            let descriptor = FetchDescriptor<FavoriteVideoEntity>(
+                predicate: #Predicate { $0.id == vid }
+            )
+            if let existing = try context.fetch(descriptor).first {
                 context.delete(existing)
             } else {
                 var data: Data? = nil
@@ -37,8 +69,34 @@ final class FavoritesManager {
                 )
                 context.insert(favorite)
             }
+            do { try context.save() } catch { print("Save failed (video favorite):", error) }
+            NotificationCenter.default.post(name: .favoritesDidChange, object: nil)
         } catch {
-            print("Error toggling favorite: \(error)")
+            print("Error toggling video favorite:", error)
+        }
+    }
+
+    // Schaltet den Favoritenstatus eines Mentors um
+    func toggleMentorFavorite(mentor: Mentor, context: ModelContext) async {
+        do {
+            let cid = mentor.channelId
+            let descriptor = FetchDescriptor<FavoriteMentorEntity>(
+                predicate: #Predicate { $0.id == cid }
+            )
+            if let existing = try context.fetch(descriptor).first {
+                context.delete(existing)
+            } else {
+                let favorite = FavoriteMentorEntity(
+                    id: mentor.channelId,
+                    name: mentor.name,
+                    profileImageURL: mentor.profileImageURL
+                )
+                context.insert(favorite)
+            }
+            do { try context.save() } catch { print("Save failed (mentor favorite):", error) }
+            NotificationCenter.default.post(name: .favoritesDidChange, object: nil)
+        } catch {
+            print("Error toggling mentor favorite:", error)
         }
     }
 
@@ -47,12 +105,24 @@ final class FavoritesManager {
         return data
     }
 
-    func getAllFavorites(context: ModelContext) -> [FavoriteVideoEntity] {
+    /// Liefert alle gespeicherten Video-Favoriten zurück 📂
+    func getAllVideoFavorites(context: ModelContext) -> [FavoriteVideoEntity] {
         do {
             return try context.fetch(FetchDescriptor<FavoriteVideoEntity>())
         } catch {
-            print("Error fetching favorites: \(error)")
+            print("Error fetching video favorites: \(error)")
             return []
         }
     }
+
+    /// Gibt alle gespeicherten Mentor-Favoriten zurück 📋
+    func getAllMentorFavorites(context: ModelContext) -> [FavoriteMentorEntity] {
+        do {
+            return try context.fetch(FetchDescriptor<FavoriteMentorEntity>())
+        } catch {
+            print("Error fetching mentor favorites: \(error)")
+            return []
+        }
+    }
+
 }

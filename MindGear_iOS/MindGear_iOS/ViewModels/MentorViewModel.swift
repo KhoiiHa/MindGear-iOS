@@ -1,4 +1,3 @@
-
 //
 //  MentorViewModel.swift
 //  MindGear_iOS
@@ -7,17 +6,33 @@
 //
 
 import Foundation
+import SwiftData
 
+@MainActor
 class MentorViewModel: ObservableObject {
     @Published var mentor: Mentor
+    /// Gibt an, ob der Mentor als Favorit markiert ist.
+    @Published var isFavorite: Bool = false
+    
+    private let favoritesManager = FavoritesManager.shared
 
     init(mentor: Mentor) {
         self.mentor = mentor
-        // Hier kannst du später API-Calls, Favoriten-Logik etc. ergänzen
     }
 
     // Beispiel für weitere Methoden:
     // func loadMentorDetails() async { ... }
-    // func toggleFavorite() { ... }
-}
 
+    /// Synchronisiert den aktuellen Favoritenstatus aus der Persistenz.
+    @MainActor
+    func syncFavorite(context: ModelContext) {
+        isFavorite = favoritesManager.isMentorFavorite(mentor: mentor, context: context)
+    }
+
+    /// Wechselt den Favoritenstatus und speichert ihn persistent.
+    @MainActor
+    func toggleFavorite(context: ModelContext) async {
+        await favoritesManager.toggleMentorFavorite(mentor: mentor, context: context)
+        isFavorite = favoritesManager.isMentorFavorite(mentor: mentor, context: context)
+    }
+}

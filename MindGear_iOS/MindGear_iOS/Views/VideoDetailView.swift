@@ -5,13 +5,13 @@ import SwiftData
 struct VideoDetailView: View {
     let video: Video
     @State private var isFavorite: Bool
-    @StateObject private var favoritesViewModel = FavoritenViewModel()
+    @StateObject private var favoritesViewModel: FavoritenViewModel
     @State private var loadError = false
-    @Environment(\.modelContext) private var context
 
-    init(video: Video) {
+    init(video: Video, context: ModelContext) {
         self.video = video
         self._isFavorite = State(initialValue: video.isFavorite)
+        _favoritesViewModel = StateObject(wrappedValue: FavoritenViewModel(context: context))
     }
 
     // Baut eine stabile YouTube-Embed-URL aus beliebigen Eingaben (ID, watch-URL, youtu.be)
@@ -75,7 +75,6 @@ struct VideoDetailView: View {
             Text("Bitte überprüfe deine Internetverbindung oder die Video-URL.")
         }
         .onAppear {
-            favoritesViewModel.context = context
             isFavorite = favoritesViewModel.isFavorite(video: video)
         }
     }
@@ -83,14 +82,18 @@ struct VideoDetailView: View {
 
 struct VideoDetailView_Previews: PreviewProvider {
     static var previews: some View {
-        VideoDetailView(video: Video(
-            id: UUID(),
-            title: "Beispielvideo",
-            description: "Dies ist eine Beschreibung.",
-            thumbnailURL: "https://placehold.co/600x400",
-            videoURL: "xyz",
-            category: "Motivation"
-        ))
+        let container = try! ModelContainer(for: FavoriteVideoEntity.self, FavoriteMentorEntity.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        return VideoDetailView(
+            video: Video(
+                id: UUID(),
+                title: "Beispielvideo",
+                description: "Dies ist eine Beschreibung.",
+                thumbnailURL: "https://placehold.co/600x400",
+                videoURL: "xyz",
+                category: "Motivation"
+            ),
+            context: container.mainContext
+        )
     }
 }
 
