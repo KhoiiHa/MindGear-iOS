@@ -6,6 +6,8 @@ struct VideoDetailView: View {
     let video: Video
     @State private var isFavorite: Bool
     @StateObject private var favoritesViewModel: FavoritenViewModel
+    @Environment(\.modelContext) private var context
+    @StateObject private var historyViewModel = HistoryViewModel()
     @State private var loadError = false
 
     init(video: Video, context: ModelContext) {
@@ -78,6 +80,12 @@ struct VideoDetailView: View {
         }
         .onAppear {
             isFavorite = favoritesViewModel.isFavorite(video: video)
+            historyViewModel.addToHistory(
+                videoId: video.id.uuidString,
+                title: video.title,
+                thumbnailURL: video.thumbnailURL,
+                context: context
+            )
         }
         .onReceive(NotificationCenter.default.publisher(for: .favoritesDidChange)) { _ in
             isFavorite = favoritesViewModel.isFavorite(video: video)
@@ -87,7 +95,7 @@ struct VideoDetailView: View {
 
 struct VideoDetailView_Previews: PreviewProvider {
     static var previews: some View {
-        let container = try! ModelContainer(for: FavoriteVideoEntity.self, FavoriteMentorEntity.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let container = try! ModelContainer(for: FavoriteVideoEntity.self, FavoriteMentorEntity.self, WatchHistoryEntity.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
         return VideoDetailView(
             video: Video(
                 id: UUID(),

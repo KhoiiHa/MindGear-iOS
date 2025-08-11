@@ -50,6 +50,12 @@ struct MainTabView: View {
                     Text("Playlists")
                 }
 
+            HistoryView()
+                .tabItem {
+                    Image(systemName: "clock.arrow.circlepath")
+                    Text("Verlauf")
+                }
+
             SettingsView()
                 .tabItem {
                     Image(systemName: "gearshape.fill")
@@ -61,7 +67,7 @@ struct MainTabView: View {
 
 struct MainTabView_Previews: PreviewProvider {
     static var previews: some View {
-        let container = try! ModelContainer(for: FavoriteVideoEntity.self, FavoriteMentorEntity.self)
+        let container = try! ModelContainer(for: FavoriteVideoEntity.self, FavoriteMentorEntity.self, WatchHistoryEntity.self)
         MainTabView()
             .modelContainer(container)
     }

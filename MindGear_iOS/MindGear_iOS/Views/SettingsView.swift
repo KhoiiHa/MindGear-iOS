@@ -13,6 +13,12 @@ struct SettingsView: View {
                 Section(header: Text("Benachrichtigungen")) {
                     Toggle("Aktivieren", isOn: $viewModel.notificationsEnabled)
                 }
+                
+                Section(header: Text("Verlauf")) {
+                    NavigationLink(destination: HistoryView()) {
+                        Label("Verlauf", systemImage: "clock.arrow.circlepath")
+                    }
+                }
             }
             .navigationTitle("Einstellungen")
         }
