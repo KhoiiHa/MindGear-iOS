@@ -13,6 +13,7 @@ import SwiftUI
 class FavoritenViewModel: ObservableObject {
     @Published var favorites: [FavoriteVideoEntity] = []
     @Published var favoriteMentors: [FavoriteMentorEntity] = []
+    @Published var favoritePlaylists: [FavoritePlaylistEntity] = []
 
     let context: ModelContext
     private var favoritesObserver: NSObjectProtocol?
@@ -32,6 +33,7 @@ class FavoritenViewModel: ObservableObject {
     func loadFavorites() {
         favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
         favoriteMentors = FavoritesManager.shared.getAllMentorFavorites(context: context)
+        favoritePlaylists = FavoritesManager.shared.getAllPlaylistFavorites(context: context)
     }
 
     func toggleFavorite(video: Video) async {
@@ -44,12 +46,29 @@ class FavoritenViewModel: ObservableObject {
         loadFavorites()
     }
 
+    /// Schaltet den Favoritenstatus einer Playlist um.
+    /// Verwende `playlistId`, `title` und `thumbnailURL` aus deiner View / deinem ViewModel.
+    func togglePlaylistFavorite(id playlistId: String, title: String, thumbnailURL: String) async {
+        await FavoritesManager.shared.togglePlaylistFavorite(
+            id: playlistId,
+            title: title,
+            thumbnailURL: thumbnailURL,
+            context: context
+        )
+        loadFavorites()
+    }
+
     func isFavorite(video: Video) -> Bool {
         FavoritesManager.shared.isVideoFavorite(video: video, context: context)
     }
 
     func isFavorite(mentor: Mentor) -> Bool {
         FavoritesManager.shared.isMentorFavorite(mentor: mentor, context: context)
+    }
+
+    /// Prüft, ob eine Playlist bereits favorisiert ist.
+    func isPlaylistFavorite(id playlistId: String) -> Bool {
+        FavoritesManager.shared.isPlaylistFavorite(id: playlistId, context: context)
     }
 
     deinit {

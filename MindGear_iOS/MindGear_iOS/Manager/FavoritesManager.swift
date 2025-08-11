@@ -125,4 +125,50 @@ final class FavoritesManager {
         }
     }
 
+    // Prüft, ob eine Playlist als Favorit gespeichert ist
+    func isPlaylistFavorite(id: String, context: ModelContext) -> Bool {
+        do {
+            let descriptor = FetchDescriptor<FavoritePlaylistEntity>(
+                predicate: #Predicate { $0.id == id }
+            )
+            return try !context.fetch(descriptor).isEmpty
+        } catch {
+            print("Error checking playlist favorite status:", error)
+            return false
+        }
+    }
+
+    // Schaltet den Favoritenstatus einer Playlist um
+    func togglePlaylistFavorite(id: String, title: String, thumbnailURL: String, context: ModelContext) async {
+        do {
+            let descriptor = FetchDescriptor<FavoritePlaylistEntity>(
+                predicate: #Predicate { $0.id == id }
+            )
+            if let existing = try context.fetch(descriptor).first {
+                context.delete(existing)
+            } else {
+                let favorite = FavoritePlaylistEntity(
+                    id: id,
+                    title: title,
+                    thumbnailURL: thumbnailURL
+                )
+                context.insert(favorite)
+            }
+            do { try context.save() } catch { print("Save failed (playlist favorite):", error) }
+            NotificationCenter.default.post(name: .favoritesDidChange, object: nil)
+        } catch {
+            print("Error toggling playlist favorite:", error)
+        }
+    }
+
+    /// Gibt alle gespeicherten Playlist-Favoriten zurück
+    func getAllPlaylistFavorites(context: ModelContext) -> [FavoritePlaylistEntity] {
+        do {
+            return try context.fetch(FetchDescriptor<FavoritePlaylistEntity>())
+        } catch {
+            print("Error fetching playlist favorites: \(error)")
+            return []
+        }
+    }
+
 }

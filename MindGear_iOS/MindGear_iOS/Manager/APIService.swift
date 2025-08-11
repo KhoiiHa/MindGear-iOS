@@ -37,10 +37,11 @@ final class APIService: APIServiceProtocol {
     private static let session: URLSession = {
         let cfg = URLSessionConfiguration.default
         cfg.httpAdditionalHeaders = [
-            "Accept": "application/json",
-            "Accept-Encoding": "gzip, deflate, br",
             "User-Agent": "MindGear-iOS/1.0"
         ]
+        cfg.waitsForConnectivity = true
+        cfg.timeoutIntervalForRequest = 30
+        cfg.timeoutIntervalForResource = 60
         return URLSession(configuration: cfg)
     }()
 
@@ -54,73 +55,94 @@ final class APIService: APIServiceProtocol {
             "https://youtube.googleapis.com/youtube/v3/playlistItems"
         ]
 
+        func shouldRetry(_ error: Error) -> Bool {
+            if let urlError = error as? URLError {
+                switch urlError.code {
+                case .timedOut, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost, .notConnectedToInternet:
+                    return true
+                default:
+                    return false
+                }
+            }
+            return false
+        }
+
         var lastError: Error = AppError.networkError
 
         for endpoint in hosts {
-            do {
-                var components = URLComponents(string: endpoint)!
-                components.queryItems = [
-                    URLQueryItem(name: "part", value: "snippet,contentDetails"),
-                    URLQueryItem(name: "maxResults", value: "10"),
-                    URLQueryItem(name: "playlistId", value: playlistId),
-                    URLQueryItem(name: "key", value: apiKey),
-                    URLQueryItem(name: "prettyPrint", value: "false"),
-                    URLQueryItem(name: "alt", value: "json")
-                ]
-                if let pageToken, !pageToken.isEmpty {
-                    components.queryItems?.append(URLQueryItem(name: "pageToken", value: pageToken))
-                }
-                guard let url = components.url else { throw AppError.invalidURL }
-
-                var request = URLRequest(url: url)
-                request.httpMethod = "GET"
-                request.setValue("application/json", forHTTPHeaderField: "Accept")
-                request.setValue("gzip, deflate, br", forHTTPHeaderField: "Accept-Encoding")
-
-                print("🔎 URL:", url.absoluteString)
-                let (data, response) = try await APIService.session.data(for: request)
-
-                if let http = response as? HTTPURLResponse {
-                    print("🌐 STATUS:", http.statusCode)
-                    print("🌐 HEADERS:", http.allHeaderFields)
-                }
-
-                // HTML erkennen (Zustimmungs-/Blockierungsseiten)
-                if let text = String(data: data.prefix(200), encoding: .utf8),
-                   text.contains("<html") || text.contains("<!DOCTYPE html") {
-                    let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
-                    print("❗️HTML statt JSON. KÖRPER-Vorschau:\n\(preview)")
-                    lastError = AppError.networkError
-                    continue // nächsten Host versuchen
-                }
-
-                // Nicht 2xx: Versuche, die YouTube-Fehlerhülle für bessere Diagnose zu dekodieren
-                if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
-                    if let yt = try? JSONDecoder().decode(YouTubeAPIErrorEnvelope.self, from: data) {
-                        print("❗️YouTube API-Fehler:", yt.error.code, yt.error.message)
-                    } else {
-                        let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
-                        print("❗️HTTP \(http.statusCode). KÖRPER-Vorschau:\n\(preview)")
-                    }
-                    lastError = AppError.networkError
-                    continue // nächsten Host versuchen
-                }
-
-                // Erfolgreicher Pfad: Elemente dekodieren
+            var attempt = 0
+            while attempt < 3 { // retry up to 3x per host
+                attempt += 1
                 do {
-                    let response = try JSONDecoder().decode(YouTubeResponse.self, from: data)
-                    return response
+                    var components = URLComponents(string: endpoint)!
+                    components.queryItems = [
+                        URLQueryItem(name: "part", value: "snippet,contentDetails"),
+                        URLQueryItem(name: "maxResults", value: "10"),
+                        URLQueryItem(name: "playlistId", value: playlistId),
+                        URLQueryItem(name: "key", value: apiKey),
+                        URLQueryItem(name: "prettyPrint", value: "false"),
+                        URLQueryItem(name: "alt", value: "json")
+                    ]
+                    if let pageToken, !pageToken.isEmpty {
+                        components.queryItems?.append(URLQueryItem(name: "pageToken", value: pageToken))
+                    }
+                    guard let url = components.url else { throw AppError.invalidURL }
+
+                    var request = URLRequest(url: url)
+                    request.httpMethod = "GET"
+
+                    print("🔎 URL:", url.absoluteString)
+                    let (data, response) = try await APIService.session.data(for: request)
+
+                    if let http = response as? HTTPURLResponse {
+                        print("🌐 STATUS:", http.statusCode)
+                        print("🌐 HEADERS:", http.allHeaderFields)
+                    }
+
+                    // HTML erkennen (Zustimmungs-/Blockierungsseiten)
+                    if let text = String(data: data.prefix(200), encoding: .utf8),
+                       text.contains("<html") || text.contains("<!DOCTYPE html") {
+                        let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
+                        print("❗️HTML statt JSON. KÖRPER-Vorschau:\n\(preview)")
+                        lastError = AppError.networkError
+                        break // do not retry HTML response on same host, try next host
+                    }
+
+                    // Nicht 2xx: Versuche, die YouTube-Fehlerhülle für bessere Diagnose zu dekodieren
+                    if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+                        if let yt = try? JSONDecoder().decode(YouTubeAPIErrorEnvelope.self, from: data) {
+                            print("❗️YouTube API-Fehler:", yt.error.code, yt.error.message)
+                        } else {
+                            let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
+                            print("❗️HTTP \(http.statusCode). KÖRPER-Vorschau:\n\(preview)")
+                        }
+                        lastError = AppError.networkError
+                        break // do not retry HTTP error on same host, try next host
+                    }
+
+                    // Erfolgreicher Pfad: Elemente dekodieren
+                    do {
+                        let response = try JSONDecoder().decode(YouTubeResponse.self, from: data)
+                        return response
+                    } catch {
+                        let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
+                        print("❗️Dekodierung fehlgeschlagen. KÖRPER-Vorschau:\n\(preview)")
+                        lastError = AppError.decodingError
+                        break // do not retry decoding error on same host, try next host
+                    }
                 } catch {
-                    let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
-                    print("❗️Dekodierung fehlgeschlagen. KÖRPER-Vorschau:\n\(preview)")
-                    lastError = AppError.decodingError
-                    continue // nächsten Host versuchen
+                    print("❗️Transportfehler (Attempt #\(attempt)):", error.localizedDescription)
+                    lastError = error
+                    if shouldRetry(error) {
+                        let delay = pow(2.0, Double(attempt - 1)) * 0.5 // 0.5s, 1s, 2s
+                        try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                        continue // retry same host
+                    } else {
+                        break // do not retry non-transient errors on this host
+                    }
                 }
-            } catch {
-                print("❗️Transportfehler:", error.localizedDescription)
-                lastError = error
-                continue // nächsten Host versuchen
             }
+            // if we exit the while without returning, try next host
         }
 
         throw lastError

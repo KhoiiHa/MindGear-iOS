@@ -8,6 +8,7 @@ struct MindGear_iOSApp: App {
             Item.self,
             FavoriteVideoEntity.self,
             FavoriteMentorEntity.self,
+            FavoritePlaylistEntity.self,
             WatchHistoryEntity.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)

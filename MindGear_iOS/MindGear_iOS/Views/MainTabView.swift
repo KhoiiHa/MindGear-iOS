@@ -67,7 +67,7 @@ struct MainTabView: View {
 
 struct MainTabView_Previews: PreviewProvider {
     static var previews: some View {
-        let container = try! ModelContainer(for: FavoriteVideoEntity.self, FavoriteMentorEntity.self, WatchHistoryEntity.self)
+        let container = try! ModelContainer(for: FavoriteVideoEntity.self, FavoriteMentorEntity.self, FavoritePlaylistEntity.self, WatchHistoryEntity.self)
         MainTabView()
             .modelContainer(container)
     }

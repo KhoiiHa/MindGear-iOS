@@ -9,6 +9,9 @@ class VideoViewModel: ObservableObject {
     @Published var errorMessage: String? = nil
     @Published var searchText: String = ""
     @Published var filteredVideos: [Video] = []
+    /// Metadaten der aktuellen Playlist (für Favoriten-Button etc.)
+    @Published var playlistTitle: String = ""
+    @Published var playlistThumbnailURL: String = ""
     private var searchTask: Task<Void, Never>? = nil
 
     /// Normalisiert Strings (diakritik-insensitiv, lowercase) für eine robuste Suche
@@ -36,6 +39,13 @@ class VideoViewModel: ObservableObject {
         } else {
             filteredVideos = filteredByQuery
         }
+    }
+
+    /// Leitet Playlist-Titel & Thumbnail aus der ersten Videokarte ab (fallback, bis echte Playlist-API genutzt wird)
+    private func updatePlaylistMetaFromVideosIfNeeded() {
+        guard let first = videos.first else { return }
+        if playlistTitle.isEmpty { playlistTitle = first.title }
+        if playlistThumbnailURL.isEmpty { playlistThumbnailURL = first.thumbnailURL }
     }
 
     /// Debounce für die Suchanfrage (~250ms). Aus der View via `.onChange(of:)` aufrufen.
@@ -71,6 +81,7 @@ class VideoViewModel: ObservableObject {
     func loadVideos(forceReload: Bool = false) async {
         offlineMessage = nil
         errorMessage = nil // vorherige Fehlermeldung zurücksetzen
+        print("📡 loadVideos start for playlist", playlistId)
         // Session-Guard: dieselbe Playlist nicht mehrfach initial laden (sofern nicht erzwungen)
         if !forceReload, Self.loadedOnce.contains(playlistId), !videos.isEmpty {
             print("🧠 Session-Guard: Initial-Load für \(playlistId) übersprungen (bereits geladen in dieser Session)")
@@ -80,9 +91,10 @@ class VideoViewModel: ObservableObject {
             let response = try await apiService.fetchVideos(from: playlistId, apiKey: apiKey, pageToken: nil)
             let items = response.items
             self.nextPageToken = response.nextPageToken
+            print("✅ API ok · items:\(items.count) · nextToken:\(self.nextPageToken ?? "nil")")
             // nextPageToken kommt von der ersten Seite
             let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
-            self.videos = items.compactMap { item in
+            self.videos = items.compactMap { item -> Video? in
                 guard
                     let snippet = item.snippet,
                     let videoId = snippet.resourceId?.videoId,
@@ -95,13 +107,10 @@ class VideoViewModel: ObservableObject {
                 let cleanID = Video.extractVideoID(from: videoId)
                 let url = cleanID
                 
-                // Thumbnail Normalisierung: HTTPS erzwingen und maxresdefault verwenden, falls möglich
-                var thumbnailURL = snippet.thumbnails?.high?.url ?? snippet.thumbnails?.medium?.url ?? ""
-                thumbnailURL = thumbnailURL.replacingOccurrences(of: "http://", with: "https://")
-                if let id = snippet.resourceId?.videoId {
-                    // Versuch, auf das maxresdefault-Thumbnail zu setzen
-                    thumbnailURL = "https://i.ytimg.com/vi/\(id)/maxresdefault.jpg"
-                }
+                // Thumbnail-Normalisierung: beste verfügbare Stufe wählen + HTTPS erzwingen
+                let thumb = snippet.thumbnails?.high?.url ?? snippet.thumbnails?.medium?.url
+                let thumbnailURL = (thumb ?? "").replacingOccurrences(of: "http://", with: "https://")
+                guard !thumbnailURL.isEmpty else { return nil }
 
                 var video = Video(
                     id: UUID(),
@@ -116,6 +125,8 @@ class VideoViewModel: ObservableObject {
                 }
                 return video
             }
+            // Metadaten der Playlist (heuristisch aus erstem Video)
+            updatePlaylistMetaFromVideosIfNeeded()
             // Merken: Diese Playlist wurde in dieser Session bereits einmal geladen
             Self.loadedOnce.insert(self.playlistId)
             applySearch()
@@ -165,7 +176,37 @@ class VideoViewModel: ObservableObject {
                 errorMessage = "Ein unbekannter Fehler ist aufgetreten."
             }
         } catch {
-            errorMessage = "Ein unerwarteter Fehler ist aufgetreten."
+            if let urlErr = error as? URLError {
+                print("🌐 URLError:", urlErr.code, urlErr.localizedDescription)
+                let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
+                if favorites.isEmpty {
+                    switch urlErr.code {
+                    case .notConnectedToInternet, .timedOut, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost:
+                        errorMessage = "Netzwerkverbindung verloren. Bitte versuche es erneut."
+                    default:
+                        errorMessage = "Netzwerkfehler. Bitte versuche es erneut."
+                    }
+                } else {
+                    // Offline-Modus: zeige gespeicherte Favoriten statt Alert
+                    errorMessage = nil
+                    offlineMessage = "Offline-Modus: Zeige gespeicherte Favoriten"
+                    self.videos = favorites.map { fav in
+                        Video(
+                            id: fav.id,
+                            title: fav.title,
+                            description: fav.videoDescription,
+                            thumbnailURL: fav.thumbnailURL,
+                            videoURL: fav.videoURL,
+                            category: fav.category,
+                            isFavorite: true
+                        )
+                    }
+                    applySearch()
+                }
+            } else {
+                print("❗️Unexpected error:", error.localizedDescription)
+                errorMessage = "Ein unerwarteter Fehler ist aufgetreten."
+            }
         }
     }
 
@@ -177,7 +218,7 @@ class VideoViewModel: ObservableObject {
         do {
             let response = try await apiService.fetchVideos(from: playlistId, apiKey: apiKey, pageToken: token)
             let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
-            let newVideos: [Video] = response.items.compactMap { item in
+            let newVideos: [Video] = response.items.compactMap { item -> Video? in
                 guard
                     let snippet = item.snippet,
                     let videoId = snippet.resourceId?.videoId,
@@ -189,13 +230,10 @@ class VideoViewModel: ObservableObject {
                 let cleanID = Video.extractVideoID(from: videoId)
                 let url = cleanID
                 
-                // Thumbnail Normalisierung: HTTPS erzwingen und maxresdefault verwenden, falls möglich
-                var thumbnailURL = snippet.thumbnails?.high?.url ?? snippet.thumbnails?.medium?.url ?? ""
-                thumbnailURL = thumbnailURL.replacingOccurrences(of: "http://", with: "https://")
-                if let id = snippet.resourceId?.videoId {
-                    // Versuch, auf das maxresdefault-Thumbnail zu setzen
-                    thumbnailURL = "https://i.ytimg.com/vi/\(id)/maxresdefault.jpg"
-                }
+                // Thumbnail-Normalisierung: beste verfügbare Stufe wählen + HTTPS erzwingen
+                let thumb = snippet.thumbnails?.high?.url ?? snippet.thumbnails?.medium?.url
+                let thumbnailURL = (thumb ?? "").replacingOccurrences(of: "http://", with: "https://")
+                guard !thumbnailURL.isEmpty else { return nil }
 
                 var video = Video(
                     id: UUID(),
@@ -214,6 +252,10 @@ class VideoViewModel: ObservableObject {
             let existingURLs = Set(self.videos.map { $0.videoURL })
             let uniqueNewVideos = newVideos.filter { !existingURLs.contains($0.videoURL) }
             self.videos.append(contentsOf: uniqueNewVideos)
+            // Falls noch keine Metadaten gesetzt sind, jetzt aus vorhandenen Videos ableiten
+            if playlistTitle.isEmpty || playlistThumbnailURL.isEmpty {
+                updatePlaylistMetaFromVideosIfNeeded()
+            }
             applySearch()
             // Token für die nächste Seite aktualisieren
             self.nextPageToken = response.nextPageToken
