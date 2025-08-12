@@ -47,6 +47,25 @@ struct VideoListView: View {
         video == viewModel.filteredVideos.last
     }
 
+    // Autovervollständigung: einfache, lokale Vorschlagslogik auf Basis der gefilterten Videos
+    private var suggestionItems: [String] {
+        let q = viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let query = q.lowercased()
+        guard query.count >= 2 else { return [] }
+
+        // Kandidaten: aktuelle (bereits gefilterte) Titel – leichtgewichtig und offline-freundlich
+        let titles = viewModel.filteredVideos.map { $0.title }
+
+        // Priorisierung: Prefix-Treffer vor "contains"-Treffern, Duplikate entfernen, max. 6
+        let prefix = titles.filter { $0.lowercased().hasPrefix(query) }
+        let rest = titles.filter { $0.lowercased().contains(query) && !$0.lowercased().hasPrefix(query) }
+        var merged: [String] = []
+        for t in (prefix + rest) {
+            if !merged.contains(t) { merged.append(t) }
+        }
+        return Array(merged.prefix(6))
+    }
+
     private func togglePlaylistFavorite() {
         let derivedTitle = viewModel.playlistTitle.isEmpty ? "Playlist" : viewModel.playlistTitle
         let derivedThumb = viewModel.playlistThumbnailURL
@@ -122,6 +141,43 @@ struct VideoListView: View {
                         }
                     }
                     .searchable(text: searchTextBinding, prompt: "Suche Videos")
+                    .searchSuggestions {
+                        // Wenn der Nutzer bereits tippt (>=2 Zeichen) → dynamische Vorschläge
+                        let trimmed = viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+                        if trimmed.count >= 2 {
+                            ForEach(suggestionItems, id: \.self) { suggestion in
+                                Button(action: {
+                                    viewModel.searchText = suggestion
+                                    viewModel.updateQuery(suggestion)
+                                    viewModel.commitSearchTerm() // ausgewählten Vorschlag speichern
+                                }) {
+                                    Text(suggestion)
+                                }
+                                .searchCompletion(suggestion)
+                            }
+                        } else {
+                            // Sonst: Verlaufseinträge anzeigen (falls vorhanden)
+                            if !viewModel.searchHistory.isEmpty {
+                                Section("Zuletzt gesucht") {
+                                    ForEach(viewModel.searchHistory.prefix(5), id: \.self) { term in
+                                        Button(action: {
+                                            viewModel.searchText = term
+                                            viewModel.updateQuery(term)
+                                        }) {
+                                            Text(term)
+                                        }
+                                        .searchCompletion(term)
+                                    }
+                                    Button("Verlauf löschen", role: .destructive) {
+                                        viewModel.clearSearchHistory()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .onSubmit(of: .search) {
+                        viewModel.commitSearchTerm()
+                    }
                     .onChange(of: viewModel.searchText, initial: false) { _, newValue in
                         viewModel.updateQuery(newValue)
                     }

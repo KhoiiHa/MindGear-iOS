@@ -35,6 +35,24 @@ struct FavoritenView: View {
         }
     }
 
+    // Autovervollständigung: Vorschläge aus allen Favoriten (Videos, Mentoren, Playlists)
+    private var suggestionItems: [String] {
+        let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard q.count >= 2 else { return [] }
+
+        let titles = viewModel.favorites.map { $0.title } 
+                   + viewModel.favoriteMentors.map { $0.name } 
+                   + viewModel.favoritePlaylists.map { $0.title }
+
+        let prefix = titles.filter { $0.lowercased().hasPrefix(q) }
+        let rest = titles.filter { $0.lowercased().contains(q) && !$0.lowercased().hasPrefix(q) }
+        var merged: [String] = []
+        for t in (prefix + rest) where !merged.contains(t) {
+            merged.append(t)
+        }
+        return Array(merged.prefix(6))
+    }
+
     // MARK: - Row-Views ausgelagert (entlastet den Type-Checker)
     private struct VideoFavoriteCell: View {
         let fav: FavoriteVideoEntity
@@ -46,26 +64,7 @@ struct FavoritenView: View {
                         .frame(width: 80, height: 60)
                         .cornerRadius(8)
                 } else if let url = URL(string: fav.thumbnailURL) {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .empty:
-                            Color.gray.opacity(0.15)
-                                .frame(width: 80, height: 60)
-                                .cornerRadius(8)
-                        case .success(let image):
-                            image.resizable().scaledToFill()
-                                .frame(width: 80, height: 60)
-                                .cornerRadius(8)
-                        case .failure:
-                            Image(systemName: "photo")
-                                .frame(width: 80, height: 60)
-                                .foregroundColor(.gray)
-                        @unknown default:
-                            Image(systemName: "photo")
-                                .frame(width: 80, height: 60)
-                                .foregroundColor(.gray)
-                        }
-                    }
+                    ThumbnailView(urlString: url.absoluteString, width: 80, height: 60, cornerRadius: 8)
                 }
                 VStack(alignment: .leading) {
                     Text(fav.title).font(.headline)
@@ -125,24 +124,9 @@ struct FavoritenView: View {
         var body: some View {
             HStack(spacing: 12) {
                 if let url = URL(string: fav.thumbnailURL), let scheme = url.scheme, scheme.hasPrefix("http") {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .empty:
-                            Color.gray.opacity(0.15)
-                        case .success(let image):
-                            image.resizable().scaledToFill()
-                        case .failure:
-                            Image(systemName: "rectangle.stack")
-                                .font(.title2)
-                                .foregroundColor(.gray)
-                        @unknown default:
-                            Image(systemName: "rectangle.stack")
-                                .font(.title2)
-                                .foregroundColor(.gray)
-                        }
-                    }
-                    .frame(width: 80, height: 60)
-                    .cornerRadius(8)
+                    ThumbnailView(urlString: url.absoluteString, width: 80, height: 60, cornerRadius: 8)
+                        .frame(width: 80, height: 60)
+                        .cornerRadius(8)
                 } else {
                     Image(systemName: "rectangle.stack")
                         .font(.title2)
@@ -275,6 +259,19 @@ struct FavoritenView: View {
             .listStyle(.insetGrouped)
             .navigationTitle("Favoriten")
             .searchable(text: $searchText, prompt: "Favoriten durchsuchen")
+            .searchSuggestions {
+                let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+                if trimmed.count >= 2 {
+                    ForEach(suggestionItems, id: \.self) { suggestion in
+                        Button(action: {
+                            searchText = suggestion
+                        }) {
+                            Text(suggestion)
+                        }
+                        .searchCompletion(suggestion)
+                    }
+                }
+            }
             .toolbar { EditButton() }
             .onAppear {
                 viewModel.loadFavorites()

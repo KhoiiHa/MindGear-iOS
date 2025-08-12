@@ -9,6 +9,10 @@ class VideoViewModel: ObservableObject {
     @Published var errorMessage: String? = nil
     @Published var searchText: String = ""
     @Published var filteredVideos: [Video] = []
+    // Autovervollständigung & Verlauf
+    @Published var suggestions: [String] = []
+    @Published var searchHistory: [String] = []
+    private let searchHistoryKey = "SearchHistory.v1"
     /// Metadaten der aktuellen Playlist (für Favoriten-Button etc.)
     @Published var playlistTitle: String = ""
     @Published var playlistThumbnailURL: String = ""
@@ -55,6 +59,8 @@ class VideoViewModel: ObservableObject {
         searchTask = Task { @MainActor in
             try? await Task.sleep(nanoseconds: 250_000_000)
             applySearch()
+            // Vorschläge lokal aus den aktuell sichtbaren Videos ableiten
+            self.suggestions = Self.makeSuggestions(from: self.filteredVideos, query: self.searchText)
         }
     }
     @Published var offlineMessage: String? = nil
@@ -74,6 +80,24 @@ class VideoViewModel: ObservableObject {
         self.playlistId = playlistId
         self.apiService = apiService
         self.context = context
+        self.loadSearchHistory()
+    }
+    /// Erzeugt Vorschlagstitel (max 6), priorisiert Präfix-Treffer, diakritik-insensitiv.
+    static func makeSuggestions(from videos: [Video], query: String, max: Int = 6) -> [String] {
+        let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalized = q.folding(options: .diacriticInsensitive, locale: .current).lowercased()
+        guard normalized.count >= 2 else { return [] }
+        let titles = videos.map { $0.title }
+        let prefix = titles.filter { $0.folding(options: .diacriticInsensitive, locale: .current).lowercased().hasPrefix(normalized) }
+        let rest = titles.filter { title in
+            let t = title.folding(options: .diacriticInsensitive, locale: .current).lowercased()
+            return t.contains(normalized) && !t.hasPrefix(normalized)
+        }
+        var merged: [String] = []
+        for t in (prefix + rest) {
+            if !merged.contains(t) { merged.append(t) }
+        }
+        return Array(merged.prefix(max))
     }
 
     /// Lädt Videos aus der YouTube-Playlist und aktualisiert die Liste der Videos.
@@ -281,4 +305,27 @@ class VideoViewModel: ObservableObject {
 
     @Published var showFavoritesOnly: Bool = false { didSet { applySearch() } }
 
+    /// Speichert den aktuellen Suchbegriff im Verlauf (max. 10 Einträge, neuestes zuerst, ohne Duplikate)
+    func commitSearchTerm() {
+        let term = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard term.count >= 2 else { return }
+        var history = searchHistory.filter { $0.caseInsensitiveCompare(term) != .orderedSame }
+        history.insert(term, at: 0)
+        if history.count > 10 { history = Array(history.prefix(10)) }
+        searchHistory = history
+        UserDefaults.standard.set(history, forKey: searchHistoryKey)
+    }
+
+    /// Lädt den gespeicherten Suchverlauf aus UserDefaults
+    private func loadSearchHistory() {
+        if let arr = UserDefaults.standard.array(forKey: searchHistoryKey) as? [String] {
+            searchHistory = arr
+        }
+    }
+
+    /// Löscht den Suchverlauf (UI kann diese Funktion z. B. über einen Button anstoßen)
+    func clearSearchHistory() {
+        searchHistory = []
+        UserDefaults.standard.removeObject(forKey: searchHistoryKey)
+    }
 }

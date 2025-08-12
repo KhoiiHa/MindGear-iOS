@@ -13,61 +13,15 @@ struct VideoRow: View {
     let video: Video
     @Environment(\.modelContext) private var context
     @State private var isFavorite: Bool = false
-    @State private var reloadToken = UUID()
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            // Thumbnail mit Ladezustand, Fehler-Handler und manuellem Retry (Cache-Buster)
-            AsyncImage(url: makeURL(video.thumbnailURL, token: reloadToken)) { phase in
-                switch phase {
-                case .empty:
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.gray.opacity(0.15))
-                        ProgressView()
-                    }
-                    .frame(width: 120, height: 70)
-                    .accessibilityHidden(true)
-                    .transition(.opacity)
-
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 120, height: 70)
-                        .clipped()
-                        .cornerRadius(8)
-                        .accessibilityHidden(true)
-                        .transition(.opacity)
-
-                case .failure:
-                    VStack(spacing: 6) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.gray.opacity(0.15))
-                            Image(systemName: "video.slash")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 24, height: 24)
-                                .foregroundColor(.secondary)
-                        }
-                        Button("Neu laden") {
-                            reloadToken = UUID() // triggert neuen AsyncImage-Request
-                        }
-                        .font(.caption2)
-                    }
-                    .frame(width: 120, height: 70)
-                    .accessibilityHidden(true)
-                    .transition(.opacity)
-
-                @unknown default:
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.gray.opacity(0.15))
-                        .frame(width: 120, height: 70)
-                        .accessibilityHidden(true)
-                        .transition(.opacity)
-                }
-            }
+            ThumbnailView(
+                urlString: video.thumbnailURL,
+                width: 120,
+                height: 70,
+                cornerRadius: 8
+            )
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(video.title)
@@ -106,13 +60,5 @@ struct VideoRow: View {
         .onAppear {
             isFavorite = FavoritesManager.shared.isVideoFavorite(video: video, context: context)
         }
-    }
-    // Baut eine URL mit Cache-Buster, damit AsyncImage bei gleichem Pfad nach einem Fehler neu lädt
-    private func makeURL(_ s: String, token: UUID) -> URL? {
-        guard var comp = URLComponents(string: s) else { return URL(string: s) }
-        var items = comp.queryItems ?? []
-        items.append(URLQueryItem(name: "t", value: token.uuidString))
-        comp.queryItems = items
-        return comp.url ?? URL(string: s)
     }
 }

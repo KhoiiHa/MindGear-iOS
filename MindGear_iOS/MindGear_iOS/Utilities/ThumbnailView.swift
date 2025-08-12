@@ -21,7 +21,7 @@ struct ThumbnailView: View {
     @State private var reloadToken = UUID()
 
     var body: some View {
-        AsyncImage(url: makeURL(urlString, token: reloadToken)) { phase in
+        AsyncImage(url: makeURL(ThumbnailURLBuilder.build(from: urlString), token: reloadToken)) { phase in
             switch phase {
             case .empty:
                 placeholder.redacted(reason: .placeholder)
