@@ -136,17 +136,19 @@ class VideoViewModel: ObservableObject {
                 errorMessage = "Ungültige URL. Bitte überprüfe die API-Einstellungen."
             case .networkError:
                 // Underlying Error (falls vorhanden) in die Konsole schreiben
-                if let underlyingError = (error as LocalizedError).errorDescription {
-                    print("Network error occurred: \(underlyingError)")
+                if let underlying = error.errorDescription {
+                    print("Network error occurred:", underlying)
                 }
+
                 let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
+
                 if favorites.isEmpty {
-                    if let apiErrorMessage = errorMessage, !apiErrorMessage.isEmpty {
-                        errorMessage = apiErrorMessage
-                    } else {
-                        errorMessage = "Netzwerkfehler. Bitte überprüfe deine Internetverbindung."
+                    // Präzisere, aber freundliche Nutzer-Message. Falls zuvor bereits eine konkrete Message gesetzt wurde, nicht überschreiben.
+                    if errorMessage == nil || errorMessage?.isEmpty == true {
+                        errorMessage = "Daten konnten nicht geladen werden. Bitte Verbindung prüfen und später erneut versuchen."
                     }
                 } else {
+                    // Offline-Modus: Zeige gespeicherte Favoriten ohne störenden Alert
                     errorMessage = nil
                     offlineMessage = "Offline-Modus: Zeige gespeicherte Favoriten"
                     self.videos = favorites.map { fav in
@@ -183,6 +185,9 @@ class VideoViewModel: ObservableObject {
                     switch urlErr.code {
                     case .notConnectedToInternet, .timedOut, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost:
                         errorMessage = "Netzwerkverbindung verloren. Bitte versuche es erneut."
+                    case .cannotParseResponse, .badServerResponse:
+                        print("⚠️ Serverantwort nicht parsebar / ungültig (\(urlErr.code.rawValue)):", urlErr.localizedDescription)
+                        errorMessage = "Daten konnten nicht geladen werden. Der Server lieferte keine gültigen Informationen. Bitte später erneut versuchen."
                     default:
                         errorMessage = "Netzwerkfehler. Bitte versuche es erneut."
                     }

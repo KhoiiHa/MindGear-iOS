@@ -35,10 +35,16 @@ final class APIService: APIServiceProtocol {
     private static let cache = ResponseCache()
 
     private static let session: URLSession = {
-        let cfg = URLSessionConfiguration.default
-        cfg.httpAdditionalHeaders = [
-            "User-Agent": "MindGear-iOS/1.0"
+        let cfg = URLSessionConfiguration.ephemeral
+        var headers: [AnyHashable: Any] = [
+            "User-Agent": "MindGear-iOS/1.0",
+            "Accept": "application/json"
         ]
+        // Merge with any pre-set headers if present
+        if let existing = cfg.httpAdditionalHeaders {
+            for (k, v) in existing { headers[k] = v }
+        }
+        cfg.httpAdditionalHeaders = headers
         cfg.waitsForConnectivity = true
         cfg.timeoutIntervalForRequest = 30
         cfg.timeoutIntervalForResource = 60
@@ -60,6 +66,9 @@ final class APIService: APIServiceProtocol {
                 switch urlError.code {
                 case .timedOut, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost, .notConnectedToInternet:
                     return true
+                case .cannotParseResponse, .badServerResponse:
+                    // Diese Fälle deuten oft auf Protokoll-/Server-Inkompatibilität hin → Host wechseln statt retry auf gleichem Host
+                    return false
                 default:
                     return false
                 }
@@ -90,6 +99,8 @@ final class APIService: APIServiceProtocol {
 
                     var request = URLRequest(url: url)
                     request.httpMethod = "GET"
+                    request.setValue("application/json", forHTTPHeaderField: "Accept")
+                    request.cachePolicy = .reloadIgnoringLocalCacheData
 
                     print("🔎 URL:", url.absoluteString)
                     let (data, response) = try await APIService.session.data(for: request)
@@ -133,13 +144,22 @@ final class APIService: APIServiceProtocol {
                 } catch {
                     print("❗️Transportfehler (Attempt #\(attempt)):", error.localizedDescription)
                     lastError = error
-                    if shouldRetry(error) {
-                        let delay = pow(2.0, Double(attempt - 1)) * 0.5 // 0.5s, 1s, 2s
-                        try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-                        continue // retry same host
-                    } else {
-                        break // do not retry non-transient errors on this host
+
+                    if let urlError = error as? URLError {
+                        switch urlError.code {
+                        case .cannotParseResponse, .badServerResponse:
+                            // Nicht auf gleichem Host weiterversuchen → brechen und den nächsten Host probieren
+                            break
+                        case .timedOut, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost, .notConnectedToInternet:
+                            let delay = pow(2.0, Double(attempt - 1)) * 0.5 // 0.5s, 1s, 2s
+                            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                            continue // Retry auf gleichem Host
+                        default:
+                            break // Unbekannt/irrelevant → nächsten Host versuchen
+                        }
                     }
+                    // Für alle anderen Fehler: zum nächsten Host wechseln
+                    break
                 }
             }
             // if we exit the while without returning, try next host
