@@ -10,32 +10,32 @@
 **MindGear** ist eine native iOS-App für Männer, die in herausfordernden Zeiten Orientierung, mentale Stärke und neue Impulse suchen.  
 Die App bietet eine kuratierte Auswahl an YouTube-Videos und Podcasts von bekannten Denkern, Mentoren und Interviewern wie:
 
-- Joe Rogan, Chris Williamson, Lex Fridman  
+- Chris Williamson, Lex Fridman  
 - The Diary of a CEO, HealthyGamerGG, Shi Heng Yi  
-- Jordan B. Peterson, Simon Sinek, Jay Shetty u. v. m.
+- Jordan B. Peterson, Simon Sinek, Jay Shetty u. v. m.
 
-Durch thematische Empfehlungen und Favoritenfunktion unterstützt MindGear dich dabei, neue Perspektiven zu gewinnen und deine innere Widerstandskraft zu stärken.
+Durch thematische Empfehlungen, Favoritenfunktion und eine leistungsstarke Suche unterstützt MindGear dich dabei, neue Perspektiven zu gewinnen und deine innere Widerstandskraft zu stärken.
 
 ---
 
-## 🧩 **Features (MVP)**
+## 🧩 **Features (aktuell)**
 
 - ✅ **YouTube-Integration (WebView)**  
   → Videos direkt in der App abspielen
 
-- ✅ **Favoriten-Funktion**  
-  → Eigene Inspirationssammlung speichern
+- ✅ **Optimierte Favoriten-Funktion**  
+  → Sortierung nach „Zuletzt hinzugefügt“ & Offline-Kennzeichnung
 
 - ✅ **Tägliche Empfehlung**  
   → Jeden Tag ein neuer Impuls
 
-- ✅ **Suchfunktion & Filter**  
-  → Inhalte nach Keywords und Kanälen durchsuchen
+- ✅ **Erweiterte Suchfunktion**  
+  → Autovervollständigung & Filterung nach Kategorien/Mentoren
 
 - ✅ **Dark Mode Support**  
   → Angenehmes Design bei Tag & Nacht
 
-- ✅ **100 % kostenfreie Entwicklung**  
+- ✅ **100 % kostenfreie Entwicklung**  
   → Kein Abo, keine Bezahlschranken
 
 ---
@@ -44,9 +44,10 @@ Durch thematische Empfehlungen und Favoritenfunktion unterstützt MindGear dich 
 
 - **SwiftUI** – Deklaratives UI-Framework von Apple  
 - **MVVM** – Strukturierte Trennung von Logik und Darstellung  
-- **SwiftData** – Lokale Favoriten-Speicherung  
+- **SwiftData** – Lokale Favoriten-Speicherung & Caching  
 - **WebKit/WebView** – Einbettung externer Videos  
-- **JSON-Handling** – Strukturierte Datenbasis für Videoinhalte
+- **YouTube API** – Dynamische Video- & Kanal-Daten  
+- **Utility-Module** – z. B. `ThumbnailURLBuilder`, `OfflineStatusManager`
 
 ---
 
@@ -75,27 +76,19 @@ Diese Vorlagen wurden in Moodboard und Prototyping-Phase ausgewertet und selekti
 
 ## 🧪 **In Planung (Next Steps)**
 
-- [ ] Benutzer-Profile & Einstellungen
-- [ ] Push-Benachrichtigungen (Reminder)
-- [ ] Thematische Playlists & Kategorien
-- [ ] Offline-Modus für gespeicherte Inhalte
-- [ ] Fortschrittsanzeige & tägliche Routinen
-
-### Vorbereitete Module
-
-- `AppTheme` für konsistente Farben & Typografie
-- `AnimationHelper` für gemeinsame Übergänge
-- `NotificationManager` als Basis für Reminder
-- `AnalyticsManager` für Logging und Auswertung
-- `OnboardingView` als Einstiegspunkt
+- [ ] Benutzer-Profile & Einstellungen  
+- [ ] Push-Benachrichtigungen (Reminder)  
+- [ ] Erweiterte thematische Playlists & Kategorien  
+- [ ] Vollständiger Offline-Modus für gespeicherte Inhalte  
+- [ ] Fortschrittsanzeige & tägliche Routinen  
 
 ---
 
 ## 📆 **Projektstatus**
 
-- 🔄 **Letztes Update:** Mai 2025  
-- 🧱 **Aktueller Fokus:** UI-Struktur & Datenmodellierung  
-- 🎯 **Ziel:** Erste testbare Version im Sommer 2025
+- 🔄 **Letztes Update:** August 2025  
+- 🧱 **Aktueller Fokus:** UX-Optimierung, Performance, Favoriten-Logik  
+- 🎯 **Ziel:** Erste Testphase & Nutzerfeedback im Spätsommer 2025
 
 ---
 
