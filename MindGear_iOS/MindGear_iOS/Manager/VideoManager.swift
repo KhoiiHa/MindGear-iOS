@@ -48,4 +48,21 @@ final class VideoManager {
     ) async throws -> YouTubeResponse {
         try await api.fetchVideos(from: playlistId, apiKey: apiKey, pageToken: pageToken)
     }
+    /// Lädt eine kleine Vorschau-Liste (z. B. 5 Items) für eine Playlist und mappt sie auf `Video`.
+    /// - Parameters:
+    ///   - playlistId: Die YouTube-Playlist-ID
+    ///   - category: Name der App-Kategorie (wird im Mapper für `toVideo(category:)` genutzt)
+    ///   - limit: Anzahl der gewünschten Items (Default: 5)
+    ///   - api: API-Service (standardmäßig `APIService.shared`)
+    /// - Returns: Gemappte `Video`-Objekte, auf `limit` gekürzt
+    func fetchPlaylistPreview(
+        playlistId: String,
+        category: String,
+        limit: Int = 5,
+        api: APIServiceProtocol = APIService.shared
+    ) async throws -> [Video] {
+        let response = try await api.fetchVideos(from: playlistId, apiKey: ConfigManager.apiKey, pageToken: nil)
+        let mapped = response.items.compactMap { $0.toVideo(category: category) }
+        return Array(mapped.prefix(limit))
+    }
 }

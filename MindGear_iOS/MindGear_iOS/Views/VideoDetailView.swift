@@ -18,9 +18,36 @@ struct VideoDetailView: View {
 
     // Baut eine stabile YouTube-Embed-URL aus beliebigen Eingaben (ID, watch-URL, youtu.be)
     private func makeYouTubeEmbedURL(from raw: String) -> URL? {
-        let id = Video.extractVideoID(from: raw)
+        // 1. Versuche, die Video-ID mit der bestehenden Methode zu extrahieren
+        var id = Video.extractVideoID(from: raw)
+        if id.isEmpty {
+            // 2. Versuche, die Video-ID direkt aus der URL zu extrahieren
+            if let url = URL(string: raw) {
+                // a) Prüfe auf v= Query-Parameter (youtube.com/watch?v=)
+                if let comps = URLComponents(url: url, resolvingAgainstBaseURL: false),
+                   let vQuery = comps.queryItems?.first(where: { $0.name == "v" })?.value,
+                   !vQuery.isEmpty {
+                    id = vQuery
+                }
+                // b) Prüfe auf youtu.be/<id>
+                else if url.host?.contains("youtu.be") == true {
+                    let path = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+                    if !path.isEmpty {
+                        id = path
+                    }
+                }
+                // c) Prüfe auf /embed/<id>
+                else if url.path.contains("/embed/") {
+                    let parts = url.path.components(separatedBy: "/")
+                    if let embedIdx = parts.firstIndex(of: "embed"), parts.count > embedIdx + 1 {
+                        id = parts[embedIdx + 1]
+                    }
+                }
+            }
+        }
         guard !id.isEmpty else { return nil }
-        return URL(string: "https://www.youtube.com/embed/\(id)")
+        // Verwende youtube-nocookie.com für mehr Datenschutz
+        return URL(string: "https://www.youtube-nocookie.com/embed/\(id)?playsinline=1&rel=0&modestbranding=1")
     }
 
     var body: some View {
