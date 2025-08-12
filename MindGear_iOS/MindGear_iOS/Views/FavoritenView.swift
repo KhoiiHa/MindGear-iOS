@@ -1,7 +1,9 @@
 import SwiftUI
 import SwiftData
+import Network
 
 struct FavoritenView: View {
+    @StateObject private var network = NetworkMonitor.shared
     @Environment(\.modelContext) private var context
     @StateObject private var viewModel: FavoritenViewModel
     @State private var searchText = ""
@@ -40,8 +42,8 @@ struct FavoritenView: View {
         let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard q.count >= 2 else { return [] }
 
-        let titles = viewModel.favorites.map { $0.title } 
-                   + viewModel.favoriteMentors.map { $0.name } 
+        let titles = viewModel.favorites.map { $0.title }
+                   + viewModel.favoriteMentors.map { $0.name }
                    + viewModel.favoritePlaylists.map { $0.title }
 
         let prefix = titles.filter { $0.lowercased().hasPrefix(q) }
@@ -252,6 +254,15 @@ struct FavoritenView: View {
     var body: some View {
         NavigationView {
             List {
+                if network.isOffline {
+                    Section {
+                        HStack(spacing: 8) {
+                            Image(systemName: "wifi.exclamationmark")
+                            Text("Offline: Zeige gespeicherte Favoriten")
+                        }
+                        .foregroundStyle(.yellow)
+                    }
+                }
                 videoSection()
                 mentorSection()
                 playlistSection()
@@ -279,3 +290,6 @@ struct FavoritenView: View {
         }
     }
 }
+
+
+

@@ -17,8 +17,9 @@ final class FavoriteVideoEntity {
     var videoURL: String
     var category: String
     var thumbnailData: Data?
+    var createdAt: Date
 
-    init(id: UUID, title: String, videoDescription: String, thumbnailURL: String, videoURL: String, category: String, thumbnailData: Data? = nil) {
+    init(id: UUID, title: String, videoDescription: String, thumbnailURL: String, videoURL: String, category: String, thumbnailData: Data? = nil, createdAt: Date = .now) {
         self.id = id
         self.title = title
         self.videoDescription = videoDescription
@@ -26,5 +27,6 @@ final class FavoriteVideoEntity {
         self.videoURL = videoURL
         self.category = category
         self.thumbnailData = thumbnailData
+        self.createdAt = createdAt
     }
 }

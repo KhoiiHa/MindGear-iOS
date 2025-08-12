@@ -65,7 +65,8 @@ final class FavoritesManager {
                     thumbnailURL: video.thumbnailURL,
                     videoURL: video.videoURL,
                     category: video.category,
-                    thumbnailData: data
+                    thumbnailData: data,
+                    createdAt: .now
                 )
                 context.insert(favorite)
             }
@@ -108,7 +109,10 @@ final class FavoritesManager {
     /// Liefert alle gespeicherten Video-Favoriten zurück 📂
     func getAllVideoFavorites(context: ModelContext) -> [FavoriteVideoEntity] {
         do {
-            return try context.fetch(FetchDescriptor<FavoriteVideoEntity>())
+            let descriptor = FetchDescriptor<FavoriteVideoEntity>(
+                sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+            )
+            return try context.fetch(descriptor)
         } catch {
             print("Error fetching video favorites: \(error)")
             return []
