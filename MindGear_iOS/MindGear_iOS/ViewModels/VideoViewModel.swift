@@ -102,6 +102,20 @@ class VideoViewModel: ObservableObject {
         return Array(merged.prefix(max))
     }
 
+    /// Wählt eine robuste Thumbnail-URL (maxres -> standard -> high -> medium -> default) und erzwingt HTTPS.
+    private func makeThumbnailURL(from thumbnails: Thumbnails?, videoID: String) -> String {
+        let chosen = thumbnails?.maxres?.url
+            ?? thumbnails?.standard?.url
+            ?? thumbnails?.high?.url
+            ?? thumbnails?.medium?.url
+            ?? thumbnails?.defaultThumbnail?.url
+        var url = (chosen ?? "").replacingOccurrences(of: "http://", with: "https://")
+        if url.isEmpty {
+            url = "https://i.ytimg.com/vi/\(videoID)/hqdefault.jpg"
+        }
+        return url
+    }
+
     /// Lädt Videos aus der YouTube-Playlist und aktualisiert die Liste der Videos.
     /// Behandelt Fehler und zeigt gegebenenfalls Favoriten im Offline-Modus an.
     func loadVideos(forceReload: Bool = false) async {
@@ -138,13 +152,7 @@ class VideoViewModel: ObservableObject {
                 let cleanID = Video.extractVideoID(from: videoId)
                 let url = cleanID
 
-                // Thumbnail-Auswahl: maxres -> standard -> high -> medium -> default; HTTPS erzwingen; Fallback auf hqdefault
-                let t = snippet.thumbnails
-                let chosen = t?.maxres?.url ?? t?.standard?.url ?? t?.high?.url ?? t?.medium?.url ?? t?.defaultThumbnail?.url
-                var thumbnailURL = (chosen ?? "").replacingOccurrences(of: "http://", with: "https://")
-                if thumbnailURL.isEmpty {
-                    thumbnailURL = "https://i.ytimg.com/vi/\(cleanID)/hqdefault.jpg"
-                }
+                let thumbnailURL = makeThumbnailURL(from: snippet.thumbnails, videoID: cleanID)
 
                 var video = Video(
                     id: UUID(),
@@ -276,13 +284,7 @@ class VideoViewModel: ObservableObject {
                 let cleanID = Video.extractVideoID(from: videoId)
                 let url = cleanID
 
-                // Thumbnail-Auswahl: maxres -> standard -> high -> medium -> default; HTTPS erzwingen; Fallback auf hqdefault
-                let t = snippet.thumbnails
-                let chosen = t?.maxres?.url ?? t?.standard?.url ?? t?.high?.url ?? t?.medium?.url ?? t?.defaultThumbnail?.url
-                var thumbnailURL = (chosen ?? "").replacingOccurrences(of: "http://", with: "https://")
-                if thumbnailURL.isEmpty {
-                    thumbnailURL = "https://i.ytimg.com/vi/\(cleanID)/hqdefault.jpg"
-                }
+                let thumbnailURL = makeThumbnailURL(from: snippet.thumbnails, videoID: cleanID)
 
                 var video = Video(
                     id: UUID(),
