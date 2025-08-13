@@ -68,6 +68,8 @@ class VideoViewModel: ObservableObject {
     // Pagination-Status
     @Published var isLoadingMore: Bool = false
     private var nextPageToken: String? = nil
+    @Published var hasMore: Bool = true
+    @Published var loadMoreError: String? = nil
 
     // Lädt API-Schlüssel dynamisch aus der Config
     private let apiKey = ConfigManager.apiKey
@@ -105,6 +107,10 @@ class VideoViewModel: ObservableObject {
     func loadVideos(forceReload: Bool = false) async {
         offlineMessage = nil
         errorMessage = nil // vorherige Fehlermeldung zurücksetzen
+        // Reset Pagination-Status beim Initial-Load/Reload
+        nextPageToken = nil
+        hasMore = true
+        loadMoreError = nil
         print("📡 loadVideos start for playlist", playlistId)
         // Session-Guard: dieselbe Playlist nicht mehrfach initial laden (sofern nicht erzwungen)
         if !forceReload, Self.loadedOnce.contains(playlistId), !videos.isEmpty {
@@ -115,6 +121,7 @@ class VideoViewModel: ObservableObject {
             let response = try await apiService.fetchVideos(from: playlistId, apiKey: apiKey, pageToken: nil)
             let items = response.items
             self.nextPageToken = response.nextPageToken
+            self.hasMore = (response.nextPageToken != nil) && !items.isEmpty
             print("✅ API ok · items:\(items.count) · nextToken:\(self.nextPageToken ?? "nil")")
             // nextPageToken kommt von der ersten Seite
             let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
@@ -130,11 +137,14 @@ class VideoViewModel: ObservableObject {
                 // Video-ID Normalisierung: Nur reine Video-ID speichern
                 let cleanID = Video.extractVideoID(from: videoId)
                 let url = cleanID
-                
-                // Thumbnail-Normalisierung: beste verfügbare Stufe wählen + HTTPS erzwingen
-                let thumb = snippet.thumbnails?.high?.url ?? snippet.thumbnails?.medium?.url
-                let thumbnailURL = (thumb ?? "").replacingOccurrences(of: "http://", with: "https://")
-                guard !thumbnailURL.isEmpty else { return nil }
+
+                // Thumbnail-Auswahl: maxres -> standard -> high -> medium -> default; HTTPS erzwingen; Fallback auf hqdefault
+                let t = snippet.thumbnails
+                let chosen = t?.maxres?.url ?? t?.standard?.url ?? t?.high?.url ?? t?.medium?.url ?? t?.defaultThumbnail?.url
+                var thumbnailURL = (chosen ?? "").replacingOccurrences(of: "http://", with: "https://")
+                if thumbnailURL.isEmpty {
+                    thumbnailURL = "https://i.ytimg.com/vi/\(cleanID)/hqdefault.jpg"
+                }
 
                 var video = Video(
                     id: UUID(),
@@ -187,6 +197,9 @@ class VideoViewModel: ObservableObject {
                         )
                     }
                     applySearch()
+                    // Bei Offline-Ansicht keine weitere Pagination
+                    self.hasMore = false
+                    self.nextPageToken = nil
                 }
             case .decodingError:
                 // Underlying Error (falls vorhanden) in die Konsole schreiben
@@ -231,6 +244,9 @@ class VideoViewModel: ObservableObject {
                         )
                     }
                     applySearch()
+                    // Bei Offline-Ansicht keine weitere Pagination
+                    self.hasMore = false
+                    self.nextPageToken = nil
                 }
             } else {
                 print("❗️Unexpected error:", error.localizedDescription)
@@ -241,10 +257,11 @@ class VideoViewModel: ObservableObject {
 
     /// Lädt weitere Videos, falls ein nextPageToken vorhanden ist (Infinite Scroll)
     func loadMoreVideos() async {
-        guard !isLoadingMore, let token = nextPageToken, !token.isEmpty else { return }
+        guard !isLoadingMore, hasMore, let token = nextPageToken, !token.isEmpty else { return }
         isLoadingMore = true
         defer { isLoadingMore = false }
         do {
+            loadMoreError = nil
             let response = try await apiService.fetchVideos(from: playlistId, apiKey: apiKey, pageToken: token)
             let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
             let newVideos: [Video] = response.items.compactMap { item -> Video? in
@@ -258,11 +275,14 @@ class VideoViewModel: ObservableObject {
                 // Video-ID Normalisierung: Nur reine Video-ID speichern
                 let cleanID = Video.extractVideoID(from: videoId)
                 let url = cleanID
-                
-                // Thumbnail-Normalisierung: beste verfügbare Stufe wählen + HTTPS erzwingen
-                let thumb = snippet.thumbnails?.high?.url ?? snippet.thumbnails?.medium?.url
-                let thumbnailURL = (thumb ?? "").replacingOccurrences(of: "http://", with: "https://")
-                guard !thumbnailURL.isEmpty else { return nil }
+
+                // Thumbnail-Auswahl: maxres -> standard -> high -> medium -> default; HTTPS erzwingen; Fallback auf hqdefault
+                let t = snippet.thumbnails
+                let chosen = t?.maxres?.url ?? t?.standard?.url ?? t?.high?.url ?? t?.medium?.url ?? t?.defaultThumbnail?.url
+                var thumbnailURL = (chosen ?? "").replacingOccurrences(of: "http://", with: "https://")
+                if thumbnailURL.isEmpty {
+                    thumbnailURL = "https://i.ytimg.com/vi/\(cleanID)/hqdefault.jpg"
+                }
 
                 var video = Video(
                     id: UUID(),
@@ -286,11 +306,13 @@ class VideoViewModel: ObservableObject {
                 updatePlaylistMetaFromVideosIfNeeded()
             }
             applySearch()
-            // Token für die nächste Seite aktualisieren
+            // Token & Flag für die nächste Seite aktualisieren
             self.nextPageToken = response.nextPageToken
+            self.hasMore = (response.nextPageToken != nil) && !response.items.isEmpty
         } catch {
             // Kein hartes UI-Feedback nötig; Log genügt für Debugging
             print("Mehr laden fehlgeschlagen:", error.localizedDescription)
+            self.loadMoreError = error.localizedDescription
         }
     }
 

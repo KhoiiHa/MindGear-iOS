@@ -19,9 +19,10 @@ struct ThumbnailView: View {
 
     // State
     @State private var reloadToken = UUID()
+    @State private var autoRetryDone = false
 
     var body: some View {
-        AsyncImage(url: makeURL(ThumbnailURLBuilder.build(from: urlString), token: reloadToken)) { phase in
+        AsyncImage(url: makeURL(urlString, token: reloadToken)) { phase in
             switch phase {
             case .empty:
                 placeholder.redacted(reason: .placeholder)
@@ -30,9 +31,22 @@ struct ThumbnailView: View {
                 image
                     .resizable()
                     .scaledToFill()
+                    .clipped()
 
             case .failure:
-                failureView
+                // 🔁 Einmaliger Auto-Retry mit frischem Cache-Buster
+                if !autoRetryDone {
+                    Color.clear
+                        .onAppear {
+                            #if DEBUG
+                            print("🖼️ Thumb fail → Auto-Retry:", makeURL(urlString, token: reloadToken)?.absoluteString ?? "<nil>")
+                            #endif
+                            autoRetryDone = true
+                            reloadToken = UUID()
+                        }
+                } else {
+                    failureView
+                }
 
             @unknown default:
                 placeholder
@@ -43,6 +57,9 @@ struct ThumbnailView: View {
         .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("Vorschaubild"))
+        .onChange(of: urlString) { _, _ in
+            autoRetryDone = false
+        }
     }
 
     // MARK: - Subviews
@@ -67,6 +84,7 @@ struct ThumbnailView: View {
                     .font(.title2)
                     .foregroundStyle(.secondary)
                 Button("Neu laden") {
+                    autoRetryDone = false
                     reloadToken = UUID() // zwingt AsyncImage zum Neu-Laden
                 }
                 .font(.caption2)

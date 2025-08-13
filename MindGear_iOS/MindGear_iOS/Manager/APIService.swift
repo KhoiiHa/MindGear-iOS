@@ -9,6 +9,9 @@ struct YouTubeAPIErrorEnvelope: Decodable, Error {
 protocol APIServiceProtocol {
     /// Lädt YouTube-PlaylistItems. Optionaler pageToken ermöglicht Pagination.
     func fetchVideos(from playlistId: String, apiKey: String, pageToken: String?) async throws -> YouTubeResponse
+
+    /// Sucht YouTube-Videos. Optionaler pageToken ermöglicht Pagination.
+    func searchVideos(query: String, apiKey: String, pageToken: String?) async throws -> YouTubeSearchResponse
 }
 
 // MARK: - Einfache In-Memory-Response-Cache + Request-Bündelung (pro App-Session)
@@ -61,20 +64,6 @@ final class APIService: APIServiceProtocol {
             "https://youtube.googleapis.com/youtube/v3/playlistItems"
         ]
 
-        func shouldRetry(_ error: Error) -> Bool {
-            if let urlError = error as? URLError {
-                switch urlError.code {
-                case .timedOut, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost, .notConnectedToInternet:
-                    return true
-                case .cannotParseResponse, .badServerResponse:
-                    // Diese Fälle deuten oft auf Protokoll-/Server-Inkompatibilität hin → Host wechseln statt retry auf gleichem Host
-                    return false
-                default:
-                    return false
-                }
-            }
-            return false
-        }
 
         var lastError: Error = AppError.networkError
 
@@ -102,13 +91,18 @@ final class APIService: APIServiceProtocol {
                     request.setValue("application/json", forHTTPHeaderField: "Accept")
                     request.cachePolicy = .reloadIgnoringLocalCacheData
 
+                    #if DEBUG
                     print("🔎 URL:", url.absoluteString)
+                    #endif
+
                     let (data, response) = try await APIService.session.data(for: request)
 
+                    #if DEBUG
                     if let http = response as? HTTPURLResponse {
                         print("🌐 STATUS:", http.statusCode)
                         print("🌐 HEADERS:", http.allHeaderFields)
                     }
+                    #endif
 
                     // HTML erkennen (Zustimmungs-/Blockierungsseiten)
                     if let text = String(data: data.prefix(200), encoding: .utf8),
@@ -168,6 +162,102 @@ final class APIService: APIServiceProtocol {
         throw lastError
     }
 
+    // Führt den tatsächlichen Netzwerkabruf für die YouTube-Suche aus (ohne Cache/Koaleszierung)
+    private func performSearchFetch(query: String, apiKey: String, pageToken: String?) async throws -> YouTubeSearchResponse {
+        let hosts = [
+            "https://www.googleapis.com/youtube/v3/search",
+            "https://youtube.googleapis.com/youtube/v3/search"
+        ]
+        var lastError: Error = AppError.networkError
+
+        for endpoint in hosts {
+            var attempt = 0
+            while attempt < 3 {
+                attempt += 1
+                do {
+                    var components = URLComponents(string: endpoint)!
+                    components.queryItems = [
+                        URLQueryItem(name: "part", value: "snippet"),
+                        URLQueryItem(name: "maxResults", value: "10"),
+                        URLQueryItem(name: "q", value: query),
+                        URLQueryItem(name: "type", value: "video"),
+                        URLQueryItem(name: "key", value: apiKey),
+                        URLQueryItem(name: "prettyPrint", value: "false"),
+                        URLQueryItem(name: "alt", value: "json")
+                    ]
+                    if let pageToken, !pageToken.isEmpty {
+                        components.queryItems?.append(URLQueryItem(name: "pageToken", value: pageToken))
+                    }
+                    guard let url = components.url else { throw AppError.invalidURL }
+
+                    var request = URLRequest(url: url)
+                    request.httpMethod = "GET"
+                    request.setValue("application/json", forHTTPHeaderField: "Accept")
+                    request.cachePolicy = .reloadIgnoringLocalCacheData
+
+                    #if DEBUG
+                    print("🔎 SEARCH URL:", url.absoluteString)
+                    #endif
+
+                    let (data, response) = try await APIService.session.data(for: request)
+
+                    #if DEBUG
+                    if let http = response as? HTTPURLResponse {
+                        print("🌐 STATUS:", http.statusCode)
+                        print("🌐 HEADERS:", http.allHeaderFields)
+                    }
+                    #endif
+
+                    if let text = String(data: data.prefix(200), encoding: .utf8),
+                       text.contains("<html") || text.contains("<!DOCTYPE html") {
+                        let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
+                        print("❗️HTML statt JSON (Search). Vorschau:\n\(preview)")
+                        lastError = AppError.networkError
+                        break
+                    }
+
+                    if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+                        if let yt = try? JSONDecoder().decode(YouTubeAPIErrorEnvelope.self, from: data) {
+                            print("❗️YouTube SEARCH-Fehler:", yt.error.code, yt.error.message)
+                        } else {
+                            let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
+                            print("❗️HTTP \(http.statusCode). SEARCH KÖRPER-Vorschau:\n\(preview)")
+                        }
+                        lastError = AppError.networkError
+                        break
+                    }
+
+                    do {
+                        let response = try JSONDecoder().decode(YouTubeSearchResponse.self, from: data)
+                        return response
+                    } catch {
+                        let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
+                        print("❗️Dekodierung fehlgeschlagen (Search). Vorschau:\n\(preview)")
+                        lastError = AppError.decodingError
+                        break
+                    }
+                } catch {
+                    print("❗️Transportfehler SEARCH (Attempt #\(attempt)):", error.localizedDescription)
+                    lastError = error
+                    if let urlError = error as? URLError {
+                        switch urlError.code {
+                        case .cannotParseResponse, .badServerResponse:
+                            break
+                        case .timedOut, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost, .notConnectedToInternet:
+                            let delay = pow(2.0, Double(attempt - 1)) * 0.5
+                            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                            continue
+                        default:
+                            break
+                        }
+                    }
+                    break
+                }
+            }
+        }
+        throw lastError
+    }
+
     func fetchVideos(from playlistId: String, apiKey: String, pageToken: String?) async throws -> YouTubeResponse {
         let key = CacheKey(playlistId: playlistId, pageToken: pageToken)
 
@@ -201,8 +291,17 @@ final class APIService: APIServiceProtocol {
         }
     }
 
+    // MARK: - Suche (ohne Session-Cache, bewusst einfach gehalten)
+    func searchVideos(query: String, apiKey: String, pageToken: String?) async throws -> YouTubeSearchResponse {
+        try await performSearchFetch(query: query, apiKey: apiKey, pageToken: pageToken)
+    }
+
     // Bequemlichkeits-Überladung: erlaubt Aufrufe ohne pageToken (lädt erste Seite)
     func fetchVideos(from playlistId: String, apiKey: String) async throws -> YouTubeResponse {
         try await fetchVideos(from: playlistId, apiKey: apiKey, pageToken: nil)
+    }
+    /// Löscht den in‑Memory‑Response‑Cache (z. B. bei Pull‑to‑Refresh/Force Reload)
+    static func clearCache() {
+        Task { await cache.clear() }
     }
 }

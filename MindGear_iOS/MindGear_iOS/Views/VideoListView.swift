@@ -42,11 +42,6 @@ struct VideoListView: View {
         )
     }
 
-    // Hilfsfunktion: Ist dieses Video das letzte (für Pagination-Trigger)?
-    private func isLast(_ video: Video) -> Bool {
-        video == viewModel.filteredVideos.last
-    }
-
     // Autovervollständigung: einfache, lokale Vorschlagslogik auf Basis der gefilterten Videos
     private var suggestionItems: [String] {
         let q = viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -100,18 +95,7 @@ struct VideoListView: View {
                     }
                 }
                 .onAppear {
-                    if isLast(video) {
-                        Task { await viewModel.loadMoreVideos() }
-                    }
-                }
-            }
-
-            if viewModel.isLoadingMore {
-                HStack {
-                    Spacer()
-                    ProgressView("Mehr laden…")
-                        .padding(.vertical, 12)
-                    Spacer()
+                    // Infinite Scroll entfernt - kein Nachladen mehr hier
                 }
             }
         }

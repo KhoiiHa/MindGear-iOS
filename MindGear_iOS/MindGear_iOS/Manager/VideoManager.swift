@@ -28,8 +28,7 @@ final class VideoManager {
         ]
     }
 
-    /// Lädt die erste Seite einer Playlist (ohne pageToken) über den gegebenen API-Service.
-    /// Gibt die vollständige YouTubeResponse zurück, inkl. nextPageToken für Pagination.
+    /// Lädt die erste Seite einer Playlist.
     func fetchFirstPage(
         playlistId: String,
         apiKey: String,
@@ -38,23 +37,16 @@ final class VideoManager {
         try await api.fetchVideos(from: playlistId, apiKey: apiKey, pageToken: nil)
     }
 
-    /// Lädt die nächste Seite einer Playlist anhand des übergebenen pageToken.
-    /// Reicht direkt an den API-Service durch und liefert die vollständige YouTubeResponse.
-    func fetchNextPage(
-        playlistId: String,
+    /// Lädt die erste Seite einer YouTube-Suche.
+    func fetchFirstSearchPage(
+        query: String,
         apiKey: String,
-        pageToken: String,
         api: APIServiceProtocol = APIService.shared
-    ) async throws -> YouTubeResponse {
-        try await api.fetchVideos(from: playlistId, apiKey: apiKey, pageToken: pageToken)
+    ) async throws -> YouTubeSearchResponse {
+        try await api.searchVideos(query: query, apiKey: apiKey, pageToken: nil)
     }
-    /// Lädt eine kleine Vorschau-Liste (z. B. 5 Items) für eine Playlist und mappt sie auf `Video`.
-    /// - Parameters:
-    ///   - playlistId: Die YouTube-Playlist-ID
-    ///   - category: Name der App-Kategorie (wird im Mapper für `toVideo(category:)` genutzt)
-    ///   - limit: Anzahl der gewünschten Items (Default: 5)
-    ///   - api: API-Service (standardmäßig `APIService.shared`)
-    /// - Returns: Gemappte `Video`-Objekte, auf `limit` gekürzt
+
+    /// Lädt eine Vorschau-Liste für eine Playlist.
     func fetchPlaylistPreview(
         playlistId: String,
         category: String,
@@ -62,7 +54,6 @@ final class VideoManager {
         api: APIServiceProtocol = APIService.shared
     ) async throws -> [Video] {
         let response = try await api.fetchVideos(from: playlistId, apiKey: ConfigManager.apiKey, pageToken: nil)
-        let mapped = response.items.compactMap { $0.toVideo(category: category) }
-        return Array(mapped.prefix(limit))
+        return response.items.prefix(limit).compactMap { $0.toVideo(category: category) }
     }
 }

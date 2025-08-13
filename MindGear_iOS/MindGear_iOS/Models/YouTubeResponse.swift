@@ -31,11 +31,15 @@ struct ResourceID: Decodable {
 }
 
 struct Thumbnails: Decodable {
+    let maxres: Thumbnail?
+    let standard: Thumbnail?
     let high: Thumbnail?
     let medium: Thumbnail?
     let defaultThumbnail: Thumbnail?
 
     enum CodingKeys: String, CodingKey {
+        case maxres
+        case standard
         case high
         case medium
         case defaultThumbnail = "default"
@@ -49,6 +53,7 @@ struct Thumbnail: Decodable {
 // MARK: - Search API (für spätere Features)
 
 struct YouTubeSearchResponse: Decodable {
+    let nextPageToken: String?
     let items: [YouTubeSearchVideoItem]
 }
 

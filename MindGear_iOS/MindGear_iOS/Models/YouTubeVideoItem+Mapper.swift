@@ -25,11 +25,23 @@ extension YouTubeVideoItem {
             return nil
         }
 
-        // Thumbnail-Auswahl: high -> medium -> default; Fallback zu i.ytimg.com
-        let candidateThumb = snippet.thumbnails?.high?.url
-            ?? snippet.thumbnails?.medium?.url
-            ?? snippet.thumbnails?.defaultThumbnail?.url
-
+        // Thumbnail-Auswahl: maxres -> standard -> high -> medium -> default; Fallback zu i.ytimg.com
+        func firstNonEmpty(_ candidates: String?...) -> String? {
+            for c in candidates {
+                if let s = c?.trimmingCharacters(in: .whitespacesAndNewlines), !s.isEmpty {
+                    return s
+                }
+            }
+            return nil
+        }
+        let t = snippet.thumbnails
+        let candidateThumb = firstNonEmpty(
+            t?.maxres?.url,
+            t?.standard?.url,
+            t?.high?.url,
+            t?.medium?.url,
+            t?.defaultThumbnail?.url
+        )
         let thumbnailURL = candidateThumb ?? "https://i.ytimg.com/vi/\(videoId)/hqdefault.jpg"
 
         // Build Video-Domain-Objekt (behalte deine aktuellen Felder/Typen bei)
