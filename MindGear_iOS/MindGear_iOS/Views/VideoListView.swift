@@ -6,6 +6,7 @@ struct VideoListView: View {
     private let context: ModelContext
     @StateObject private var viewModel: VideoViewModel
     @State private var isPlaylistFavorite: Bool = false
+    @StateObject private var network = NetworkMonitor.shared
 
     // Expliziter Initializer: setzt Playlist-ID und erstellt das ViewModel mit SwiftData-Context
     init(playlistID: String, context: ModelContext) {
@@ -181,16 +182,6 @@ struct VideoListView: View {
                             dismissButton: .default(Text("OK"), action: { viewModel.errorMessage = nil })
                         )
                     }
-                    .overlay(
-                        Group {
-                            if let message = viewModel.offlineMessage {
-                                Text(message)
-                                    .font(.footnote)
-                                    .foregroundColor(.secondary)
-                                    .padding(.top, 8)
-                            }
-                        }, alignment: .top
-                    )
                     .overlay {
                         if !viewModel.searchText.isEmpty && viewModel.filteredVideos.isEmpty {
                             ContentUnavailableView(
@@ -207,6 +198,29 @@ struct VideoListView: View {
                                 systemImage: "heart",
                                 description: Text("Tippe das Herz in der Video-Detailansicht, um Videos zu speichern.")
                             )
+                        }
+                    }
+                    .safeAreaInset(edge: .top) {
+                        if network.isOffline {
+                            HStack(spacing: 12) {
+                                Image(systemName: "wifi.exclamationmark")
+                                Text("Offline: Zeige gespeicherte Inhalte")
+                                    .lineLimit(1)
+                                Spacer()
+                                Button("Erneut versuchen") {
+                                    Task {
+                                        APIService.clearCache()
+                                        await viewModel.loadVideos(forceReload: true)
+                                    }
+                                }
+                                .buttonStyle(.bordered)
+                                .disabled(network.isOffline)
+                            }
+                            .font(.footnote)
+                            .padding(.horizontal)
+                            .padding(.vertical, 8)
+                            .background(Color.yellow.opacity(0.15))
+                            .overlay(Divider(), alignment: .bottom)
                         }
                     }
                     .animation(.default, value: viewModel.filteredVideos)
