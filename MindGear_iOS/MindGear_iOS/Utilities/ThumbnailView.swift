@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Robuste Thumbnail-Komponente mit Placeholder, Fehlerzustand + Retry (Cache-Buster).
+/// Robuste Thumbnail-Komponente mit Placeholder und statischem Fehlerbild.
 /// Verwendung:
 ///   ThumbnailView(urlString: video.thumbnailURL, width: 160, height: 96, cornerRadius: 12)
 struct ThumbnailView: View {
@@ -17,39 +17,30 @@ struct ThumbnailView: View {
     var height: CGFloat = 96
     var cornerRadius: CGFloat = 12
 
-    // State
-    @State private var reloadToken = UUID()
-    @State private var autoRetryDone = false
-
     var body: some View {
-        AsyncImage(url: makeURL(urlString, token: reloadToken)) { phase in
-            switch phase {
-            case .empty:
-                placeholder.redacted(reason: .placeholder)
+        let secure = urlString
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "http://", with: "https://")
 
-            case .success(let image):
-                image
-                    .resizable()
-                    .scaledToFill()
-                    .clipped()
-
-            case .failure:
-                // 🔁 Einmaliger Auto-Retry mit frischem Cache-Buster
-                if !autoRetryDone {
-                    Color.clear
-                        .onAppear {
-                            #if DEBUG
-                            print("🖼️ Thumb fail → Auto-Retry:", makeURL(urlString, token: reloadToken)?.absoluteString ?? "<nil>")
-                            #endif
-                            autoRetryDone = true
-                            reloadToken = UUID()
-                        }
-                } else {
-                    failureView
+        return Group {
+            if secure.isEmpty || URL(string: secure) == nil {
+                failureView
+            } else {
+                AsyncImage(url: URL(string: secure)) { phase in
+                    switch phase {
+                    case .empty:
+                        placeholder.redacted(reason: .placeholder)
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .clipped()
+                    case .failure:
+                        failureView
+                    @unknown default:
+                        placeholder
+                    }
                 }
-
-            @unknown default:
-                placeholder
             }
         }
         .frame(width: width, height: height)
@@ -57,9 +48,6 @@ struct ThumbnailView: View {
         .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("Vorschaubild"))
-        .onChange(of: urlString) { _, _ in
-            autoRetryDone = false
-        }
     }
 
     // MARK: - Subviews
@@ -79,31 +67,10 @@ struct ThumbnailView: View {
         ZStack {
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .fill(Color.secondary.opacity(0.12))
-            VStack(spacing: 6) {
-                Image(systemName: "video.slash")
-                    .font(.title2)
-                    .foregroundStyle(.secondary)
-                Button("Neu laden") {
-                    autoRetryDone = false
-                    reloadToken = UUID() // zwingt AsyncImage zum Neu-Laden
-                }
-                .font(.caption2)
-                .buttonStyle(.bordered)
-            }
-            .padding(6)
+            Image(systemName: "video.slash")
+                .font(.title2)
+                .foregroundStyle(.secondary)
         }
-    }
-
-    // MARK: - Helper
-
-    /// Cache-Buster via Query-Param, damit AsyncImage nach Fehlern wirklich neu lädt.
-    private func makeURL(_ s: String, token: UUID) -> URL? {
-        guard var comp = URLComponents(string: s) else { return URL(string: s) }
-        // Entfernt bestehenden Cache-Buster, damit nicht mehrere ?t=... angehängt werden
-        var items = (comp.queryItems ?? []).filter { $0.name != "t" }
-        items.append(URLQueryItem(name: "t", value: token.uuidString))
-        comp.queryItems = items
-        return comp.url ?? URL(string: s)
     }
 }
 

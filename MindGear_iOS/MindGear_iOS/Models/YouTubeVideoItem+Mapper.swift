@@ -43,14 +43,15 @@ extension YouTubeVideoItem {
             t?.defaultThumbnail?.url
         )
         let thumbnailURL = candidateThumb ?? "https://i.ytimg.com/vi/\(videoId)/hqdefault.jpg"
+        let secureThumb = thumbnailURL.replacingOccurrences(of: "http://", with: "https://")
 
         // Build Video-Domain-Objekt (behalte deine aktuellen Felder/Typen bei)
         return Video(
             id: UUID(), // intern verwendete UUID; die eigentliche Video-Id steckt in videoURL
             title: rawTitle.isEmpty ? "Unbenannter Titel" : rawTitle,
             description: rawDescription,
-            thumbnailURL: thumbnailURL,
-            videoURL: "https://www.youtube.com/watch?v=\(videoId)",
+            thumbnailURL: secureThumb,
+            videoURL: "https://www.youtube-nocookie.com/embed/\(videoId)?playsinline=1",
             category: category
         )
     }

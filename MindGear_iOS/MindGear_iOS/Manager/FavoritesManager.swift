@@ -168,7 +168,10 @@ final class FavoritesManager {
     /// Gibt alle gespeicherten Playlist-Favoriten zurück
     func getAllPlaylistFavorites(context: ModelContext) -> [FavoritePlaylistEntity] {
         do {
-            return try context.fetch(FetchDescriptor<FavoritePlaylistEntity>())
+            let descriptor = FetchDescriptor<FavoritePlaylistEntity>(
+                sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+            )
+            return try context.fetch(descriptor)
         } catch {
             print("Error fetching playlist favorites: \(error)")
             return []
