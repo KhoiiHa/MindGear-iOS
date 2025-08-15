@@ -21,6 +21,8 @@ struct HomeView: View {
                         Text("👋 Willkommen zurück!")
                             .font(.title)
                             .bold()
+                            .accessibilityHeading(.h1)
+                            .accessibilityLabel(Text("Willkommen zurück!"))
                         Text("Welche Perspektive bringt dich heute weiter?")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
@@ -41,6 +43,8 @@ struct HomeView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("🧠 Deine Mentoren")
                             .font(.headline)
+                            .accessibilityHeading(.h2)
+                            .accessibilityLabel(Text("Deine Mentoren"))
 
                         ForEach(playlists) { playlist in
                             NavigationLink {
@@ -57,6 +61,10 @@ struct HomeView: View {
                                     context: context
                                 )
                             }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel(Text("\(playlist.title), Playlist von \(playlist.subtitle)"))
+                            .accessibilityValue(Text("Playlist"))
+                            .accessibilityHint(Text("Öffnet Playlist."))
                         }
                     }
 

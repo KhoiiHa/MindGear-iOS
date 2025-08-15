@@ -33,6 +33,23 @@ struct FavoritenView: View {
         return Array(merged.prefix(6))
     }
 
+    // Schlankes Suchfeld über der Liste – Filter passiert lokal via searchText
+    private var headerSearch: some View {
+        SearchField(
+            text: $searchText,
+            suggestions: suggestionItems,
+            onSubmit: { /* optional: nothing to do, Filter ist lokal */ },
+            onTapSuggestion: { s in
+                // Vorschlag einsetzen und Liste filtern
+                searchText = s
+            }
+        )
+        .padding(.horizontal)
+        .padding(.top, 8)
+        .accessibilityLabel("Suche")
+        .accessibilityHint("Eingeben, um Favoriten zu filtern.")
+    }
+
     var body: some View {
         List {
             if combinedFavorites.isEmpty {
@@ -46,10 +63,8 @@ struct FavoritenView: View {
         }
         .listStyle(.insetGrouped)
         .navigationTitle("Favoriten")
-        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always)) {
-            ForEach(suggestionItems, id: \.self) { s in
-                Text(s).searchCompletion(s)
-            }
+        .safeAreaInset(edge: .top) {
+            headerSearch
         }
     }
 
@@ -60,18 +75,24 @@ struct FavoritenView: View {
             HStack(spacing: 12) {
                 if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
                     ThumbnailView(urlString: url.absoluteString, width: 88, height: 56, cornerRadius: 8)
+                        .accessibilityHidden(true)
                 } else {
                     Image(systemName: "video")
                         .frame(width: 88, height: 56)
                         .foregroundStyle(.secondary)
                         .background(Color.gray.opacity(0.12))
                         .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .accessibilityHidden(true)
                 }
                 VStack(alignment: .leading, spacing: 4) {
                     Text(item.title).font(.headline).lineLimit(2)
                     Text("Video").font(.caption).foregroundStyle(.secondary)
                 }
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(Text(item.title))
+            .accessibilityValue(Text("Video"))
+            .accessibilityHint(Text("Doppeltippen, um Details zu öffnen."))
         case .mentor:
             HStack(spacing: 12) {
                 if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
@@ -85,26 +106,34 @@ struct FavoritenView: View {
                     }
                     .frame(width: 44, height: 44)
                     .clipShape(Circle())
+                    .accessibilityHidden(true)
                 } else {
                     Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(.secondary)
                         .frame(width: 44, height: 44)
+                        .accessibilityHidden(true)
                 }
                 VStack(alignment: .leading, spacing: 4) {
                     Text(item.title).font(.headline).lineLimit(2)
                     Text("Mentor").font(.caption).foregroundStyle(.secondary)
                 }
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(Text(item.title))
+            .accessibilityValue(Text("Mentor"))
+            .accessibilityHint(Text("Doppeltippen, um Details zu öffnen."))
         case .playlist:
             NavigationLink(value: item.id) {
                 HStack(spacing: 12) {
                     if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
                         ThumbnailView(urlString: url.absoluteString, width: 88, height: 56, cornerRadius: 8)
+                            .accessibilityHidden(true)
                     } else {
                         Image(systemName: "rectangle.stack")
                             .frame(width: 88, height: 56)
                             .foregroundStyle(.secondary)
                             .background(Color.gray.opacity(0.12))
                             .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .accessibilityHidden(true)
                     }
                     VStack(alignment: .leading, spacing: 4) {
                         Text(item.title).font(.headline).lineLimit(2)
@@ -112,6 +141,10 @@ struct FavoritenView: View {
                     }
                 }
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(Text(item.title))
+            .accessibilityValue(Text("Playlist"))
+            .accessibilityHint(Text("Öffnet Playlist."))
         }
     }
 

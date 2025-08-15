@@ -39,7 +39,7 @@ struct VideoListView: View {
     private var searchTextBinding: Binding<String> {
         Binding(
             get: { viewModel.searchText },
-            set: { viewModel.searchText = $0 }
+            set: { viewModel.updateSearch(text: $0) }
         )
     }
 
@@ -60,6 +60,26 @@ struct VideoListView: View {
             if !merged.contains(t) { merged.append(t) }
         }
         return Array(merged.prefix(6))
+    }
+
+    // Schlankes, wiederverwendbares Suchfeld – Debounce steckt im ViewModel
+    private var headerSearch: some View {
+        SearchField(
+            text: Binding(
+                get: { viewModel.searchText },
+                set: { viewModel.updateSearch(text: $0) }
+            ),
+            suggestions: Array(viewModel.searchHistory.prefix(5)),
+            onSubmit: { viewModel.commitSearchTerm() },
+            onTapSuggestion: { q in
+                viewModel.updateSearch(text: q)
+                viewModel.commitSearchTerm()
+            }
+        )
+        .padding(.horizontal)
+        .padding(.top, 8)
+        .accessibilityLabel("Suche")
+        .accessibilityHint("Eingeben, um Ergebnisse zu filtern.")
     }
 
     private func togglePlaylistFavorite() {
@@ -92,7 +112,8 @@ struct VideoListView: View {
                                 .foregroundColor(isPlaylistFavorite ? .yellow : .gray)
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel(isPlaylistFavorite ? "Playlist als Favorit entfernt" : "Playlist als Favorit hinzugefügt")
+                        .accessibilityLabel(isPlaylistFavorite ? "Playlist aus Favoriten entfernen" : "Playlist zu Favoriten hinzufügen")
+                        .accessibilityHint("Favoritenstatus der Playlist ändern.")
                     }
                 }
                 .onAppear {
@@ -115,6 +136,7 @@ struct VideoListView: View {
                             }
                             .toggleStyle(.button)
                             .accessibilityLabel("Nur Favoriten anzeigen")
+                            .accessibilityHint("Nur gespeicherte Videos ein- oder ausblenden.")
 
                             Button {
                                 togglePlaylistFavorite()
@@ -122,50 +144,12 @@ struct VideoListView: View {
                                 Image(systemName: isPlaylistFavorite ? "star.fill" : "star")
                                     .foregroundColor(isPlaylistFavorite ? .yellow : .gray)
                             }
-                            .accessibilityLabel("Playlist favorisieren")
+                            .accessibilityLabel(isPlaylistFavorite ? "Playlist aus Favoriten entfernen" : "Playlist zu Favoriten hinzufügen")
+                            .accessibilityHint("Favoritenstatus der Playlist ändern.")
                         }
                     }
-                    .searchable(text: searchTextBinding, prompt: "Suche Videos")
-                    .searchSuggestions {
-                        // Wenn der Nutzer bereits tippt (>=2 Zeichen) → dynamische Vorschläge
-                        let trimmed = viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-                        if trimmed.count >= 2 {
-                            ForEach(suggestionItems, id: \.self) { suggestion in
-                                Button(action: {
-                                    viewModel.searchText = suggestion
-                                    viewModel.updateQuery(suggestion)
-                                    viewModel.commitSearchTerm() // ausgewählten Vorschlag speichern
-                                }) {
-                                    Text(suggestion)
-                                }
-                                .searchCompletion(suggestion)
-                            }
-                        } else {
-                            // Sonst: Verlaufseinträge anzeigen (falls vorhanden)
-                            if !viewModel.searchHistory.isEmpty {
-                                Section("Zuletzt gesucht") {
-                                    ForEach(viewModel.searchHistory.prefix(5), id: \.self) { term in
-                                        Button(action: {
-                                            viewModel.searchText = term
-                                            viewModel.updateQuery(term)
-                                        }) {
-                                            Text(term)
-                                        }
-                                        .searchCompletion(term)
-                                    }
-                                    Button("Verlauf löschen", role: .destructive) {
-                                        viewModel.clearSearchHistory()
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .onSubmit(of: .search) {
-                        viewModel.commitSearchTerm()
-                    }
-                    .onChange(of: viewModel.searchText, initial: false) { _, newValue in
-                        viewModel.updateQuery(newValue)
-                    }
+                    // Removed searchable-related modifiers
+
                     // Pull-to-Refresh: manuelles Neuladen der aktuellen Playlist
                     .refreshable {
                         await viewModel.loadVideos(forceReload: true)
@@ -201,26 +185,32 @@ struct VideoListView: View {
                         }
                     }
                     .safeAreaInset(edge: .top) {
-                        if network.isOffline {
-                            HStack(spacing: 12) {
-                                Image(systemName: "wifi.exclamationmark")
-                                Text("Offline: Zeige gespeicherte Inhalte")
-                                    .lineLimit(1)
-                                Spacer()
-                                Button("Erneut versuchen") {
-                                    Task {
-                                        APIService.clearCache()
-                                        await viewModel.loadVideos(forceReload: true)
+                        VStack(spacing: 8) {
+                            // Suchfeld immer sichtbar oberhalb der Liste
+                            headerSearch
+
+                            // Offline-Banner nur bei fehlender Verbindung
+                            if network.isOffline {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "wifi.exclamationmark")
+                                    Text("Offline: Zeige gespeicherte Inhalte")
+                                        .lineLimit(1)
+                                    Spacer()
+                                    Button("Erneut versuchen") {
+                                        Task {
+                                            APIService.clearCache()
+                                            await viewModel.loadVideos(forceReload: true)
+                                        }
                                     }
+                                    .buttonStyle(.bordered)
+                                    .disabled(network.isOffline)
                                 }
-                                .buttonStyle(.bordered)
-                                .disabled(network.isOffline)
+                                .font(.footnote)
+                                .padding(.horizontal)
+                                .padding(.vertical, 8)
+                                .background(Color.yellow.opacity(0.15))
+                                .overlay(Divider(), alignment: .bottom)
                             }
-                            .font(.footnote)
-                            .padding(.horizontal)
-                            .padding(.vertical, 8)
-                            .background(Color.yellow.opacity(0.15))
-                            .overlay(Divider(), alignment: .bottom)
                         }
                     }
                     .animation(.default, value: viewModel.filteredVideos)

@@ -22,6 +22,7 @@ struct VideoRow: View {
                 height: 70,
                 cornerRadius: 8
             )
+            .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(video.title)
@@ -34,6 +35,7 @@ struct VideoRow: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
                     .truncationMode(.tail) // Lange Beschreibungen sauber abschneiden
+                    .accessibilityLabel(Text(video.description))
             }
 
             Spacer(minLength: 8)
@@ -50,12 +52,15 @@ struct VideoRow: View {
                     .padding(.top, 2)
             }
             .accessibilityLabel(isFavorite ? "Video aus Favoriten entfernen" : "Video zu Favoriten hinzufügen")
+            .accessibilityHint("Favoritenstatus ändern.")
+            .accessibilityAddTraits(.isButton)
         }
         .contentShape(Rectangle()) // komplette Zeile tappbar
         .padding(.vertical, 8)
         // Barrierefreiheit: Titel als Hauptlabel, Rest wird kombiniert
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(video.title))
+        .accessibilityValue(isFavorite ? "In Favoriten" : "Nicht in Favoriten")
         .accessibilityHint(Text("Doppeltippen, um Details zu öffnen."))
         .onAppear {
             isFavorite = FavoritesManager.shared.isVideoFavorite(video: video, context: context)

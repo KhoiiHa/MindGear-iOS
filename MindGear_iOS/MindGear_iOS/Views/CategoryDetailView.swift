@@ -13,15 +13,32 @@ struct CategoryDetailView: View {
     let modelContext: ModelContext
     // Programmgesteuerte Navigation zum Video-Detail
     @State private var selectedVideo: Video? = nil
+    @State private var searchText: String = ""
+
+    // Schlankes Suchfeld als Header – Filter passiert in den Vorschau‑Sektionen
+    private var headerSearch: some View {
+        SearchField(
+            text: $searchText,
+            suggestions: [], // optional: Kategorien‑bezogene Vorschläge
+            onSubmit: {},
+            onTapSuggestion: { q in searchText = q }
+        )
+        .padding(.horizontal)
+        .padding(.top, 8)
+        .accessibilityLabel("Suche")
+        .accessibilityHint("Eingeben, um Inhalte in dieser Kategorie zu filtern.")
+    }
 
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
                 Text(category.icon)
                     .font(.system(size: 72))
+                    .accessibilityHidden(true)
                 Text(category.name)
                     .font(.largeTitle)
                     .fontWeight(.bold)
+                    .accessibilityHeading(.h1)
                 Text("Hier findest du passende Playlists und Impulse für die Kategorie \"\(category.name)\". (Beschreibung kann später angepasst werden)")
                     .font(.body)
                     .multilineTextAlignment(.center)
@@ -36,6 +53,7 @@ struct CategoryDetailView: View {
                             title: "Empfohlen",
                             playlistId: recommendedId,
                             categoryName: category.name,
+                            filterText: searchText,
                             context: modelContext,
                             onSelect: { video in selectedVideo = video }
                         )
@@ -45,6 +63,7 @@ struct CategoryDetailView: View {
                             title: "Neu",
                             playlistId: recentId,
                             categoryName: category.name,
+                            filterText: searchText,
                             context: modelContext,
                             onSelect: { video in selectedVideo = video }
                         )
@@ -60,6 +79,7 @@ struct CategoryDetailView: View {
         }
         .navigationTitle(category.name)
         .navigationBarTitleDisplayMode(.inline)
+        .safeAreaInset(edge: .top) { headerSearch }
         .navigationDestination(item: $selectedVideo) { video in
             VideoDetailView(video: video, context: modelContext)
         }
@@ -96,6 +116,7 @@ struct PlaylistPreviewSection: View {
     let title: String
     let playlistId: String
     let categoryName: String
+    let filterText: String
     let context: ModelContext
     let onSelect: (Video) -> Void
 
@@ -105,6 +126,16 @@ struct PlaylistPreviewSection: View {
     @State private var videos: [Video] = []
     @State private var hasLoaded = false
 
+    // Gefilterte Videos (Filter aus dem ViewBuilder herausgezogen)
+    private var filteredVideos: [Video] {
+        let query = filterText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return videos }
+        return videos.filter { v in
+            v.title.range(of: query, options: [.caseInsensitive, .diacriticInsensitive]) != nil ||
+            v.description.range(of: query, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+        }
+    }
+
     var body: some View {
         Group {
             VStack(alignment: .leading, spacing: 8) {
@@ -112,12 +143,15 @@ struct PlaylistPreviewSection: View {
                     Text(title)
                         .font(.title2)
                         .bold()
+                        .accessibilityHeading(.h2)
                     Spacer()
                     NavigationLink(destination: PlaylistView(playlistId: playlistId, context: context)) {
                         Text("Alle anzeigen")
                             .font(.subheadline)
                     }
                     .disabled(isLoading)
+                    .accessibilityLabel("Alle Videos in \(title) anzeigen")
+                    .accessibilityHint("Öffnet die Playlist.")
                 }
 
                 if isLoading {
@@ -128,15 +162,18 @@ struct PlaylistPreviewSection: View {
                                 RoundedRectangle(cornerRadius: 12)
                                     .fill(Color.secondary.opacity(0.15))
                                     .frame(width: 160, height: 96)
+                                    .accessibilityHidden(true)
                                     .redacted(reason: .placeholder)
                             }
                         }
                         .padding(.vertical, 4)
                     }
+                    .accessibilityHidden(true)
                 } else if let errorMessage = errorMessage {
                     // Fehlerzustand mit Retry
                     HStack(spacing: 12) {
                         Image(systemName: "exclamationmark.triangle")
+                            .accessibilityHidden(true)
                         Text(errorMessage)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -145,6 +182,8 @@ struct PlaylistPreviewSection: View {
                             Task { await loadPreview() }
                         }
                         .buttonStyle(.bordered)
+                        .accessibilityLabel("Erneut laden")
+                        .accessibilityHint("Lädt die Vorschau erneut.")
                     }
                     .padding(.vertical, 8)
                 } else if videos.isEmpty {
@@ -154,29 +193,41 @@ struct PlaylistPreviewSection: View {
                         .foregroundStyle(.secondary)
                         .padding(.vertical, 8)
                 } else {
-                    // Erfolgszustand: horizontale Vorschau
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        LazyHStack(spacing: 16) {
-                            ForEach(videos, id: \.id) { video in
-                                Button(action: { onSelect(video) }) {
-                                    VStack(alignment: .leading, spacing: 6) {
-                                        ThumbnailView(urlString: video.thumbnailURL)
-                                            .frame(width: 160, height: 96)
-                                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    // Erfolgszustand: horizontale Vorschau – gefiltert nach Suchtext
+                    let visible = filteredVideos
 
-                                        Text(video.title)
-                                            .font(.caption)
-                                            .lineLimit(2)
-                                            .frame(width: 160, alignment: .leading)
+                    if visible.isEmpty {
+                        Text("Keine Inhalte gefunden.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .padding(.vertical, 8)
+                    } else {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            LazyHStack(spacing: 16) {
+                                ForEach(visible, id: \.id) { video in
+                                    Button(action: { onSelect(video) }) {
+                                        VStack(alignment: .leading, spacing: 6) {
+                                            ThumbnailView(urlString: video.thumbnailURL)
+                                                .frame(width: 160, height: 96)
+                                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                                .accessibilityHidden(true)
+
+                                            Text(video.title)
+                                                .font(.caption)
+                                                .lineLimit(2)
+                                                .frame(width: 160, alignment: .leading)
+                                        }
+                                        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                        .accessibilityElement(children: .combine)
+                                        .accessibilityLabel(video.title)
+                                        .accessibilityValue("Video")
+                                        .accessibilityHint("Doppeltippen, um Details zu öffnen.")
                                     }
-                                    .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                    .accessibilityElement(children: .combine)
-                                    .accessibilityLabel(video.title)
+                                    .buttonStyle(.plain)
                                 }
-                                .buttonStyle(.plain)
                             }
+                            .padding(.vertical, 4)
                         }
-                        .padding(.vertical, 4)
                     }
                 }
             }
@@ -188,7 +239,7 @@ struct PlaylistPreviewSection: View {
         }
     }
 
-    // Lädt die ersten N Videos einer Playlist über den APIService und mappt sie auf `Video`
+    // Lädt die ersten Videos einer Playlist über den APIService und mappt sie auf `Video`
     func loadPreview(limit: Int = 5) async {
         if hasLoaded { return }
         isLoading = true

@@ -45,23 +45,35 @@ class VideoViewModel: ObservableObject {
         }
     }
 
-    /// Leitet Playlist-Titel & Thumbnail aus der ersten Videokarte ab (fallback, bis echte Playlist-API genutzt wird)
+    /// Leitet Playlist-Metadaten aus der ersten Videokarte ab (Fallback, bis echte Playlist-API genutzt wird).
+    /// Setzt nur dann Default-Werte, wenn gar keine Videos vorhanden sind.
     private func updatePlaylistMetaFromVideosIfNeeded() {
-        guard let first = videos.first else { return }
-        if playlistTitle.isEmpty { playlistTitle = first.title }
-        if playlistThumbnailURL.isEmpty { playlistThumbnailURL = first.thumbnailURL }
+        if let first = videos.first {
+            if playlistTitle.isEmpty { playlistTitle = first.title }
+            if playlistThumbnailURL.isEmpty { playlistThumbnailURL = first.thumbnailURL }
+        } else {
+            // Defensive Defaults (UI bleibt stabil, ohne Annahmen über Assets)
+            if playlistTitle.isEmpty { playlistTitle = "Unbekannte Playlist" }
+            // Thumbnail leer lassen, damit UI einen Platzhalter anzeigen kann
+            if playlistThumbnailURL.isEmpty { playlistThumbnailURL = "" }
+        }
     }
 
-    /// Debounce für die Suchanfrage (~250ms). Aus der View via `.onChange(of:)` aufrufen.
-    func updateQuery(_ text: String) {
-        self.searchText = text
-        searchTask?.cancel()
-        searchTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 250_000_000)
-            applySearch()
-            // Vorschläge lokal aus den aktuell sichtbaren Videos ableiten
+    
+    /// Debounce für die Suchanfrage (~250 ms), ohne Combine-Overhead.
+    /// Wird direkt aus der View via `.onChange(of:)` oder Button-Tap aufgerufen.
+    private var searchWorkItem: DispatchWorkItem?
+
+    func updateSearch(text: String) {
+        searchText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        searchWorkItem?.cancel()
+        let task = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            self.applySearch()
             self.suggestions = Self.makeSuggestions(from: self.filteredVideos, query: self.searchText)
         }
+        searchWorkItem = task
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: task)
     }
     @Published var offlineMessage: String? = nil
 
@@ -102,14 +114,22 @@ class VideoViewModel: ObservableObject {
         return Array(merged.prefix(max))
     }
 
-    /// Wählt eine robuste Thumbnail-URL (maxres -> standard -> high -> medium -> default) und erzwingt HTTPS.
+    /// Wählt eine robuste Thumbnail-URL und erzwingt HTTPS.
+    /// Reihenfolge: maxres → standard → high → medium → default; Fallback auf hqdefault.
     private func makeThumbnailURL(from thumbnails: Thumbnails?, videoID: String) -> String {
-        let chosen = thumbnails?.maxres?.url
-            ?? thumbnails?.standard?.url
-            ?? thumbnails?.high?.url
-            ?? thumbnails?.medium?.url
-            ?? thumbnails?.defaultThumbnail?.url
-        var url = (chosen ?? "").replacingOccurrences(of: "http://", with: "https://")
+        // Kandidaten aus der API, in sinnvoller Reihenfolge
+        let candidates: [String?] = [
+            thumbnails?.maxres?.url,
+            thumbnails?.standard?.url,
+            thumbnails?.high?.url,
+            thumbnails?.medium?.url,
+            thumbnails?.defaultThumbnail?.url
+        ]
+        // Erste nicht-leere URL wählen
+        var url = candidates.compactMap { $0 }.first ?? ""
+        // HTTPS erzwingen
+        if url.hasPrefix("http://") { url = url.replacingOccurrences(of: "http://", with: "https://") }
+        // Fallback: stabile YouTube-hqdefault, falls keine API-URL vorhanden
         if url.isEmpty {
             url = "https://i.ytimg.com/vi/\(videoID)/hqdefault.jpg"
         }

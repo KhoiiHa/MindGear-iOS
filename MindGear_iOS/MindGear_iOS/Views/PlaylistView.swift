@@ -31,7 +31,7 @@ struct PlaylistView: View {
     private var searchTextBinding: Binding<String> {
         Binding(
             get: { viewModel.searchText },
-            set: { newValue in viewModel.updateQuery(newValue) }
+            set: { newValue in viewModel.updateSearch(text: newValue) }
         )
     }
     
@@ -51,6 +51,26 @@ struct PlaylistView: View {
         return Array(merged.prefix(6))
     }
 
+    // Schlankes Suchfeld – Debounce steckt im ViewModel
+    private var headerSearch: some View {
+        SearchField(
+            text: Binding(
+                get: { viewModel.searchText },
+                set: { viewModel.updateSearch(text: $0) }
+            ),
+            suggestions: suggestionItems,
+            onSubmit: { viewModel.commitSearchTerm() },
+            onTapSuggestion: { s in
+                viewModel.updateSearch(text: s)
+                viewModel.commitSearchTerm()
+            }
+        )
+        .padding(.horizontal)
+        .padding(.top, 8)
+        .accessibilityLabel("Suche")
+        .accessibilityHint("Eingeben, um Ergebnisse zu filtern.")
+    }
+
     var body: some View {
         NavigationStack {
             List(viewModel.filteredVideos) { video in
@@ -60,39 +80,8 @@ struct PlaylistView: View {
                 await viewModel.loadVideos()
                 favoritesViewModel.reload()
             }
-            .searchable(text: searchTextBinding, prompt: "Suche Videos")
-            .searchSuggestions {
-                let trimmed = viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-                if trimmed.count >= 2 {
-                    ForEach(suggestionItems, id: \.self) { suggestion in
-                        Button {
-                            viewModel.searchText = suggestion
-                            viewModel.updateQuery(suggestion)
-                            viewModel.commitSearchTerm()
-                        } label: {
-                            Text(suggestion)
-                        }
-                        .searchCompletion(suggestion)
-                    }
-                } else if !viewModel.searchHistory.isEmpty {
-                    Section("Zuletzt gesucht") {
-                        ForEach(viewModel.searchHistory.prefix(5), id: \.self) { term in
-                            Button {
-                                viewModel.searchText = term
-                                viewModel.updateQuery(term)
-                            } label: {
-                                Text(term)
-                            }
-                            .searchCompletion(term)
-                        }
-                        Button("Verlauf löschen", role: .destructive) {
-                            viewModel.clearSearchHistory()
-                        }
-                    }
-                }
-            }
-            .onSubmit(of: .search) {
-                viewModel.commitSearchTerm()
+            .safeAreaInset(edge: .top) {
+                headerSearch
             }
             .navigationTitle(title)
             .toolbar {
@@ -107,6 +96,8 @@ struct PlaylistView: View {
                         }
                     } label: {
                         Image(systemName: favoritesViewModel.isFavorite(id: playlistId) ? "heart.fill" : "heart")
+                            .accessibilityLabel(favoritesViewModel.isFavorite(id: playlistId) ? "Playlist aus Favoriten entfernen" : "Playlist zu Favoriten hinzufügen")
+                            .accessibilityHint("Favoritenstatus der Playlist ändern.")
                     }
                 }
             }
