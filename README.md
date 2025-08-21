@@ -5,7 +5,8 @@
 # **MindGear – Mentale Stärke für moderne Männer** 🧠🎧  
 *iOS-App zur Selbstentwicklung und mentalen Gesundheit – speziell für Männer*
 
-> ⚠️ Aktiver Entwicklungsstatus – Bestandteil meines öffentlich zugänglichen GitHub-Portfolios.
+> ✨ Dieses Projekt zeigt nicht nur technische, sondern auch gestalterische Stärke:  
+> Von AppTheme-Architektur bis hin zum Dark-Mode-Redesign wurden alle UI-Komponenten konsistent und portfolio-reif umgesetzt.
 
 **MindGear** ist eine native iOS-App für Männer, die in herausfordernden Zeiten Orientierung, mentale Stärke und neue Impulse suchen.  
 Die App bietet eine kuratierte Auswahl an YouTube-Videos und Podcasts von bekannten Denkern, Mentoren und Interviewern wie:
@@ -32,8 +33,20 @@ Durch thematische Empfehlungen, Favoritenfunktion und eine leistungsstarke Suche
 - ✅ **Erweiterte Suchfunktion**  
   → Autovervollständigung & Filterung nach Kategorien/Mentoren
 
-- ✅ **Dark Mode Support**  
-  → Angenehmes Design bei Tag & Nacht
+- ✅ **Komplett neues Dark-Mode-Design**  
+  → Einheitliche Farb- und Typografie-Tokens über `AppTheme`
+
+- ✅ **Modernisiertes Suchfeld**  
+  → Mit Icon, Clear-Button & systemnaher Hybrid-Suche
+
+- ✅ **Explore-Sektion mit Filterchips**  
+  → Thematische Entdeckung und schnelle Navigation
+
+- ✅ **Pull-to-Refresh & Empty States**  
+  → Einheitliches Nutzerfeedback in allen Listen
+
+- ✅ **Glassy TabBar mit Accent-Pill**  
+  → Moderner iOS-Look & klare Hervorhebung des aktiven Tabs
 
 - ✅ **100 % kostenfreie Entwicklung**  
   → Kein Abo, keine Bezahlschranken
@@ -47,7 +60,8 @@ Durch thematische Empfehlungen, Favoritenfunktion und eine leistungsstarke Suche
 - **SwiftData** – Lokale Favoriten-Speicherung & Caching  
 - **WebKit/WebView** – Einbettung externer Videos  
 - **YouTube API** – Dynamische Video- & Kanal-Daten  
-- **Utility-Module** – z. B. `ThumbnailURLBuilder`, `OfflineStatusManager`
+- **Utility-Module** – z. B. `ThumbnailURLBuilder`, `OfflineStatusManager`  
+- **AppTheme.swift** – Zentrale Steuerung von Farben, Typografie, Spacing & Radius
 
 ---
 
@@ -87,7 +101,7 @@ Diese Vorlagen wurden in Moodboard und Prototyping-Phase ausgewertet und selekti
 ## 📆 **Projektstatus**
 
 - 🔄 **Letztes Update:** August 2025  
-- 🧱 **Aktueller Fokus:** UX-Optimierung, Performance, Favoriten-Logik  
+- 🧱 **Aktueller Fokus:** UX-/UI-Overhaul, konsistentes Dark-Theme, Favoriten-Logik  
 - 🎯 **Ziel:** Erste Testphase & Nutzerfeedback im Spätsommer 2025
 
 ---
