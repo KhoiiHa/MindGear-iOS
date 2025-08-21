@@ -11,6 +11,7 @@ import SwiftData
 struct PlaylistView: View {
     @StateObject private var viewModel: VideoViewModel
     @StateObject private var favoritesViewModel: PlaylistFavoritesViewModel
+    @Environment(\.colorScheme) private var colorScheme
     
     private let playlistId: String
     private let context: ModelContext
@@ -65,8 +66,8 @@ struct PlaylistView: View {
                 viewModel.commitSearchTerm()
             }
         )
-        .padding(.horizontal)
-        .padding(.top, 8)
+        .padding(.horizontal, AppTheme.Spacing.m)
+        .padding(.top, AppTheme.Spacing.s)
         .accessibilityLabel("Suche")
         .accessibilityHint("Eingeben, um Ergebnisse zu filtern.")
     }
@@ -76,14 +77,39 @@ struct PlaylistView: View {
             List(viewModel.filteredVideos) { video in
                 VideoRow(video: video)
             }
+            .refreshable {
+                await viewModel.loadVideos(forceReload: true)
+            }
+            .tint(AppTheme.Colors.accent)
+            .listStyle(.plain)
+            .listRowSeparatorTint(AppTheme.Colors.separator)
+            .scrollContentBackground(.hidden)
+            .background(AppTheme.listBackground(for: colorScheme))
+            .overlay(alignment: .center) {
+                if viewModel.filteredVideos.isEmpty {
+                    ContentUnavailableView(
+                        "Keine Videos",
+                        systemImage: "video.slash",
+                        description: Text("Tippe oben ins Suchfeld oder ziehe zum Aktualisieren.")
+                    )
+                    .padding()
+                }
+            }
             .task {
                 await viewModel.loadVideos()
                 favoritesViewModel.reload()
             }
             .safeAreaInset(edge: .top) {
                 headerSearch
+                    .padding(.bottom, 8)
+                    .background(AppTheme.listBackground(for: colorScheme))
+                    .overlay(Rectangle().fill(AppTheme.Colors.separator).frame(height: 1), alignment: .bottom)
+                    .shadow(color: AppTheme.Colors.shadowCard.opacity(0.6), radius: 8, y: 2)
             }
             .navigationTitle(title)
+            .tint(AppTheme.Colors.accent)
+            .toolbarBackground(AppTheme.tabBarBackground(for: colorScheme), for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
@@ -96,6 +122,7 @@ struct PlaylistView: View {
                         }
                     } label: {
                         Image(systemName: favoritesViewModel.isFavorite(id: playlistId) ? "heart.fill" : "heart")
+                            .foregroundStyle(favoritesViewModel.isFavorite(id: playlistId) ? AppTheme.Colors.accent : AppTheme.Colors.iconSecondary)
                             .accessibilityLabel(favoritesViewModel.isFavorite(id: playlistId) ? "Playlist aus Favoriten entfernen" : "Playlist zu Favoriten hinzufügen")
                             .accessibilityHint("Favoritenstatus der Playlist ändern.")
                     }

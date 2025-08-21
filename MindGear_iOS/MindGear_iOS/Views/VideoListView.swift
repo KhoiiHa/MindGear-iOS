@@ -7,6 +7,16 @@ struct VideoListView: View {
     @StateObject private var viewModel: VideoViewModel
     @State private var isPlaylistFavorite: Bool = false
     @StateObject private var network = NetworkMonitor.shared
+    @State private var selectedChip: String? = nil
+    private let exploreChips: [String] = [
+        "Mindset",
+        "Disziplin & Fokus",
+        "Emotionale Intelligenz",
+        "Beziehungen",
+        "Innere Ruhe & Achtsamkeit",
+        "Motivation & Energie"
+    ]
+    @Environment(\.colorScheme) private var colorScheme
 
     // Expliziter Initializer: setzt Playlist-ID und erstellt das ViewModel mit SwiftData-Context
     init(playlistID: String, context: ModelContext) {
@@ -36,32 +46,6 @@ struct VideoListView: View {
         )
     }
 
-    private var searchTextBinding: Binding<String> {
-        Binding(
-            get: { viewModel.searchText },
-            set: { viewModel.updateSearch(text: $0) }
-        )
-    }
-
-    // Autovervollständigung: einfache, lokale Vorschlagslogik auf Basis der gefilterten Videos
-    private var suggestionItems: [String] {
-        let q = viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        let query = q.lowercased()
-        guard query.count >= 2 else { return [] }
-
-        // Kandidaten: aktuelle (bereits gefilterte) Titel – leichtgewichtig und offline-freundlich
-        let titles = viewModel.filteredVideos.map { $0.title }
-
-        // Priorisierung: Prefix-Treffer vor "contains"-Treffern, Duplikate entfernen, max. 6
-        let prefix = titles.filter { $0.lowercased().hasPrefix(query) }
-        let rest = titles.filter { $0.lowercased().contains(query) && !$0.lowercased().hasPrefix(query) }
-        var merged: [String] = []
-        for t in (prefix + rest) {
-            if !merged.contains(t) { merged.append(t) }
-        }
-        return Array(merged.prefix(6))
-    }
-
     // Schlankes, wiederverwendbares Suchfeld – Debounce steckt im ViewModel
     private var headerSearch: some View {
         SearchField(
@@ -76,8 +60,8 @@ struct VideoListView: View {
                 viewModel.commitSearchTerm()
             }
         )
-        .padding(.horizontal)
-        .padding(.top, 8)
+        .padding(.horizontal, AppTheme.Spacing.m)
+        .padding(.top, AppTheme.Spacing.s)
         .accessibilityLabel("Suche")
         .accessibilityHint("Eingeben, um Ergebnisse zu filtern.")
     }
@@ -102,25 +86,18 @@ struct VideoListView: View {
         List {
             ForEach(viewModel.filteredVideos) { (video: Video) in
                 NavigationLink(destination: VideoDetailView(video: video, context: context)) {
-                    HStack {
-                        VideoRow(video: video)
-                        Spacer()
-                        Button {
-                            togglePlaylistFavorite()
-                        } label: {
-                            Image(systemName: isPlaylistFavorite ? "star.fill" : "star")
-                                .foregroundColor(isPlaylistFavorite ? .yellow : .gray)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(isPlaylistFavorite ? "Playlist aus Favoriten entfernen" : "Playlist zu Favoriten hinzufügen")
-                        .accessibilityHint("Favoritenstatus der Playlist ändern.")
-                    }
+                    VideoRow(video: video)
                 }
+                .listRowSeparator(.hidden)
                 .onAppear {
                     // Infinite Scroll entfernt - kein Nachladen mehr hier
                 }
             }
         }
+        .listStyle(.plain)
+        .scrollIndicators(.hidden)
+        .scrollContentBackground(.hidden)
+        .listRowSeparator(.hidden)
     }
 
     var body: some View {
@@ -128,11 +105,14 @@ struct VideoListView: View {
             ZStack(alignment: .topTrailing) {
                 videosList
                     .navigationTitle("Videos")
+                    .toolbarTitleDisplayMode(.large)
+                    .toolbarBackground(AppTheme.tabBarBackground(for: colorScheme), for: .navigationBar)
+                    .toolbarBackground(.visible, for: .navigationBar)
                     .toolbar {
                         ToolbarItemGroup(placement: .navigationBarTrailing) {
                             Toggle(isOn: favoritesOnlyBinding) {
                                 Image(systemName: viewModel.showFavoritesOnly ? "heart.fill" : "heart")
-                                    .foregroundColor(viewModel.showFavoritesOnly ? .red : .gray)
+                                    .foregroundStyle(viewModel.showFavoritesOnly ? AppTheme.Colors.accent : AppTheme.Colors.iconSecondary)
                             }
                             .toggleStyle(.button)
                             .accessibilityLabel("Nur Favoriten anzeigen")
@@ -142,7 +122,7 @@ struct VideoListView: View {
                                 togglePlaylistFavorite()
                             } label: {
                                 Image(systemName: isPlaylistFavorite ? "star.fill" : "star")
-                                    .foregroundColor(isPlaylistFavorite ? .yellow : .gray)
+                                    .foregroundStyle(isPlaylistFavorite ? AppTheme.Colors.highlight : AppTheme.Colors.iconSecondary)
                             }
                             .accessibilityLabel(isPlaylistFavorite ? "Playlist aus Favoriten entfernen" : "Playlist zu Favoriten hinzufügen")
                             .accessibilityHint("Favoritenstatus der Playlist ändern.")
@@ -154,6 +134,8 @@ struct VideoListView: View {
                     .refreshable {
                         await viewModel.loadVideos(forceReload: true)
                     }
+                    .tint(AppTheme.Colors.accent)
+                    .scrollDismissesKeyboard(.immediately)
                     // Lädt initial und nur erneut, wenn sich die Playlist-ID ändert
                     .task(id: playlistID) {
                         isPlaylistFavorite = FavoritesManager.shared.isPlaylistFavorite(id: playlistID, context: context)
@@ -171,7 +153,7 @@ struct VideoListView: View {
                             ContentUnavailableView(
                                 "Keine Treffer",
                                 systemImage: "magnifyingglass",
-                                description: Text("Bitte Begriff anpassen.")
+                                description: Text("Begriff anpassen oder Verlauf nutzen.")
                             )
                         }
                     }
@@ -179,19 +161,44 @@ struct VideoListView: View {
                         if viewModel.showFavoritesOnly && viewModel.filteredVideos.isEmpty {
                             ContentUnavailableView(
                                 "Keine Video-Favoriten",
-                                systemImage: "heart",
-                                description: Text("Tippe das Herz in der Video-Detailansicht, um Videos zu speichern.")
+                                systemImage: "heart.fill",
+                                description: Text("Speichere Videos mit dem Herz in der Detailansicht.")
                             )
                         }
                     }
                     .safeAreaInset(edge: .top) {
-                        VStack(spacing: 8) {
+                        VStack(spacing: AppTheme.Spacing.s) {
                             // Suchfeld immer sichtbar oberhalb der Liste
                             headerSearch
 
+                            // Explore-Filterchips
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: AppTheme.Spacing.s) {
+                                    ForEach(exploreChips, id: \.self) { chip in
+                                        ChipView(
+                                            title: chip,
+                                            isSelected: selectedChip == chip,
+                                            colorScheme: colorScheme
+                                        ) {
+                                            if selectedChip == chip {
+                                                // Abwählen
+                                                selectedChip = nil
+                                                viewModel.updateSearch(text: "")
+                                                viewModel.commitSearchTerm()
+                                            } else {
+                                                selectedChip = chip
+                                                viewModel.updateSearch(text: chip)
+                                                viewModel.commitSearchTerm()
+                                            }
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal, AppTheme.Spacing.m)
+                            }
+
                             // Offline-Banner nur bei fehlender Verbindung
                             if network.isOffline {
-                                HStack(spacing: 12) {
+                                HStack(spacing: AppTheme.Spacing.m) {
                                     Image(systemName: "wifi.exclamationmark")
                                     Text("Offline: Zeige gespeicherte Inhalte")
                                         .lineLimit(1)
@@ -205,17 +212,49 @@ struct VideoListView: View {
                                     .buttonStyle(.bordered)
                                     .disabled(network.isOffline)
                                 }
-                                .font(.footnote)
-                                .padding(.horizontal)
-                                .padding(.vertical, 8)
-                                .background(Color.yellow.opacity(0.15))
-                                .overlay(Divider(), alignment: .bottom)
+                                .font(AppTheme.Typography.footnote)
+                                .padding(.horizontal, AppTheme.Spacing.m)
+                                .padding(.vertical, AppTheme.Spacing.s)
+                                .background(AppTheme.Colors.accent.opacity(0.12))
                             }
                         }
+                        .padding(.bottom, 8)
+                        .background(AppTheme.listBackground(for: colorScheme))
+                        .overlay(Rectangle().fill(AppTheme.Colors.separator).frame(height: 1), alignment: .bottom)
+                        .shadow(color: AppTheme.Colors.shadowCard.opacity(0.6), radius: 8, y: 2)
                     }
                     .animation(.default, value: viewModel.filteredVideos)
             }
         }
+    }
+}
+
+private struct ChipView: View {
+    let title: String
+    let isSelected: Bool
+    let colorScheme: ColorScheme
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(AppTheme.Typography.footnote)
+                .lineLimit(1)
+                .padding(.vertical, AppTheme.Spacing.xs)
+                .padding(.horizontal, AppTheme.Spacing.m)
+                .background(
+                    RoundedRectangle(cornerRadius: AppTheme.Radius.m, style: .continuous)
+                        .fill(isSelected ? AppTheme.Colors.accent : AppTheme.Colors.surface)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppTheme.Radius.m, style: .continuous)
+                        .stroke(isSelected ? AppTheme.Colors.accent : AppTheme.Colors.cardStroke(for: colorScheme), lineWidth: 1)
+                )
+                .foregroundStyle(isSelected ? AppTheme.Colors.background : AppTheme.Colors.textSecondary)
+        }
+        .buttonStyle(.plain)
+        .contentShape(Rectangle())
+        .shadow(color: AppTheme.Colors.shadowCard.opacity(isSelected ? 0.6 : 0.3), radius: isSelected ? 6 : 4, y: isSelected ? 3 : 2)
     }
 }
 

@@ -8,6 +8,7 @@ struct FavoritenView: View {
     @Environment(\.modelContext) private var context
     @StateObject private var viewModel: FavoritenViewModel
     @State private var searchText: String = ""
+    @Environment(\.colorScheme) private var colorScheme
 
     init(context: ModelContext) {
         _viewModel = StateObject(wrappedValue: FavoritenViewModel(context: context))
@@ -44,8 +45,8 @@ struct FavoritenView: View {
                 searchText = s
             }
         )
-        .padding(.horizontal)
-        .padding(.top, 8)
+        .padding(.horizontal, AppTheme.Spacing.m)
+        .padding(.top, AppTheme.Spacing.s)
         .accessibilityLabel("Suche")
         .accessibilityHint("Eingeben, um Favoriten zu filtern.")
     }
@@ -57,14 +58,30 @@ struct FavoritenView: View {
             } else {
                 ForEach(combinedFavorites, id: \.id) { item in
                     row(for: item)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
+                            delete(item: item)
+                        } label: {
+                            Label("Löschen", systemImage: "trash")
+                        }
+                        .tint(AppTheme.Colors.danger)
+                    }
                 }
                 .onDelete(perform: deleteFavorite)
             }
         }
-        .listStyle(.insetGrouped)
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(AppTheme.listBackground(for: colorScheme))
+        .scrollIndicators(.hidden)
         .navigationTitle("Favoriten")
+        .toolbarTitleDisplayMode(.large)
+        .toolbarBackground(AppTheme.tabBarBackground(for: colorScheme), for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .scrollDismissesKeyboard(.immediately)
         .safeAreaInset(edge: .top) {
             headerSearch
+                .background(AppTheme.listBackground(for: colorScheme))
         }
     }
 
@@ -72,79 +89,91 @@ struct FavoritenView: View {
     private func row(for item: FavoriteItem) -> some View {
         switch item.type {
         case .video:
-            HStack(spacing: 12) {
+            HStack(spacing: AppTheme.Spacing.m) {
                 if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
-                    ThumbnailView(urlString: url.absoluteString, width: 88, height: 56, cornerRadius: 8)
+                    ThumbnailView(urlString: url.absoluteString, width: 88, height: 56, cornerRadius: AppTheme.Radius.m)
                         .accessibilityHidden(true)
                 } else {
                     Image(systemName: "video")
                         .frame(width: 88, height: 56)
-                        .foregroundStyle(.secondary)
-                        .background(Color.gray.opacity(0.12))
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .background(AppTheme.Colors.surfaceElevated)
+                        .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.m))
                         .accessibilityHidden(true)
                 }
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(item.title).font(.headline).lineLimit(2)
-                    Text("Video").font(.caption).foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                    Text(item.title)
+                        .font(AppTheme.Typography.headline)
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                    Text("Video")
+                        .font(AppTheme.Typography.caption)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
                 }
             }
             .accessibilityElement(children: .combine)
-            .accessibilityLabel(Text(item.title))
-            .accessibilityValue(Text("Video"))
-            .accessibilityHint(Text("Doppeltippen, um Details zu öffnen."))
+            .accessibilityLabel(item.title)
+            .accessibilityValue("Video")
+            .accessibilityHint("Doppeltippen, um Details zu öffnen.")
         case .mentor:
-            HStack(spacing: 12) {
+            HStack(spacing: AppTheme.Spacing.m) {
                 if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
                     AsyncImage(url: url) { phase in
                         switch phase {
-                        case .empty: Color.gray.opacity(0.12)
+                        case .empty: AppTheme.Colors.surfaceElevated
                         case .success(let image): image.resizable().scaledToFill()
-                        case .failure: Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(.secondary)
-                        @unknown default: Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(.secondary)
+                        case .failure: Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.Colors.textSecondary)
+                        @unknown default: Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.Colors.textSecondary)
                         }
                     }
                     .frame(width: 44, height: 44)
                     .clipShape(Circle())
                     .accessibilityHidden(true)
                 } else {
-                    Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(.secondary)
+                    Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.Colors.textSecondary)
                         .frame(width: 44, height: 44)
                         .accessibilityHidden(true)
                 }
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(item.title).font(.headline).lineLimit(2)
-                    Text("Mentor").font(.caption).foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                    Text(item.title)
+                        .font(AppTheme.Typography.headline)
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                    Text("Mentor")
+                        .font(AppTheme.Typography.caption)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
                 }
             }
             .accessibilityElement(children: .combine)
-            .accessibilityLabel(Text(item.title))
-            .accessibilityValue(Text("Mentor"))
-            .accessibilityHint(Text("Doppeltippen, um Details zu öffnen."))
+            .accessibilityLabel(item.title)
+            .accessibilityValue("Mentor")
+            .accessibilityHint("Doppeltippen, um Details zu öffnen.")
         case .playlist:
             NavigationLink(value: item.id) {
-                HStack(spacing: 12) {
+                HStack(spacing: AppTheme.Spacing.m) {
                     if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
-                        ThumbnailView(urlString: url.absoluteString, width: 88, height: 56, cornerRadius: 8)
+                        ThumbnailView(urlString: url.absoluteString, width: 88, height: 56, cornerRadius: AppTheme.Radius.m)
                             .accessibilityHidden(true)
                     } else {
                         Image(systemName: "rectangle.stack")
                             .frame(width: 88, height: 56)
-                            .foregroundStyle(.secondary)
-                            .background(Color.gray.opacity(0.12))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                            .background(AppTheme.Colors.surfaceElevated)
+                            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.m))
                             .accessibilityHidden(true)
                     }
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(item.title).font(.headline).lineLimit(2)
-                        Text("Playlist").font(.caption).foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        Text(item.title)
+                            .font(AppTheme.Typography.headline)
+                            .foregroundStyle(AppTheme.Colors.textPrimary)
+                        Text("Playlist")
+                            .font(AppTheme.Typography.caption)
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
                     }
                 }
             }
             .accessibilityElement(children: .combine)
-            .accessibilityLabel(Text(item.title))
-            .accessibilityValue(Text("Playlist"))
-            .accessibilityHint(Text("Öffnet Playlist."))
+            .accessibilityLabel(item.title)
+            .accessibilityValue("Playlist")
+            .accessibilityHint("Öffnet Playlist.")
         }
     }
 
@@ -172,6 +201,28 @@ struct FavoritenView: View {
         }
         toDelete.forEach { context.delete($0) }
         do { try context.save() } catch { print("Save failed (favorite delete):", error) }
+        NotificationCenter.default.post(name: .favoritesDidChange, object: nil)
+    }
+
+    private func delete(item: FavoriteItem) {
+        switch item.type {
+        case .video:
+            let all: [FavoriteVideoEntity] = (try? context.fetch(FetchDescriptor<FavoriteVideoEntity>())) ?? []
+            if let entity = all.first(where: { String(describing: $0.id) == item.id }) {
+                context.delete(entity)
+            }
+        case .mentor:
+            let all: [FavoriteMentorEntity] = (try? context.fetch(FetchDescriptor<FavoriteMentorEntity>())) ?? []
+            if let entity = all.first(where: { String(describing: $0.id) == item.id }) {
+                context.delete(entity)
+            }
+        case .playlist:
+            let all: [FavoritePlaylistEntity] = (try? context.fetch(FetchDescriptor<FavoritePlaylistEntity>())) ?? []
+            if let entity = all.first(where: { String(describing: $0.id) == item.id }) {
+                context.delete(entity)
+            }
+        }
+        do { try context.save() } catch { print("Save failed (favorite delete single):", error) }
         NotificationCenter.default.post(name: .favoritesDidChange, object: nil)
     }
 }

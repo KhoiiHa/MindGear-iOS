@@ -15,27 +15,27 @@ struct VideoRow: View {
     @State private var isFavorite: Bool = false
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: AppTheme.Spacing.m) {
             ThumbnailView(
                 urlString: video.thumbnailURL,
                 width: 120,
                 height: 70,
-                cornerRadius: 8
+                cornerRadius: AppTheme.Radius.m
             )
             .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                 Text(video.title)
-                    .font(.headline)
+                    .font(AppTheme.Typography.subheadline)
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
                     .lineLimit(2)
                     .truncationMode(.tail) // Lange Titel sauber abschneiden
 
                 Text(video.description)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(AppTheme.Typography.footnote)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
                     .lineLimit(2)
                     .truncationMode(.tail) // Lange Beschreibungen sauber abschneiden
-                    .accessibilityLabel(Text(video.description))
             }
 
             Spacer(minLength: 8)
@@ -47,21 +47,23 @@ struct VideoRow: View {
                 }
             } label: {
                 Image(systemName: isFavorite ? "heart.fill" : "heart")
-                    .font(.title3)
-                    .foregroundStyle(isFavorite ? .red : .secondary)
-                    .padding(.top, 2)
+                    .font(AppTheme.Typography.title3)
+                    .foregroundStyle(isFavorite ? AppTheme.Colors.accent : AppTheme.Colors.iconSecondary)
+                    .frame(width: 44, height: 44, alignment: .center)
             }
+            .buttonStyle(.plain)
+            .contentShape(Rectangle())
             .accessibilityLabel(isFavorite ? "Video aus Favoriten entfernen" : "Video zu Favoriten hinzufügen")
             .accessibilityHint("Favoritenstatus ändern.")
             .accessibilityAddTraits(.isButton)
         }
         .contentShape(Rectangle()) // komplette Zeile tappbar
-        .padding(.vertical, 8)
+        .padding(.vertical, AppTheme.Spacing.s)
         // Barrierefreiheit: Titel als Hauptlabel, Rest wird kombiniert
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text(video.title))
+        .accessibilityLabel(video.title)
         .accessibilityValue(isFavorite ? "In Favoriten" : "Nicht in Favoriten")
-        .accessibilityHint(Text("Doppeltippen, um Details zu öffnen."))
+        .accessibilityHint("Doppeltippen, um Details zu öffnen.")
         .onAppear {
             isFavorite = FavoritesManager.shared.isVideoFavorite(video: video, context: context)
         }

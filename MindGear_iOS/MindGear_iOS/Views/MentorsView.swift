@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct MentorsView: View {
     let mentors: [Mentor]
@@ -14,6 +15,7 @@ struct MentorsView: View {
     @State private var refreshID = UUID()
     @State private var displayedMentors: [Mentor] = []
     @State private var searchTask: Task<Void, Never>? = nil
+    @Environment(\.colorScheme) private var colorScheme
 
     // Normalisiert Strings für eine robuste, akzent-insensitive Suche
     private func norm(_ s: String) -> String {
@@ -58,7 +60,7 @@ struct MentorsView: View {
                         fallbackAvatar(letter: mentor.name.first)
                     case .empty:
                         // Dezenter Platzhalter statt ewigem Spinner
-                        Color.gray.opacity(0.15)
+                        AppTheme.Colors.surfaceElevated
                     @unknown default:
                         // Zukunftssicher: unbekannte Phasen zeigen den Fallback-Avatar
                         fallbackAvatar(letter: mentor.name.first)
@@ -79,10 +81,10 @@ struct MentorsView: View {
     // Fallback-Avatar mit Initiale im Kreis
     private func fallbackAvatar(letter: Character?) -> some View {
         ZStack {
-            Circle().fill(Color.gray.opacity(0.15))
+            Circle().fill(AppTheme.Colors.surfaceElevated)
             Text(letter.map { String($0) } ?? "•")
-                .font(.headline)
-                .foregroundColor(.secondary)
+                .font(AppTheme.Typography.headline)
+                .foregroundStyle(AppTheme.Colors.textSecondary)
         }
         .clipShape(Circle())
     }
@@ -97,25 +99,43 @@ struct MentorsView: View {
                         refreshID = UUID()
                     }
                 ) {
-                    HStack {
+                    HStack(spacing: AppTheme.Spacing.m) {
                         // Avatar mit sicherem Fallback (kein endloses Laden)
                         avatarView(for: mentor)
                         // Anzeige des Mentorennamens
                         Text(mentor.name)
-                            .font(.headline)
+                            .font(AppTheme.Typography.headline)
+                            .foregroundStyle(AppTheme.Colors.textPrimary)
                         // Herz-Symbol, wenn der Mentor in den Favoriten ist
                         if isFavorite(mentor) {
                             Image(systemName: "heart.fill")
-                                .foregroundColor(.red)
+                                .foregroundStyle(AppTheme.Colors.accent)
                         }
                     }
                 }
             }
             .id(refreshID)
+            .listStyle(.plain)
+            .listRowSeparatorTint(AppTheme.Colors.separator)
+            .scrollContentBackground(.hidden)
+            .background(AppTheme.listBackground(for: colorScheme))
             // Suchleiste zur Filterung der Mentoren
-            .searchable(text: $searchText, prompt: "Mentor suchen")
+            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Mentoren suchen")
+            .tint(AppTheme.Colors.accent)
             .navigationTitle("Mentoren")
-            .onAppear { displayedMentors = mentors }
+            .toolbarBackground(AppTheme.tabBarBackground(for: colorScheme), for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .onAppear {
+                displayedMentors = mentors
+                let tf = UITextField.appearance(whenContainedInInstancesOf: [UISearchBar.self])
+                tf.backgroundColor = UIColor(AppTheme.Colors.surface)
+                tf.textColor = UIColor(AppTheme.Colors.textPrimary)
+                tf.tintColor = UIColor(AppTheme.Colors.accent)
+                tf.attributedPlaceholder = NSAttributedString(
+                    string: "Mentoren suchen",
+                    attributes: [.foregroundColor: UIColor(AppTheme.Colors.textSecondary)]
+                )
+            }
             .onChange(of: searchText, initial: false) { _, _ in
                 searchTask?.cancel()
                 searchTask = Task { @MainActor in

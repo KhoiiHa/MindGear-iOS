@@ -52,22 +52,31 @@ struct ThumbnailView: View {
         // 1) original
         add(primary)
 
-        // 2) kleinere Auflösung
-        if primary.contains("maxresdefault.jpg") || primary.contains("sddefault.jpg") {
+        // 2) kleinere Auflösung aus gleicher URL
+        if primary.contains("maxresdefault") || primary.contains("sddefault") {
             add(lowerRes(primary))
         }
 
-        // 3) alt-host
+        // 3) alt-host Varianten der bisherigen Kandidaten
         if primary.contains("i.ytimg.com") {
             add(swapHost(primary))
-
-            // 4) alt-host + kleinere Auflösung
-            if primary.contains("maxresdefault.jpg") || primary.contains("sddefault.jpg") {
+            if primary.contains("maxresdefault") || primary.contains("sddefault") {
                 add(lowerRes(swapHost(primary)))
             }
         } else if primary.contains("hqdefault.jpg") {
-            // Falls bereits hqdefault, alt-host hqdefault dennoch als Kandidat
+            // Falls bereits hqdefault: sicherheitshalber auch Alt‑Host anfügen
             add(swapHost(primary))
+        }
+
+        // 4) Falls die URL ein /vi/<id>/ enthält, konstruiere stabile hqdefault‑Kandidaten explizit
+        if let comps = URLComponents(string: primary) {
+            let path = comps.path
+            let parts = path.split(separator: "/", omittingEmptySubsequences: true)
+            if let viIndex = parts.firstIndex(of: "vi"), viIndex + 1 < parts.count {
+                let videoID = String(parts[viIndex + 1])
+                add("https://i.ytimg.com/vi/\(videoID)/hqdefault.jpg")
+                add("https://img.youtube.com/vi/\(videoID)/hqdefault.jpg")
+            }
         }
 
         return ordered.compactMap { URL(string: $0) }
@@ -85,8 +94,12 @@ struct ThumbnailView: View {
             .frame(width: width, height: height)
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(Color.primary.opacity(0.06), lineWidth: 0.5)
+            )
+            .accessibilityLabel("Vorschaubild")
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("Vorschaubild"))
             // Bei neuem Inhalt: Retry-Zustand zurücksetzen
             .task(id: urlString) { await MainActor.run { attempt = 0 } }
     }
@@ -113,11 +126,11 @@ struct ThumbnailView: View {
 
                     case .failure:
                         // Genau ein Auto‑Fallback auf den nächsten Kandidaten (z. B. Alt‑Host oder hqdefault)
-                        if attempt == 0 && candidateURLs.count > 1 {
+                        if attempt < max(0, candidateURLs.count - 1) {
                             Color.clear
                                 .task {
                                     try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 s
-                                    await MainActor.run { attempt = 1 }
+                                    await MainActor.run { attempt = min(attempt + 1, candidateURLs.count - 1) }
                                 }
                         } else {
                             failureView
@@ -148,8 +161,12 @@ struct ThumbnailView: View {
             Image(systemName: "video")
                 .font(.title2)
                 .foregroundStyle(.secondary)
-                .opacity(0.35)
+                .opacity(0.55)
         }
+        .overlay(
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .stroke(Color.primary.opacity(0.06), lineWidth: 0.5)
+        )
     }
 
     private var failureView: some View {
@@ -159,7 +176,12 @@ struct ThumbnailView: View {
             Image(systemName: "video.slash")
                 .font(.title2)
                 .foregroundStyle(.secondary)
+                .opacity(0.75)
         }
+        .overlay(
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .stroke(Color.primary.opacity(0.06), lineWidth: 0.5)
+        )
     }
 }
 

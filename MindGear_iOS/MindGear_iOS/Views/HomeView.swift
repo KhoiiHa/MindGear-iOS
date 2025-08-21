@@ -8,51 +8,75 @@
 import SwiftUI
 import SwiftData
 
+
 struct HomeView: View {
     @Environment(\.modelContext) private var context
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+            ZStack(alignment: .top) {
+                // Background (AppTheme-driven)
+                AppTheme.backgroundGradient
+                    .ignoresSafeArea()
 
-                    // Willkommensbereich
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("👋 Willkommen zurück!")
-                            .font(.title)
-                            .bold()
-                            .accessibilityHeading(.h1)
-                            .accessibilityLabel(Text("Willkommen zurück!"))
-                        Text("Welche Perspektive bringt dich heute weiter?")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.top)
+                // Header tint: subtle and short, faded to transparent
+                AppTheme.headerGradient
+                    .mask(
+                        LinearGradient(
+                            colors: [Color.white, Color.white, Color.clear],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(height: 120)
+                    .ignoresSafeArea(edges: .top)
+                    .allowsHitTesting(false)
 
-                    let playlists: [PlaylistInfo] = [
-                        PlaylistInfo(title: "Die M.E.N. Series", subtitle: "ChrisWillx", iconName: "star.circle.fill", playlistID: ConfigManager.recommendedPlaylistId),
-                        PlaylistInfo(title: "On Purpose", subtitle: "Jay Shetty", iconName: "leaf.fill", playlistID: ConfigManager.jayShettyPlaylistId),
-                        PlaylistInfo(title: "The Diary Of A CEO", subtitle: "Steven Bartlett", iconName: "book.circle.fill", playlistID: ConfigManager.diaryOfACeoPlaylistId),
-                        PlaylistInfo(title: "This Past Weekend", subtitle: "Theo Von", iconName: "mic.circle.fill", playlistID: ConfigManager.theoVonPlaylistId),
-                        PlaylistInfo(title: "Psychology & Society", subtitle: "Jordan B. Peterson", iconName: "brain.head.profile", playlistID: ConfigManager.jordanBPetersonPlaylistId),
-                        PlaylistInfo(title: "Leadership & Inspiration", subtitle: "Simon Sinek", iconName: "person.3.sequence.fill", playlistID: ConfigManager.simonSinekPlaylistId),
-                        PlaylistInfo(title: "Shaolin Wisdom", subtitle: "Shi Heng Yi", iconName: "flame.fill", playlistID: ConfigManager.shiHengYiPlaylistId),
-                                     PlaylistInfo(title: "The Shawn Ryan Show", subtitle: "Shawn Ryan", iconName: "shield.lefthalf.fill", playlistID: ConfigManager.shawnRyanPlaylistId),
-                    ]
+                // CONTENT
+                ScrollView {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.l) {
 
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("🧠 Deine Mentoren")
-                            .font(.headline)
-                            .accessibilityHeading(.h2)
-                            .accessibilityLabel(Text("Deine Mentoren"))
+                        // Modernized header
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
+                            Text("Startseite")
+                                .font(AppTheme.Typography.title)
+                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                                .accessibilityHeading(.h1)
+                            Text("Welche Perspektive bringt dich heute weiter?")
+                                .font(AppTheme.Typography.subheadline)
+                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                                .padding(.bottom, AppTheme.Spacing.s)
+                        }
+                        .padding(.top, AppTheme.Spacing.m)
 
-                        ForEach(playlists) { playlist in
-                            NavigationLink {
-                                VideoListView(playlistID: playlist.playlistID, context: context)
-                                    .onAppear {
-                                        print("➡️ Navigated to VideoListView with playlistID: \(playlist.playlistID)")
-                                    }
-                            } label: {
+                        let playlists: [PlaylistInfo] = [
+                            PlaylistInfo(title: "Die M.E.N. Series", subtitle: "ChrisWillx", iconName: "star.circle.fill", playlistID: ConfigManager.recommendedPlaylistId),
+                            PlaylistInfo(title: "On Purpose", subtitle: "Jay Shetty", iconName: "leaf.fill", playlistID: ConfigManager.jayShettyPlaylistId),
+                            PlaylistInfo(title: "The Diary Of A CEO", subtitle: "Steven Bartlett", iconName: "book.circle.fill", playlistID: ConfigManager.diaryOfACeoPlaylistId),
+                            PlaylistInfo(title: "This Past Weekend", subtitle: "Theo Von", iconName: "mic.circle.fill", playlistID: ConfigManager.theoVonPlaylistId),
+                            PlaylistInfo(title: "Psychology & Society", subtitle: "Jordan B. Peterson", iconName: "brain.head.profile", playlistID: ConfigManager.jordanBPetersonPlaylistId),
+                            PlaylistInfo(title: "Leadership & Inspiration", subtitle: "Simon Sinek", iconName: "person.3.sequence.fill", playlistID: ConfigManager.simonSinekPlaylistId),
+                            PlaylistInfo(title: "Shaolin Wisdom", subtitle: "Shi Heng Yi", iconName: "flame.fill", playlistID: ConfigManager.shiHengYiPlaylistId),
+                            PlaylistInfo(title: "The Shawn Ryan Show", subtitle: "Shawn Ryan", iconName: "shield.lefthalf.fill", playlistID: ConfigManager.shawnRyanPlaylistId),
+                        ]
+
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.m) {
+                            Text("Empfohlen")
+                                .font(AppTheme.Typography.footnote)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                                .textCase(.uppercase)
+
+                            Text("Deine Mentoren")
+                                .font(AppTheme.Typography.headline)
+                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                                .textCase(.uppercase)
+                                .tracking(0.6)
+                                .accessibilityHeading(.h2)
+                                .accessibilityLabel("Deine Mentoren")
+
+                            ForEach(playlists) { playlist in
                                 PlaylistCard(
                                     title: playlist.title,
                                     subtitle: "Playlist von \(playlist.subtitle)",
@@ -61,36 +85,29 @@ struct HomeView: View {
                                     context: context
                                 )
                             }
-                            .accessibilityElement(children: .combine)
-                            .accessibilityLabel(Text("\(playlist.title), Playlist von \(playlist.subtitle)"))
-                            .accessibilityValue(Text("Playlist"))
-                            .accessibilityHint(Text("Öffnet Playlist."))
                         }
-                    }
 
-                    Spacer()
+                        Spacer(minLength: AppTheme.Spacing.s)
+                    }
+                    .padding(.horizontal, AppTheme.Spacing.m)
+                    .padding(.bottom, 48)
+                    .scrollIndicators(.hidden)
                 }
-                .padding(.horizontal)
             }
-            .navigationTitle("🏠 Startseite")
+            // Keep the TabBar readable when content scrolls behind it,
+            // but only lift a small strip at the bottom (not half the screen).
+            .safeAreaInset(edge: .bottom) {
+                AppTheme.tabBarLiftOverlay
+                    .frame(height: 40)
+                    .allowsHitTesting(false)
+            }
+            .toolbarBackground(.visible, for: .tabBar)
+            .toolbarBackground(AppTheme.tabBarBackground(for: colorScheme), for: .tabBar)
+            .toolbarColorScheme(.light, for: .tabBar)
         }
     }
 }
 
-// MARK: - SwiftLint Test
-
-func throwingFunction() throws -> String {
-    return "Das ist ein Test für SwiftLint"
-}
-
-func testForceTry() {
-    let _ = try! throwingFunction() // ⛔️ force_try
-}
-
-struct HomeView_Previews: PreviewProvider {
-    static var previews: some View {
-        let container = try! ModelContainer(for: FavoriteVideoEntity.self)
-        HomeView()
-            .modelContainer(container)
-    }
+#Preview {
+    HomeView()
 }

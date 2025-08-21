@@ -13,29 +13,58 @@ struct SearchField: View {
     // Aktionen
     var onSubmit: () -> Void = {}
     var onTapSuggestion: (String) -> Void = { _ in }
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
             // Eingabefeld
-            TextField("Suche Videos", text: $text)
-                .submitLabel(.search)
-                .disableAutocorrection(true)
-                .textInputAutocapitalization(.never)
-                .accessibilityLabel("Suche")
-                .accessibilityHint("Eingeben, um Ergebnisse zu filtern.")
-                .onSubmit { onSubmit() }
+            HStack(spacing: AppTheme.Spacing.s) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .accessibilityHidden(true)
+
+                TextField("Suche Videos", text: $text)
+                    .submitLabel(.search)
+                    .disableAutocorrection(true)
+                    .textInputAutocapitalization(.never)
+                    .font(AppTheme.Typography.body)
+                    .accessibilityLabel("Suche")
+                    .accessibilityHint("Eingeben, um Ergebnisse zu filtern.")
+                    .onSubmit { onSubmit() }
+
+                if !text.isEmpty {
+                    Button {
+                        text = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                    }
+                    .accessibilityLabel("Suche löschen")
+                    .accessibilityHint("Setzt den Suchtext zurück.")
+                }
+            }
+            .padding(.horizontal, AppTheme.Spacing.m)
+            .frame(height: 44)
+            .background(AppTheme.Colors.cardBackground(for: colorScheme))
+            .cornerRadius(AppTheme.Radius.m)
+            .overlay(
+                RoundedRectangle(cornerRadius: AppTheme.Radius.m)
+                    .stroke(AppTheme.Colors.cardStroke(for: colorScheme), lineWidth: 1)
+            )
+            .shadow(color: AppTheme.Colors.shadowCard.opacity(0.5), radius: 6, y: 3)
 
             // Vorschläge (optional)
             if !suggestions.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: AppTheme.Spacing.s) {
                         ForEach(suggestions, id: \.self) { s in
                             Button(s) { onTapSuggestion(s) }
                                 .buttonStyle(.bordered)
+                                .tint(AppTheme.Colors.accent)
                                 .accessibilityHint("Suchvorschlag einsetzen.")
                         }
                     }
-                    .padding(.vertical, 2)
+                    .padding(.vertical, AppTheme.Spacing.xs)
                 }
                 .accessibilityElement(children: .contain)
             }

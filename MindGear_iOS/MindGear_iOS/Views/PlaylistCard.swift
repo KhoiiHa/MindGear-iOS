@@ -15,38 +15,52 @@ struct PlaylistCard: View {
     let playlistID: String
     let context: ModelContext
 
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         NavigationLink {
             VideoListView(playlistID: playlistID, context: context)
         } label: {
-            HStack(spacing: 16) {
+            HStack(spacing: AppTheme.Spacing.m) {
                 Image(systemName: iconName)
                     .resizable()
+                    .scaledToFit()
                     .frame(width: 30, height: 30)
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(AppTheme.Colors.accent)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
+                        .font(AppTheme.Typography.headline)
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
 
                     Text(subtitle)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(AppTheme.Typography.subheadline)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
                 }
 
                 Spacer()
+
+                AppTheme.Icons.chevronRight
+                    .font(.footnote)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
             }
-            .padding()
+            .padding(.vertical, AppTheme.Spacing.m)
+            .padding(.horizontal, AppTheme.Spacing.l)
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: AppTheme.Radius.m, style: .continuous)
+                    .fill(AppTheme.Colors.cardBackground(for: colorScheme))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.accentColor.opacity(0.2), lineWidth: 1)
+                RoundedRectangle(cornerRadius: AppTheme.Radius.m)
+                    .stroke(AppTheme.Colors.cardStroke(for: colorScheme), lineWidth: 1)
             )
+            .shadow(color: AppTheme.Colors.shadowCard, radius: 4, x: 0, y: 2)
             .padding(.horizontal)
+            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(title), \(subtitle)")
+            .accessibilityHint("Öffnet Playlist.")
         }
     }
 }

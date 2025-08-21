@@ -5,7 +5,6 @@ import SwiftData
 struct MindGear_iOSApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
             FavoriteVideoEntity.self,
             FavoriteMentorEntity.self,
             FavoritePlaylistEntity.self,
@@ -16,13 +15,22 @@ struct MindGear_iOSApp: App {
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            assertionFailure("❌ Failed to create ModelContainer: \(error)")
+            // Fallback: use an in-memory store so the app remains usable in Debug/Previews
+            let inMemoryConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            do {
+                return try ModelContainer(for: schema, configurations: [inMemoryConfig])
+            } catch {
+                fatalError("Unrecoverable ModelContainer error: \(error)")
+            }
         }
     }()
 
     var body: some Scene {
         WindowGroup {
             MainTabView()
+                .tint(AppTheme.Colors.accent)
+                .preferredColorScheme(.dark) // fixed dark UI to match the app's moodboard
         }
         .modelContainer(sharedModelContainer)
     }

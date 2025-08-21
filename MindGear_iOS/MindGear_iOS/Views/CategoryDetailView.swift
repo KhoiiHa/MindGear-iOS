@@ -14,6 +14,7 @@ struct CategoryDetailView: View {
     // Programmgesteuerte Navigation zum Video-Detail
     @State private var selectedVideo: Video? = nil
     @State private var searchText: String = ""
+    @Environment(\.colorScheme) private var colorScheme
 
     // Schlankes Suchfeld als Header – Filter passiert in den Vorschau‑Sektionen
     private var headerSearch: some View {
@@ -23,29 +24,32 @@ struct CategoryDetailView: View {
             onSubmit: {},
             onTapSuggestion: { q in searchText = q }
         )
-        .padding(.horizontal)
-        .padding(.top, 8)
+        .padding(.horizontal, AppTheme.Spacing.m)
+        .padding(.top, AppTheme.Spacing.s)
         .accessibilityLabel("Suche")
         .accessibilityHint("Eingeben, um Inhalte in dieser Kategorie zu filtern.")
     }
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: AppTheme.Spacing.l) {
                 Text(category.icon)
                     .font(.system(size: 72))
                     .accessibilityHidden(true)
                 Text(category.name)
-                    .font(.largeTitle)
+                    .font(AppTheme.Typography.title)
                     .fontWeight(.bold)
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
                     .accessibilityHeading(.h1)
                 Text("Hier findest du passende Playlists und Impulse für die Kategorie \"\(category.name)\". (Beschreibung kann später angepasst werden)")
-                    .font(.body)
+                    .font(AppTheme.Typography.body)
                     .multilineTextAlignment(.center)
-                    .foregroundColor(.secondary)
-                    .padding(.bottom, 16)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .padding(.bottom, AppTheme.Spacing.m)
 
-                Divider()
+                Rectangle()
+                    .fill(AppTheme.Colors.separator)
+                    .frame(height: 1)
 
                 Group {
                     if let recommendedId = playlistIDs.recommended {
@@ -70,16 +74,23 @@ struct CategoryDetailView: View {
                     }
                     if playlistIDs.recommended == nil && playlistIDs.recent == nil {
                         Text("📦 Noch keine Playlist verknüpft.")
-                            .foregroundColor(.secondary)
-                            .padding(.top, 32)
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                            .padding(.top, AppTheme.Spacing.l)
                     }
                 }
             }
-            .padding()
+            .padding(.horizontal, AppTheme.Spacing.m)
+            .padding(.vertical, AppTheme.Spacing.m)
         }
+        .background(AppTheme.Colors.background)
         .navigationTitle(category.name)
         .navigationBarTitleDisplayMode(.inline)
-        .safeAreaInset(edge: .top) { headerSearch }
+        .toolbarBackground(AppTheme.tabBarBackground(for: colorScheme), for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .safeAreaInset(edge: .top) {
+            headerSearch
+                .background(AppTheme.listBackground(for: colorScheme))
+        }
         .navigationDestination(item: $selectedVideo) { video in
             VideoDetailView(video: video, context: modelContext)
         }
@@ -138,16 +149,17 @@ struct PlaylistPreviewSection: View {
 
     var body: some View {
         Group {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
+                HStack(spacing: AppTheme.Spacing.m) {
                     Text(title)
-                        .font(.title2)
-                        .bold()
+                        .font(AppTheme.Typography.headline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
                         .accessibilityHeading(.h2)
                     Spacer()
                     NavigationLink(destination: PlaylistView(playlistId: playlistId, context: context)) {
                         Text("Alle anzeigen")
-                            .font(.subheadline)
+                            .font(AppTheme.Typography.subheadline)
                     }
                     .disabled(isLoading)
                     .accessibilityLabel("Alle Videos in \(title) anzeigen")
@@ -157,26 +169,26 @@ struct PlaylistPreviewSection: View {
                 if isLoading {
                     // Skeleton-Placeholders während des Ladens
                     ScrollView(.horizontal, showsIndicators: false) {
-                        LazyHStack(spacing: 16) {
+                        LazyHStack(spacing: AppTheme.Spacing.m) {
                             ForEach(0..<5, id: \.self) { _ in
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.secondary.opacity(0.15))
+                                RoundedRectangle(cornerRadius: AppTheme.Radius.m)
+                                    .fill(AppTheme.Colors.surfaceElevated)
                                     .frame(width: 160, height: 96)
                                     .accessibilityHidden(true)
                                     .redacted(reason: .placeholder)
                             }
                         }
-                        .padding(.vertical, 4)
+                        .padding(.vertical, AppTheme.Spacing.xs)
                     }
                     .accessibilityHidden(true)
                 } else if let errorMessage = errorMessage {
                     // Fehlerzustand mit Retry
-                    HStack(spacing: 12) {
+                    HStack(spacing: AppTheme.Spacing.m) {
                         Image(systemName: "exclamationmark.triangle")
                             .accessibilityHidden(true)
                         Text(errorMessage)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .font(AppTheme.Typography.subheadline)
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
                         Spacer()
                         Button("Erneut laden") {
                             Task { await loadPreview() }
@@ -184,40 +196,42 @@ struct PlaylistPreviewSection: View {
                         .buttonStyle(.bordered)
                         .accessibilityLabel("Erneut laden")
                         .accessibilityHint("Lädt die Vorschau erneut.")
+                        .tint(AppTheme.Colors.accent)
                     }
                     .padding(.vertical, 8)
                 } else if videos.isEmpty {
                     // Empty-State
                     Text("Keine Inhalte gefunden.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .padding(.vertical, 8)
+                        .font(AppTheme.Typography.subheadline)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .padding(.vertical, AppTheme.Spacing.xs)
                 } else {
                     // Erfolgszustand: horizontale Vorschau – gefiltert nach Suchtext
                     let visible = filteredVideos
 
                     if visible.isEmpty {
                         Text("Keine Inhalte gefunden.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .padding(.vertical, 8)
+                            .font(AppTheme.Typography.subheadline)
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                            .padding(.vertical, AppTheme.Spacing.xs)
                     } else {
                         ScrollView(.horizontal, showsIndicators: false) {
-                            LazyHStack(spacing: 16) {
+                            LazyHStack(spacing: AppTheme.Spacing.m) {
                                 ForEach(visible, id: \.id) { video in
                                     Button(action: { onSelect(video) }) {
                                         VStack(alignment: .leading, spacing: 6) {
                                             ThumbnailView(urlString: video.thumbnailURL)
                                                 .frame(width: 160, height: 96)
-                                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                                .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.m, style: .continuous))
                                                 .accessibilityHidden(true)
 
                                             Text(video.title)
-                                                .font(.caption)
+                                                .font(AppTheme.Typography.caption)
+                                                .foregroundStyle(AppTheme.Colors.textPrimary)
                                                 .lineLimit(2)
                                                 .frame(width: 160, alignment: .leading)
                                         }
-                                        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                        .contentShape(RoundedRectangle(cornerRadius: AppTheme.Radius.m, style: .continuous))
                                         .accessibilityElement(children: .combine)
                                         .accessibilityLabel(video.title)
                                         .accessibilityValue("Video")
@@ -226,12 +240,12 @@ struct PlaylistPreviewSection: View {
                                     .buttonStyle(.plain)
                                 }
                             }
-                            .padding(.vertical, 4)
+                            .padding(.vertical, AppTheme.Spacing.xs)
                         }
                     }
                 }
             }
-            .padding(.vertical, 8)
+            .padding(.vertical, AppTheme.Spacing.s)
             .task {
                 // Startet das Laden beim ersten Erscheinen der Sektion
                 if !hasLoaded { await loadPreview() }

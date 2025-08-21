@@ -9,6 +9,7 @@ struct VideoDetailView: View {
     @Environment(\.modelContext) private var context
     @StateObject private var historyViewModel = HistoryViewModel()
     @State private var loadError = false
+    @Environment(\.colorScheme) private var colorScheme
 
     init(video: Video, context: ModelContext) {
         self.video = video
@@ -52,54 +53,58 @@ struct VideoDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.m) {
                 if let embedURL = makeYouTubeEmbedURL(from: video.videoURL) {
                     VideoWebView(url: embedURL, loadFailed: $loadError)
                         .frame(height: 200)
-                        .cornerRadius(12)
-                        .shadow(radius: 4)
+                        .cornerRadius(AppTheme.Radius.m)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppTheme.Radius.m, style: .continuous)
+                                .stroke(AppTheme.Colors.cardStroke(for: colorScheme), lineWidth: 1)
+                        )
+                        .shadow(color: AppTheme.Colors.shadowCard.opacity(0.6), radius: 8, x: 0, y: 4)
                 } else {
                     Text("Ungültige Video-URL")
-                        .foregroundColor(.red)
+                        .foregroundStyle(AppTheme.Colors.accent)
                         .frame(maxWidth: .infinity)
                 }
 
                 // Title
                 Text(video.title)
-                    .font(.title)
-                    .fontWeight(.bold)
+                    .font(AppTheme.Typography.headline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                    .lineLimit(3)
 
                 // Description
                 Text(video.description)
-                    .font(.body)
-                    .foregroundColor(.secondary)
+                    .font(AppTheme.Typography.body)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
 
-                // Favorite button
+                Spacer()
+            }
+            .padding(AppTheme.Spacing.m)
+        }
+        .background(AppTheme.Colors.background)
+        .navigationTitle("Details")
+        .toolbarTitleDisplayMode(.inline)
+        .toolbarBackground(AppTheme.tabBarBackground(for: colorScheme), for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
                     Task {
                         await favoritesViewModel.toggleFavorite(video: video)
                         isFavorite = favoritesViewModel.isFavorite(video: video)
                     }
                 }) {
-                    HStack {
-                        Image(systemName: isFavorite ? "heart.fill" : "heart")
-                            .foregroundColor(isFavorite ? .red : .gray)
-                        Text(isFavorite ? "Als Favorit entfernen" : "Favorit")
-                            .foregroundColor(.accentColor)
-                    }
+                    Image(systemName: isFavorite ? "heart.fill" : "heart")
+                        .imageScale(.large)
+                        .foregroundStyle(isFavorite ? AppTheme.Colors.accent : AppTheme.Colors.iconSecondary)
                 }
-                .accessibilityLabel(isFavorite ? "Favorit entfernen" : "Als Favorit speichern")
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(Color(.systemGray6))
-                .cornerRadius(8)
-                .animation(.easeInOut, value: isFavorite)
-
-                Spacer()
+                .accessibilityLabel(isFavorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen")
             }
-            .padding()
         }
-        .navigationTitle("Details")
         .alert("Video konnte nicht geladen werden", isPresented: $loadError) {
             Button("OK", role: .cancel) { }
         } message: {

@@ -20,7 +20,7 @@ struct MentorDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .center, spacing: 16) {
+            VStack(alignment: .center, spacing: AppTheme.Spacing.l) {
                 // Profilbild anzeigen
                 if let url = URL(string: viewModel.mentor.profileImageURL) {
                     AsyncImage(url: url) { image in
@@ -32,67 +32,73 @@ struct MentorDetailView: View {
                     }
                     .frame(width: 120, height: 120)
                     .clipShape(Circle())
-                    .shadow(radius: 8)
+                    .overlay(Circle().stroke(AppTheme.Colors.accent, lineWidth: 2))
+                    .shadow(color: AppTheme.Colors.shadowCard.opacity(0.6), radius: 12, x: 0, y: 6)
                 }
 
                 // Name des Mentors anzeigen
                 Text(viewModel.mentor.name)
-                    .font(.title)
-                    .fontWeight(.bold)
+                    .font(AppTheme.Typography.title)
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
 
                 // Biografie des Mentors anzeigen
                 Text(viewModel.mentor.bio)
-                    .font(.body)
+                    .font(AppTheme.Typography.body)
                     .multilineTextAlignment(.center)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
 
                 // Soziale Links anzeigen, falls vorhanden
                 if let socials = viewModel.mentor.socials, !socials.isEmpty {
-                    HStack(spacing: 16) {
+                    HStack(spacing: AppTheme.Spacing.m) {
                         ForEach(socials) { social in
                             Link(destination: URL(string: social.url)!) {
                                 Text(social.platform)
-                                    .font(.headline)
-                                    .foregroundColor(.accentColor)
+                                    .font(AppTheme.Typography.headline)
+                                    .foregroundStyle(AppTheme.Colors.accent)
                             }
                         }
                     }
                 } else {
                     // Hinweis, wenn keine Social-Links verfügbar sind
                     Text("Keine Social-Links verfügbar.")
-                        .font(.footnote)
-                        .foregroundColor(.gray)
+                        .font(AppTheme.Typography.footnote)
+                        .foregroundStyle(AppTheme.Colors.textTertiary)
                 }
 
                 // Playlists anzeigen und Navigation ermöglichen, falls vorhanden
                 if let playlists = viewModel.mentor.playlists, !playlists.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
                         Text("Playlists")
-                            .font(.headline)
+                            .font(AppTheme.Typography.headline)
+                            .foregroundStyle(AppTheme.Colors.textPrimary)
                         ForEach(playlists) { playlist in
                             NavigationLink(destination: VideoListView(playlistID: playlist.playlistID, context: modelContext)) {
                                 Text(playlist.title)
-                                    .font(.subheadline)
+                                    .font(AppTheme.Typography.subheadline)
+                                    .foregroundStyle(AppTheme.Colors.textSecondary)
                             }
                         }
                     }
                     .padding(.top)
+                    .padding(.horizontal, AppTheme.Spacing.m)
                 } else {
                     // Hinweis, wenn keine Playlists verknüpft sind
                     Text("Keine Playlists verknüpft.")
-                        .font(.footnote)
-                        .foregroundColor(.gray)
+                        .font(AppTheme.Typography.footnote)
+                        .foregroundStyle(AppTheme.Colors.textTertiary)
                 }
 
                 // Link zum YouTube-Kanal des Mentors
                 if let url = URL(string: "https://youtube.com/channel/\(viewModel.mentor.channelId)") {
                     Link("YouTube-Kanal ansehen", destination: url)
                         .padding(.top, 16)
-                        .font(.headline)
+                        .font(AppTheme.Typography.headline)
+                        .foregroundStyle(AppTheme.Colors.accent)
                 }
             }
-            .padding()
+            .padding(AppTheme.Spacing.l)
         }
+        .background(AppTheme.Colors.background.ignoresSafeArea())
         .navigationTitle("Mentor-Profil")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -104,7 +110,7 @@ struct MentorDetailView: View {
                     }
                 } label: {
                     Image(systemName: viewModel.isFavorite ? "heart.fill" : "heart")
-                        .foregroundColor(viewModel.isFavorite ? .red : .primary)
+                        .foregroundStyle(viewModel.isFavorite ? AppTheme.Colors.danger : AppTheme.Colors.iconPrimary)
                 }
                 .animation(.easeInOut, value: viewModel.isFavorite)
             }
