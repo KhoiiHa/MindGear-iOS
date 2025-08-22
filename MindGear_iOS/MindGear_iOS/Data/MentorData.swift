@@ -22,3 +22,13 @@ let allMentors: [Mentor] = [
     )
     // Weitere Mentoren kannst du später ergänzen
 ]
+
+/// Resolve a mentor by exact name
+func getMentor(byName name: String) -> Mentor? {
+    return allMentors.first { $0.name == name }
+}
+
+/// Resolve a mentor by YouTube channelId
+func getMentor(byChannelId channelId: String) -> Mentor? {
+    return allMentors.first { $0.channelId == channelId }
+}

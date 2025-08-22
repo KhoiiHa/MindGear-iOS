@@ -48,8 +48,9 @@ struct AppTheme {
         scheme == .dark ? Color.white.opacity(0.14) : Color.black.opacity(0.08)
     }
 
+    /// Stable, opaque TabBar background to avoid UIKit translucency/white bleed
     static func tabBarBackground(for scheme: ColorScheme) -> Color {
-        scheme == .dark ? Color.black.opacity(0.28) : Color.white.opacity(0.85)
+        scheme == .dark ? backgroundPrimary : Color.white
     }
     static func listBackground(for scheme: ColorScheme) -> Color {
         scheme == .dark ? backgroundSecondary : Color.white
@@ -136,7 +137,7 @@ struct AppTheme {
     /// Subtle lift near the bottom safe area so TabBar items stay visible while scrolling.
     static var tabBarLiftOverlay: LinearGradient {
         LinearGradient(
-            gradient: Gradient(colors: [Color.white.opacity(0.0), Color.white.opacity(0.10)]),
+            gradient: Gradient(colors: [Color.white.opacity(0.0), Color.white.opacity(0.02)]),
             startPoint: .center,
             endPoint: .bottom
         )

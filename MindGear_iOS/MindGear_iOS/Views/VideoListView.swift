@@ -98,6 +98,8 @@ struct VideoListView: View {
         .scrollIndicators(.hidden)
         .scrollContentBackground(.hidden)
         .listRowSeparator(.hidden)
+        .listRowSeparatorTint(AppTheme.Colors.separator)
+        .background(AppTheme.listBackground(for: colorScheme))
     }
 
     var body: some View {
@@ -106,7 +108,7 @@ struct VideoListView: View {
                 videosList
                     .navigationTitle("Videos")
                     .toolbarTitleDisplayMode(.large)
-                    .toolbarBackground(AppTheme.tabBarBackground(for: colorScheme), for: .navigationBar)
+                    .toolbarBackground(.visible, for: .navigationBar)
                     .toolbarBackground(.visible, for: .navigationBar)
                     .toolbar {
                         ToolbarItemGroup(placement: .navigationBarTrailing) {
@@ -165,63 +167,6 @@ struct VideoListView: View {
                                 description: Text("Speichere Videos mit dem Herz in der Detailansicht.")
                             )
                         }
-                    }
-                    .safeAreaInset(edge: .top) {
-                        VStack(spacing: AppTheme.Spacing.s) {
-                            // Suchfeld immer sichtbar oberhalb der Liste
-                            headerSearch
-
-                            // Explore-Filterchips
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: AppTheme.Spacing.s) {
-                                    ForEach(exploreChips, id: \.self) { chip in
-                                        ChipView(
-                                            title: chip,
-                                            isSelected: selectedChip == chip,
-                                            colorScheme: colorScheme
-                                        ) {
-                                            if selectedChip == chip {
-                                                // Abwählen
-                                                selectedChip = nil
-                                                viewModel.updateSearch(text: "")
-                                                viewModel.commitSearchTerm()
-                                            } else {
-                                                selectedChip = chip
-                                                viewModel.updateSearch(text: chip)
-                                                viewModel.commitSearchTerm()
-                                            }
-                                        }
-                                    }
-                                }
-                                .padding(.horizontal, AppTheme.Spacing.m)
-                            }
-
-                            // Offline-Banner nur bei fehlender Verbindung
-                            if network.isOffline {
-                                HStack(spacing: AppTheme.Spacing.m) {
-                                    Image(systemName: "wifi.exclamationmark")
-                                    Text("Offline: Zeige gespeicherte Inhalte")
-                                        .lineLimit(1)
-                                    Spacer()
-                                    Button("Erneut versuchen") {
-                                        Task {
-                                            APIService.clearCache()
-                                            await viewModel.loadVideos(forceReload: true)
-                                        }
-                                    }
-                                    .buttonStyle(.bordered)
-                                    .disabled(network.isOffline)
-                                }
-                                .font(AppTheme.Typography.footnote)
-                                .padding(.horizontal, AppTheme.Spacing.m)
-                                .padding(.vertical, AppTheme.Spacing.s)
-                                .background(AppTheme.Colors.accent.opacity(0.12))
-                            }
-                        }
-                        .padding(.bottom, 8)
-                        .background(AppTheme.listBackground(for: colorScheme))
-                        .overlay(Rectangle().fill(AppTheme.Colors.separator).frame(height: 1), alignment: .bottom)
-                        .shadow(color: AppTheme.Colors.shadowCard.opacity(0.6), radius: 8, y: 2)
                     }
                     .animation(.default, value: viewModel.filteredVideos)
             }

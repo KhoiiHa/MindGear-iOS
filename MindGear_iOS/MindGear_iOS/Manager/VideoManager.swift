@@ -56,4 +56,15 @@ final class VideoManager {
         let response = try await api.fetchVideos(from: playlistId, apiKey: ConfigManager.apiKey, pageToken: nil)
         return response.items.prefix(limit).compactMap { $0.toVideo(category: category) }
     }
+
+    /// Resolve a single video by UUID from a provided list (e.g., cached or currently loaded videos)
+    func getVideo(by id: UUID, in list: [Video]) -> Video? {
+        list.first { $0.id == id }
+    }
+
+    /// Convenience: resolve by String id (e.g., when favorites store ids as String)
+    func getVideo(by idString: String, in list: [Video]) -> Video? {
+        guard let uuid = UUID(uuidString: idString) else { return nil }
+        return getVideo(by: uuid, in: list)
+    }
 }

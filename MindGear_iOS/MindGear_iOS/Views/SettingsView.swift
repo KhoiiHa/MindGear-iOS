@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         NavigationStack {
@@ -83,13 +84,10 @@ struct SettingsView: View {
                 .listRowBackground(AppTheme.Colors.surface)
             }
             .scrollContentBackground(.hidden)
-            .background(
-                AppTheme.Colors.background
-                    .ignoresSafeArea()
-            )
+            .scrollIndicators(.hidden)
+            .background(AppTheme.listBackground(for: colorScheme))
             .tint(AppTheme.Colors.primary)
             .navigationTitle("Einstellungen")
-            .toolbarBackground(AppTheme.Colors.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
         }
         .preferredColorScheme(.dark)

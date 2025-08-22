@@ -56,9 +56,8 @@ struct CategoriesView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
-            .background(AppTheme.Colors.background)
-            .toolbarBackground(AppTheme.Colors.background, for: .navigationBar)
+            .scrollIndicators(.hidden)
+            .background(AppTheme.listBackground(for: colorScheme))
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text("Kategorien")

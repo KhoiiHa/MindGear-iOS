@@ -85,10 +85,10 @@ struct VideoDetailView: View {
             }
             .padding(AppTheme.Spacing.m)
         }
-        .background(AppTheme.Colors.background)
+        .scrollIndicators(.hidden)
+        .background(AppTheme.listBackground(for: colorScheme))
         .navigationTitle("Details")
         .toolbarTitleDisplayMode(.inline)
-        .toolbarBackground(AppTheme.tabBarBackground(for: colorScheme), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {

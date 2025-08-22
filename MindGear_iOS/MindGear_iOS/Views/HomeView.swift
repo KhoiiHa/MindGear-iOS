@@ -90,21 +90,12 @@ struct HomeView: View {
                         Spacer(minLength: AppTheme.Spacing.s)
                     }
                     .padding(.horizontal, AppTheme.Spacing.m)
-                    .padding(.bottom, 48)
+                    .padding(.bottom, AppTheme.Spacing.l)
                     .scrollIndicators(.hidden)
                 }
             }
-            // Keep the TabBar readable when content scrolls behind it,
-            // but only lift a small strip at the bottom (not half the screen).
-            .safeAreaInset(edge: .bottom) {
-                AppTheme.tabBarLiftOverlay
-                    .frame(height: 40)
-                    .allowsHitTesting(false)
-            }
-            .toolbarBackground(.visible, for: .tabBar)
-            .toolbarBackground(AppTheme.tabBarBackground(for: colorScheme), for: .tabBar)
-            .toolbarColorScheme(.light, for: .tabBar)
         }
+        
     }
 }
 

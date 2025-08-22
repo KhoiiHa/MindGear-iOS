@@ -4,10 +4,41 @@ import SwiftData
 // Zugriff auf den im ViewModel definierten Item-Typ
 private typealias FavoriteItem = FavoritenViewModel.FavoriteItem
 
+private enum FavoriteFilter: String, CaseIterable, Identifiable {
+    case all = "Alle"
+    case videos = "Videos"
+    case mentors = "Mentoren"
+    case playlists = "Playlists"
+    var id: String { rawValue }
+    var icon: String {
+        switch self {
+        case .all: return "line.3.horizontal.decrease.circle"
+        case .videos: return "play.rectangle.fill"
+        case .mentors: return "person.2.fill"
+        case .playlists: return "rectangle.stack.fill"
+        }
+    }
+    var emoji: String {
+        switch self {
+        case .all: return "✨"
+        case .videos: return "📹"
+        case .mentors: return "👥"
+        case .playlists: return "🎵"
+        }
+    }
+}
+
+private enum Route: Hashable {
+    case mentor(String)    // channelId oder Name
+    case playlist(String)  // playlistId
+    // case video(String)  // vorbereitet
+}
+
 struct FavoritenView: View {
     @Environment(\.modelContext) private var context
     @StateObject private var viewModel: FavoritenViewModel
     @State private var searchText: String = ""
+    @State private var selectedFilter: FavoriteFilter = .all
     @Environment(\.colorScheme) private var colorScheme
 
     init(context: ModelContext) {
@@ -20,6 +51,28 @@ struct FavoritenView: View {
         let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         if q.isEmpty { return items }
         return items.filter { $0.title.localizedCaseInsensitiveContains(q) }
+    }
+
+    private var videoFavorites: [FavoriteItem] { combinedFavorites.filter { $0.type == .video } }
+    private var mentorFavorites: [FavoriteItem] { combinedFavorites.filter { $0.type == .mentor } }
+    private var playlistFavorites: [FavoriteItem] { combinedFavorites.filter { $0.type == .playlist } }
+
+    private var filteredFavorites: [FavoriteItem] {
+        switch selectedFilter {
+        case .all: return combinedFavorites
+        case .videos: return videoFavorites
+        case .mentors: return mentorFavorites
+        case .playlists: return playlistFavorites
+        }
+    }
+
+    private func count(for f: FavoriteFilter) -> Int {
+        switch f {
+        case .all: return combinedFavorites.count
+        case .videos: return videoFavorites.count
+        case .mentors: return mentorFavorites.count
+        case .playlists: return playlistFavorites.count
+        }
     }
 
     // Vorschläge aus allen Titeln, ohne Duplikate
@@ -36,52 +89,154 @@ struct FavoritenView: View {
 
     // Schlankes Suchfeld über der Liste – Filter passiert lokal via searchText
     private var headerSearch: some View {
-        SearchField(
-            text: $searchText,
-            suggestions: suggestionItems,
-            onSubmit: { /* optional: nothing to do, Filter ist lokal */ },
-            onTapSuggestion: { s in
-                // Vorschlag einsetzen und Liste filtern
-                searchText = s
+        VStack(spacing: AppTheme.Spacing.s) {
+            Picker("Filter", selection: $selectedFilter) {
+                ForEach(FavoriteFilter.allCases) { f in
+                    Label {
+                        Text("\(f.rawValue) (\(count(for: f)))")
+                    } icon: { Image(systemName: f.icon) }
+                    .tag(f)
+                }
             }
-        )
-        .padding(.horizontal, AppTheme.Spacing.m)
+            .pickerStyle(.segmented)
+            .padding(.horizontal, AppTheme.Spacing.m)
+
+            SearchField(
+                text: $searchText,
+                suggestions: suggestionItems,
+                onSubmit: { },
+                onTapSuggestion: { s in searchText = s }
+            )
+            .padding(.horizontal, AppTheme.Spacing.m)
+            .accessibilityLabel("Suche")
+            .accessibilityHint("Eingeben, um Favoriten zu filtern.")
+        }
         .padding(.top, AppTheme.Spacing.s)
-        .accessibilityLabel("Suche")
-        .accessibilityHint("Eingeben, um Favoriten zu filtern.")
+    }
+
+    @ViewBuilder
+    private func sectionHeader(_ title: String, systemImage: String, emoji: String) -> some View {
+        HStack(spacing: AppTheme.Spacing.xs) {
+            Text(emoji)
+            Image(systemName: systemImage)
+            Text(title)
+        }
+        .font(AppTheme.Typography.footnote)
+        .foregroundStyle(AppTheme.Colors.textSecondary)
+        .textCase(nil)
+        .padding(.vertical, AppTheme.Spacing.xs)
+        .padding(.horizontal, AppTheme.Spacing.m)
+        .accessibilityAddTraits(.isHeader)
     }
 
     var body: some View {
+        NavigationStack {
         List {
-            if combinedFavorites.isEmpty {
-                ContentUnavailableView("Keine Favoriten", systemImage: "heart", description: Text("Speichere Videos, Mentoren und Playlists als Favorit, um sie hier zu sehen."))
+            if filteredFavorites.isEmpty {
+                ContentUnavailableView(
+                    "Keine Favoriten",
+                    systemImage: "heart",
+                    description: Text("Speichere Videos, Mentoren und Playlists als Favorit, um sie hier zu sehen.")
+                )
             } else {
-                ForEach(combinedFavorites, id: \.id) { item in
-                    row(for: item)
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            delete(item: item)
-                        } label: {
-                            Label("Löschen", systemImage: "trash")
+                if selectedFilter == .all {
+                    if !videoFavorites.isEmpty {
+                        Section {
+                            ForEach(videoFavorites, id: \._id) { item in
+                                row(for: item)
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                        Button(role: .destructive) { delete(item: item) } label: {
+                                            Label("Löschen", systemImage: "trash")
+                                        }
+                                        .tint(AppTheme.Colors.danger)
+                                    }
+                            }
+                            .onDelete { idx in deleteFrom(list: videoFavorites, at: idx) }
+                        } header: {
+                            sectionHeader("Videos", systemImage: "play.rectangle.fill", emoji: "📹")
                         }
-                        .tint(AppTheme.Colors.danger)
+                        .headerProminence(.standard)
+                        .listRowBackground(AppTheme.listBackground(for: colorScheme))
                     }
+                    if !mentorFavorites.isEmpty {
+                        Section {
+                            ForEach(mentorFavorites, id: \._id) { item in
+                                row(for: item)
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                        Button(role: .destructive) { delete(item: item) } label: {
+                                            Label("Löschen", systemImage: "trash")
+                                        }
+                                        .tint(AppTheme.Colors.danger)
+                                    }
+                            }
+                            .onDelete { idx in deleteFrom(list: mentorFavorites, at: idx) }
+                        } header: {
+                            sectionHeader("Mentoren", systemImage: "person.2.fill", emoji: "👥")
+                        }
+                        .headerProminence(.standard)
+                        .listRowBackground(AppTheme.listBackground(for: colorScheme))
+                    }
+                    if !playlistFavorites.isEmpty {
+                        Section {
+                            ForEach(playlistFavorites, id: \._id) { item in
+                                row(for: item)
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                        Button(role: .destructive) { delete(item: item) } label: {
+                                            Label("Löschen", systemImage: "trash")
+                                        }
+                                        .tint(AppTheme.Colors.danger)
+                                    }
+                            }
+                            .onDelete { idx in deleteFrom(list: playlistFavorites, at: idx) }
+                        } header: {
+                            sectionHeader("Playlists", systemImage: "rectangle.stack.fill", emoji: "🎵")
+                        }
+                        .headerProminence(.standard)
+                        .listRowBackground(AppTheme.listBackground(for: colorScheme))
+                    }
+                } else {
+                    ForEach(filteredFavorites, id: \._id) { item in
+                        row(for: item)
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) { delete(item: item) } label: {
+                                    Label("Löschen", systemImage: "trash")
+                                }
+                                .tint(AppTheme.Colors.danger)
+                            }
+                    }
+                    .onDelete(perform: deleteFavorite)
+                    .listRowBackground(AppTheme.listBackground(for: colorScheme))
                 }
-                .onDelete(perform: deleteFavorite)
             }
         }
         .listStyle(.plain)
+        .scrollIndicators(.hidden)
         .scrollContentBackground(.hidden)
         .background(AppTheme.listBackground(for: colorScheme))
-        .scrollIndicators(.hidden)
+        .listRowSeparatorTint(AppTheme.Colors.separator)
+        .listRowBackground(AppTheme.listBackground(for: colorScheme))
+        .listSectionSpacing(.compact)
+        .listSectionSeparator(.hidden)
         .navigationTitle("Favoriten")
         .toolbarTitleDisplayMode(.large)
-        .toolbarBackground(AppTheme.tabBarBackground(for: colorScheme), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .scrollDismissesKeyboard(.immediately)
         .safeAreaInset(edge: .top) {
             headerSearch
                 .background(AppTheme.listBackground(for: colorScheme))
+        }
+        .navigationDestination(for: Route.self) { route in
+            switch route {
+            case .mentor(let id):
+                if let mentor = getMentor(byChannelId: id) ?? getMentor(byName: id) {
+                    MentorDetailView(mentor: mentor, context: context)
+                } else {
+                    ContentUnavailableView("Mentor nicht gefunden", systemImage: "person.crop.circle.badge.questionmark")
+                }
+            case .playlist(let id):
+                PlaylistView(playlistId: id, context: context)
+            }
+        }
         }
     }
 
@@ -115,39 +270,43 @@ struct FavoritenView: View {
             .accessibilityValue("Video")
             .accessibilityHint("Doppeltippen, um Details zu öffnen.")
         case .mentor:
-            HStack(spacing: AppTheme.Spacing.m) {
-                if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .empty: AppTheme.Colors.surfaceElevated
-                        case .success(let image): image.resizable().scaledToFill()
-                        case .failure: Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.Colors.textSecondary)
-                        @unknown default: Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.Colors.textSecondary)
+            NavigationLink(value: Route.mentor(item.id)) {
+                HStack(spacing: AppTheme.Spacing.m) {
+                    if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .empty: AppTheme.Colors.surfaceElevated
+                            case .success(let image): image.resizable().scaledToFill()
+                            case .failure: Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.Colors.textSecondary)
+                            @unknown default: Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.Colors.textSecondary)
+                            }
                         }
-                    }
-                    .frame(width: 44, height: 44)
-                    .clipShape(Circle())
-                    .accessibilityHidden(true)
-                } else {
-                    Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.Colors.textSecondary)
                         .frame(width: 44, height: 44)
+                        .clipShape(Circle())
                         .accessibilityHidden(true)
-                }
-                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                    Text(item.title)
-                        .font(AppTheme.Typography.headline)
-                        .foregroundStyle(AppTheme.Colors.textPrimary)
-                    Text("Mentor")
-                        .font(AppTheme.Typography.caption)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                    } else {
+                        Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.Colors.textSecondary)
+                            .frame(width: 44, height: 44)
+                            .accessibilityHidden(true)
+                    }
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        Text(item.title)
+                            .font(AppTheme.Typography.headline)
+                            .foregroundStyle(AppTheme.Colors.textPrimary)
+                        Text("Mentor")
+                            .font(AppTheme.Typography.caption)
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                    }
                 }
             }
+            .buttonStyle(.plain)
+            .listRowBackground(AppTheme.listBackground(for: colorScheme))
             .accessibilityElement(children: .combine)
             .accessibilityLabel(item.title)
             .accessibilityValue("Mentor")
             .accessibilityHint("Doppeltippen, um Details zu öffnen.")
         case .playlist:
-            NavigationLink(value: item.id) {
+            NavigationLink(value: Route.playlist(item.id)) {
                 HStack(spacing: AppTheme.Spacing.m) {
                     if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
                         ThumbnailView(urlString: url.absoluteString, width: 88, height: 56, cornerRadius: AppTheme.Radius.m)
@@ -170,6 +329,8 @@ struct FavoritenView: View {
                     }
                 }
             }
+            .buttonStyle(.plain)
+            .listRowBackground(AppTheme.listBackground(for: colorScheme))
             .accessibilityElement(children: .combine)
             .accessibilityLabel(item.title)
             .accessibilityValue("Playlist")
@@ -204,6 +365,13 @@ struct FavoritenView: View {
         NotificationCenter.default.post(name: .favoritesDidChange, object: nil)
     }
 
+    private func deleteFrom(list: [FavoriteItem], at offsets: IndexSet) {
+        // Map section-local indices to combinedFavorites indices
+        let ids = offsets.compactMap { list[$0].id }
+        let indexes = combinedFavorites.enumerated().compactMap { idx, el in ids.contains(el.id) ? idx : nil }
+        deleteFavorite(at: IndexSet(indexes))
+    }
+
     private func delete(item: FavoriteItem) {
         switch item.type {
         case .video:
@@ -225,4 +393,8 @@ struct FavoritenView: View {
         do { try context.save() } catch { print("Save failed (favorite delete single):", error) }
         NotificationCenter.default.post(name: .favoritesDidChange, object: nil)
     }
+}
+
+extension FavoriteItem {
+    fileprivate var _id: String { self.id }
 }

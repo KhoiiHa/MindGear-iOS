@@ -116,14 +116,14 @@ struct MentorsView: View {
             }
             .id(refreshID)
             .listStyle(.plain)
-            .listRowSeparatorTint(AppTheme.Colors.separator)
+            .scrollIndicators(.hidden)
             .scrollContentBackground(.hidden)
             .background(AppTheme.listBackground(for: colorScheme))
+            .listRowSeparatorTint(AppTheme.Colors.separator)
             // Suchleiste zur Filterung der Mentoren
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Mentoren suchen")
             .tint(AppTheme.Colors.accent)
             .navigationTitle("Mentoren")
-            .toolbarBackground(AppTheme.tabBarBackground(for: colorScheme), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .onAppear {
                 displayedMentors = mentors

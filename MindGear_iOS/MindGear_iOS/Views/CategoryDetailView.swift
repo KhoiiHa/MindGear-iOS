@@ -82,10 +82,10 @@ struct CategoryDetailView: View {
             .padding(.horizontal, AppTheme.Spacing.m)
             .padding(.vertical, AppTheme.Spacing.m)
         }
-        .background(AppTheme.Colors.background)
+        .background(AppTheme.listBackground(for: colorScheme))
+        .scrollIndicators(.hidden)
         .navigationTitle(category.name)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(AppTheme.tabBarBackground(for: colorScheme), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .safeAreaInset(edge: .top) {
             headerSearch

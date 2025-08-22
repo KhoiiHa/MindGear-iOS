@@ -71,11 +71,11 @@ struct HistoryView: View {
         }
         .tint(AppTheme.Colors.accent)
         .listStyle(.plain)
-        .listRowSeparatorTint(AppTheme.Colors.separator)
+        .scrollIndicators(.hidden)
         .scrollContentBackground(.hidden)
         .background(AppTheme.listBackground(for: colorScheme))
+        .listRowSeparatorTint(AppTheme.Colors.separator)
         .navigationTitle("Verlauf")
-        .toolbarBackground(AppTheme.tabBarBackground(for: colorScheme), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbar { EditButton() }
         .overlay {

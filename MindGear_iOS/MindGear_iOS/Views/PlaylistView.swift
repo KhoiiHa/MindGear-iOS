@@ -82,9 +82,10 @@ struct PlaylistView: View {
             }
             .tint(AppTheme.Colors.accent)
             .listStyle(.plain)
-            .listRowSeparatorTint(AppTheme.Colors.separator)
+            .scrollIndicators(.hidden)
             .scrollContentBackground(.hidden)
             .background(AppTheme.listBackground(for: colorScheme))
+            .listRowSeparatorTint(AppTheme.Colors.separator)
             .overlay(alignment: .center) {
                 if viewModel.filteredVideos.isEmpty {
                     ContentUnavailableView(
@@ -108,7 +109,6 @@ struct PlaylistView: View {
             }
             .navigationTitle(title)
             .tint(AppTheme.Colors.accent)
-            .toolbarBackground(AppTheme.tabBarBackground(for: colorScheme), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
