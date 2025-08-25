@@ -46,7 +46,7 @@ class FavoritenViewModel: ObservableObject {
     func loadFavorites() {
         let videoFavorites = FavoritesManager.shared.getAllVideoFavorites(context: context).map {
             FavoriteItem(
-                id: String(describing: $0.id),
+                id: $0.videoURL,
                 type: .video,
                 title: $0.title,
                 thumbnailURL: $0.thumbnailURL,
@@ -55,7 +55,7 @@ class FavoritenViewModel: ObservableObject {
         }
         let mentorFavorites = FavoritesManager.shared.getAllMentorFavorites(context: context).map {
             FavoriteItem(
-                id: String(describing: $0.id),
+                id: $0.id,
                 type: .mentor,
                 title: $0.name,
                 thumbnailURL: $0.profileImageURL,
@@ -64,7 +64,7 @@ class FavoritenViewModel: ObservableObject {
         }
         let playlistFavorites = FavoritesManager.shared.getAllPlaylistFavorites(context: context).map {
             FavoriteItem(
-                id: String(describing: $0.id),
+                id: $0.id,
                 type: .playlist,
                 title: $0.title,
                 thumbnailURL: $0.thumbnailURL,

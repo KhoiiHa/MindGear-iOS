@@ -32,8 +32,8 @@ struct MentorsView: View {
         }
         displayedMentors = mentors.filter { m in
             let name = norm(m.name)
-            let channel = norm(m.channelId)
-            return name.contains(q) || channel.contains(q)
+            let idNorm = norm(m.id)
+            return name.contains(q) || idNorm.contains(q)
         }
     }
     @Environment(\.modelContext) private var modelContext
@@ -46,7 +46,7 @@ struct MentorsView: View {
 
     // Zeigt ein sicheres Avatarbild: lädt nur gültige http/https-URLs, sonst Fallback-Avatar
     private func avatarView(for mentor: Mentor) -> some View {
-        let raw = mentor.profileImageURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        let raw = mentor.profileImageURL?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         // Nur laden, wenn eine echte http/https-URL vorliegt
         if let url = URL(string: raw), let scheme = url.scheme, scheme.hasPrefix("http") {
             return AnyView(
@@ -90,69 +90,66 @@ struct MentorsView: View {
     }
 
     var body: some View {
-        // Navigation Stack für die Navigation zwischen Ansichten
-        NavigationStack {
-            // Liste der gefilterten Mentoren
-            List(displayedMentors) { mentor in
-                NavigationLink(destination: MentorDetailView(mentor: mentor, context: modelContext)
-                    .onDisappear {
-                        refreshID = UUID()
-                    }
-                ) {
-                    HStack(spacing: AppTheme.Spacing.m) {
-                        // Avatar mit sicherem Fallback (kein endloses Laden)
-                        avatarView(for: mentor)
-                        // Anzeige des Mentorennamens
-                        Text(mentor.name)
-                            .font(AppTheme.Typography.headline)
-                            .foregroundStyle(AppTheme.Colors.textPrimary)
-                        // Herz-Symbol, wenn der Mentor in den Favoriten ist
-                        if isFavorite(mentor) {
-                            Image(systemName: "heart.fill")
-                                .foregroundStyle(AppTheme.Colors.accent)
-                        }
+        // Liste der gefilterten Mentoren
+        List(displayedMentors) { mentor in
+            NavigationLink(destination: MentorDetailView(mentor: mentor, context: modelContext)
+                .onDisappear {
+                    refreshID = UUID()
+                }
+            ) {
+                HStack(spacing: AppTheme.Spacing.m) {
+                    // Avatar mit sicherem Fallback (kein endloses Laden)
+                    avatarView(for: mentor)
+                    // Anzeige des Mentorennamens
+                    Text(mentor.name)
+                        .font(AppTheme.Typography.headline)
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                    // Herz-Symbol, wenn der Mentor in den Favoriten ist
+                    if isFavorite(mentor) {
+                        Image(systemName: "heart.fill")
+                            .foregroundStyle(AppTheme.Colors.accent)
                     }
                 }
             }
-            .id(refreshID)
-            .listStyle(.plain)
-            .scrollIndicators(.hidden)
-            .scrollContentBackground(.hidden)
-            .background(AppTheme.listBackground(for: colorScheme))
-            .listRowSeparatorTint(AppTheme.Colors.separator)
-            // Suchleiste zur Filterung der Mentoren
-            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Mentoren suchen")
-            .tint(AppTheme.Colors.accent)
-            .navigationTitle("Mentoren")
-            .toolbarBackground(.visible, for: .navigationBar)
-            .onAppear {
-                displayedMentors = mentors
-                let tf = UITextField.appearance(whenContainedInInstancesOf: [UISearchBar.self])
-                tf.backgroundColor = UIColor(AppTheme.Colors.surface)
-                tf.textColor = UIColor(AppTheme.Colors.textPrimary)
-                tf.tintColor = UIColor(AppTheme.Colors.accent)
-                tf.attributedPlaceholder = NSAttributedString(
-                    string: "Mentoren suchen",
-                    attributes: [.foregroundColor: UIColor(AppTheme.Colors.textSecondary)]
+        }
+        .id(refreshID)
+        .listStyle(.plain)
+        .scrollIndicators(.hidden)
+        .scrollContentBackground(.hidden)
+        .background(AppTheme.listBackground(for: colorScheme))
+        .listRowSeparatorTint(AppTheme.Colors.separator)
+        // Suchleiste zur Filterung der Mentoren
+        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Mentoren suchen")
+        .tint(AppTheme.Colors.accent)
+        .navigationTitle("Mentoren")
+        .toolbarBackground(.visible, for: .navigationBar)
+        .onAppear {
+            displayedMentors = mentors
+            let tf = UITextField.appearance(whenContainedInInstancesOf: [UISearchBar.self])
+            tf.backgroundColor = UIColor(AppTheme.Colors.surface)
+            tf.textColor = UIColor(AppTheme.Colors.textPrimary)
+            tf.tintColor = UIColor(AppTheme.Colors.accent)
+            tf.attributedPlaceholder = NSAttributedString(
+                string: "Mentoren suchen",
+                attributes: [.foregroundColor: UIColor(AppTheme.Colors.textSecondary)]
+            )
+        }
+        .onChange(of: searchText, initial: false) { _, _ in
+            searchTask?.cancel()
+            searchTask = Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 250_000_000) // 250ms Debounce
+                applySearch()
+            }
+        }
+        .overlay {
+            if displayedMentors.isEmpty && !searchText.isEmpty {
+                ContentUnavailableView(
+                    "Keine Treffer",
+                    systemImage: "magnifyingglass",
+                    description: Text("Passe den Suchbegriff an.")
                 )
             }
-            .onChange(of: searchText, initial: false) { _, _ in
-                searchTask?.cancel()
-                searchTask = Task { @MainActor in
-                    try? await Task.sleep(nanoseconds: 250_000_000) // 250ms Debounce
-                    applySearch()
-                }
-            }
-            .overlay {
-                if displayedMentors.isEmpty && !searchText.isEmpty {
-                    ContentUnavailableView(
-                        "Keine Treffer",
-                        systemImage: "magnifyingglass",
-                        description: Text("Passe den Suchbegriff an.")
-                    )
-                }
-            }
-            .animation(.default, value: displayedMentors)
         }
+        .animation(.default, value: displayedMentors)
     }
 }

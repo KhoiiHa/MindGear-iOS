@@ -9,16 +9,15 @@ import Foundation
 
 // Repräsentiert einen Mentor mit Kanal- und Social-Media-Informationen
 struct Mentor: Identifiable, Hashable, Codable {
-    let id = UUID()
+    let id: String
     let name: String
-    let profileImageURL: String  // Profilbild
-    let bio: String
-    let channelId: String        // Für Kanal-Link & weitere Features
+    let profileImageURL: String?
+    let bio: String?
     let playlists: [PlaylistInfo]?
     let socials: [SocialLink]?
     
     private enum CodingKeys: String, CodingKey {
-        case name, profileImageURL, bio, channelId, playlists, socials
+        case id, name, profileImageURL, bio, playlists, socials
     }
 }
 

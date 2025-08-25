@@ -5,16 +5,14 @@
 //  Created by Vu Minh Khoi Ha on 05.08.25.
 //
 
-
-
 import Foundation
 
 let allMentors: [Mentor] = [
     Mentor(
+        id: "UC12345...",
         name: "ChrisWillx",
         profileImageURL: "https://yt3.ggpht.com/ytc/AAUvwngZDf_example.jpg",
         bio: "ChrisWillx ist bekannt für seine MEN Series und Mindset-Analysen.",
-        channelId: "UC12345...", // Deine echte Channel-ID hier einsetzen
         playlists: nil, // Optional: [PlaylistInfo]
         socials: [
             SocialLink(platform: "YouTube", url: "https://youtube.com/@ChrisWillx")
@@ -30,5 +28,5 @@ func getMentor(byName name: String) -> Mentor? {
 
 /// Resolve a mentor by YouTube channelId
 func getMentor(byChannelId channelId: String) -> Mentor? {
-    return allMentors.first { $0.channelId == channelId }
+    return allMentors.first { $0.id == channelId }
 }

@@ -33,9 +33,9 @@ final class FavoritesManager {
     // Prüft, ob der Mentor als Favorit gespeichert ist
     func isMentorFavorite(mentor: Mentor, context: ModelContext) -> Bool {
         do {
-            let cid = mentor.channelId
+            let mid = mentor.id
             let descriptor = FetchDescriptor<FavoriteMentorEntity>(
-                predicate: #Predicate { $0.id == cid }
+                predicate: #Predicate { $0.id == mid }
             )
             return try !context.fetch(descriptor).isEmpty
         } catch {
@@ -80,15 +80,15 @@ final class FavoritesManager {
     // Schaltet den Favoritenstatus eines Mentors um
     func toggleMentorFavorite(mentor: Mentor, context: ModelContext) async {
         do {
-            let cid = mentor.channelId
+            let mid = mentor.id
             let descriptor = FetchDescriptor<FavoriteMentorEntity>(
-                predicate: #Predicate { $0.id == cid }
+                predicate: #Predicate { $0.id == mid }
             )
             if let existing = try context.fetch(descriptor).first {
                 context.delete(existing)
             } else {
                 let favorite = FavoriteMentorEntity(
-                    id: mentor.channelId,
+                    id: mentor.id,
                     name: mentor.name,
                     profileImageURL: mentor.profileImageURL
                 )

@@ -17,13 +17,13 @@ final class FavoriteMentorEntity {
     /// Anzeigename des Mentors (für die Liste)
     var name: String
     /// Optionales Profilbild (URL-String)
-    var profileImageURL: String
+    var profileImageURL: String?
     /// Zeitpunkt, wann der Mentor als Favorit gespeichert wurde
     var createdAt: Date
     /// Typ zur Unterscheidung zwischen Video- und Mentor-Favoriten
     var type: String = "mentor"
 
-    init(id: String, name: String, profileImageURL: String, createdAt: Date = Date()) {
+    init(id: String, name: String, profileImageURL: String? = nil, createdAt: Date = Date()) {
         self.id = id
         self.name = name
         self.profileImageURL = profileImageURL

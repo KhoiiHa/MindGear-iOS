@@ -22,13 +22,21 @@ struct MentorDetailView: View {
         ScrollView {
             VStack(alignment: .center, spacing: AppTheme.Spacing.l) {
                 // Profilbild anzeigen
-                if let url = URL(string: viewModel.mentor.profileImageURL) {
-                    AsyncImage(url: url) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        ProgressView()
+                if let urlStr = viewModel.mentor.profileImageURL, let url = URL(string: urlStr) {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView()
+                        case .success(let image):
+                            image.resizable().aspectRatio(contentMode: .fill)
+                        case .failure:
+                            Image(systemName: "person.crop.circle.fill")
+                                .resizable()
+                                .scaledToFill()
+                                .foregroundStyle(AppTheme.Colors.iconSecondary)
+                        @unknown default:
+                            EmptyView()
+                        }
                     }
                     .frame(width: 120, height: 120)
                     .clipShape(Circle())
@@ -42,10 +50,12 @@ struct MentorDetailView: View {
                     .foregroundStyle(AppTheme.Colors.textPrimary)
 
                 // Biografie des Mentors anzeigen
-                Text(viewModel.mentor.bio)
-                    .font(AppTheme.Typography.body)
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                if let bio = viewModel.mentor.bio {
+                    Text(bio)
+                        .font(AppTheme.Typography.body)
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                }
 
                 // Soziale Links anzeigen, falls vorhanden
                 if let socials = viewModel.mentor.socials, !socials.isEmpty {
@@ -89,7 +99,7 @@ struct MentorDetailView: View {
                 }
 
                 // Link zum YouTube-Kanal des Mentors
-                if let url = URL(string: "https://youtube.com/channel/\(viewModel.mentor.channelId)") {
+                if let url = URL(string: "https://youtube.com/channel/\(viewModel.mentor.id)") {
                     Link("YouTube-Kanal ansehen", destination: url)
                         .padding(.top, 16)
                         .font(AppTheme.Typography.headline)
