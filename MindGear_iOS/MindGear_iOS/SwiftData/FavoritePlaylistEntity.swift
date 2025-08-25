@@ -10,36 +10,26 @@ import SwiftData
 
 /// SwiftData‑Modell: Favorisierte YouTube‑Playlist
 ///
-/// Minimaler Umfang (MVP):
-///  - `id`: YouTube‑Playlist‑ID (eindeutig)
+/// Eigenschaften:
+///  - `id`: YouTube‑Playlist‑ID (eindeutig; für Navigation genutzt)
 ///  - `title`: Anzeigename
 ///  - `thumbnailURL`: Vorschaubild‑URL (String)
+///  - `playlistDescription`: Optionale Beschreibung
 ///  - `createdAt`: Zeitpunkt des Hinzufügens (für Sortierung)
-///
-/// **Hinweis:**
-/// Diese Klasse ist für die Nutzung mit SwiftData optimiert und kann bei Bedarf
-/// leicht um Codable erweitert werden, falls eine Synchronisation mit einer API
-/// oder JSON-Export notwendig wird.
 ///
 /// **Beispiel:**
 /// ```swift
 /// let playlist = FavoritePlaylistEntity(
-///     id: "PL12345",
+///     id: "PL12345", // YouTube-Playlist-ID
 ///     title: "Motivation Mix",
 ///     thumbnailURL: "https://img.youtube.com/vi/xyz/default.jpg"
 /// )
 /// modelContext.insert(playlist)
 /// try? modelContext.save()
 /// ```
-///
-/// // MARK: - CodingKeys
-/// // Falls Decodable/Encodable in Zukunft benötigt wird:
-/// // enum CodingKeys: String, CodingKey {
-/// //     case id, title, thumbnailURL, createdAt
-/// // }
 @Model
 final class FavoritePlaylistEntity {
-    /// Eindeutiger Schlüssel = YouTube‑Playlist‑ID
+    /// Gespeicherte YouTube‑Playlist-ID (wird für Navigation genutzt)
     @Attribute(.unique) var id: String
 
     /// Titel der Playlist (zum Zeitpunkt des Favorisierens gespeichert)
@@ -54,7 +44,13 @@ final class FavoritePlaylistEntity {
     /// Zeitpunkt, wann diese Playlist als Favorit gespeichert wurde
     var createdAt: Date
 
-    init(id: String, title: String, thumbnailURL: String, playlistDescription: String? = nil, createdAt: Date = .now) {
+    init(
+        id: String,
+        title: String,
+        thumbnailURL: String,
+        playlistDescription: String? = nil,
+        createdAt: Date = .now
+    ) {
         self.id = id
         self.title = title
         self.playlistDescription = playlistDescription

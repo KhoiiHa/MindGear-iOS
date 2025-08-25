@@ -73,59 +73,57 @@ struct PlaylistView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            List(viewModel.filteredVideos) { video in
-                VideoRow(video: video)
+        List(viewModel.filteredVideos) { video in
+            VideoRow(video: video)
+        }
+        .refreshable {
+            await viewModel.loadVideos(forceReload: true)
+        }
+        .tint(AppTheme.Colors.accent)
+        .listStyle(.plain)
+        .scrollIndicators(.hidden)
+        .scrollContentBackground(.hidden)
+        .background(AppTheme.listBackground(for: colorScheme))
+        .listRowSeparatorTint(AppTheme.Colors.separator)
+        .overlay(alignment: .center) {
+            if viewModel.filteredVideos.isEmpty {
+                ContentUnavailableView(
+                    "Keine Videos",
+                    systemImage: "video.slash",
+                    description: Text("Tippe oben ins Suchfeld oder ziehe zum Aktualisieren.")
+                )
+                .padding()
             }
-            .refreshable {
-                await viewModel.loadVideos(forceReload: true)
-            }
-            .tint(AppTheme.Colors.accent)
-            .listStyle(.plain)
-            .scrollIndicators(.hidden)
-            .scrollContentBackground(.hidden)
-            .background(AppTheme.listBackground(for: colorScheme))
-            .listRowSeparatorTint(AppTheme.Colors.separator)
-            .overlay(alignment: .center) {
-                if viewModel.filteredVideos.isEmpty {
-                    ContentUnavailableView(
-                        "Keine Videos",
-                        systemImage: "video.slash",
-                        description: Text("Tippe oben ins Suchfeld oder ziehe zum Aktualisieren.")
-                    )
-                    .padding()
-                }
-            }
-            .task {
-                await viewModel.loadVideos()
-                favoritesViewModel.reload()
-            }
-            .safeAreaInset(edge: .top) {
-                headerSearch
-                    .padding(.bottom, 8)
-                    .background(AppTheme.listBackground(for: colorScheme))
-                    .overlay(Rectangle().fill(AppTheme.Colors.separator).frame(height: 1), alignment: .bottom)
-                    .shadow(color: AppTheme.Colors.shadowCard.opacity(0.6), radius: 8, y: 2)
-            }
-            .navigationTitle(title)
-            .tint(AppTheme.Colors.accent)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        Task { @MainActor in
-                            await favoritesViewModel.toggleFavorite(
-                                id: playlistId,
-                                title: viewModel.playlistTitle.isEmpty ? "Playlist" : viewModel.playlistTitle,
-                                thumbnailURL: viewModel.playlistThumbnailURL
-                            )
-                        }
-                    } label: {
-                        Image(systemName: favoritesViewModel.isFavorite(id: playlistId) ? "heart.fill" : "heart")
-                            .foregroundStyle(favoritesViewModel.isFavorite(id: playlistId) ? AppTheme.Colors.accent : AppTheme.Colors.iconSecondary)
-                            .accessibilityLabel(favoritesViewModel.isFavorite(id: playlistId) ? "Playlist aus Favoriten entfernen" : "Playlist zu Favoriten hinzufügen")
-                            .accessibilityHint("Favoritenstatus der Playlist ändern.")
+        }
+        .task {
+            await viewModel.loadVideos()
+            favoritesViewModel.reload()
+        }
+        .safeAreaInset(edge: .top) {
+            headerSearch
+                .padding(.bottom, 8)
+                .background(AppTheme.listBackground(for: colorScheme))
+                .overlay(Rectangle().fill(AppTheme.Colors.separator).frame(height: 1), alignment: .bottom)
+                .shadow(color: AppTheme.Colors.shadowCard.opacity(0.6), radius: 8, y: 2)
+        }
+        .navigationTitle(title)
+        .tint(AppTheme.Colors.accent)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    Task { @MainActor in
+                        await favoritesViewModel.toggleFavorite(
+                            id: playlistId,
+                            title: viewModel.playlistTitle.isEmpty ? "Playlist" : viewModel.playlistTitle,
+                            thumbnailURL: viewModel.playlistThumbnailURL
+                        )
                     }
+                } label: {
+                    Image(systemName: favoritesViewModel.isFavorite(id: playlistId) ? "heart.fill" : "heart")
+                        .foregroundStyle(favoritesViewModel.isFavorite(id: playlistId) ? AppTheme.Colors.accent : AppTheme.Colors.iconSecondary)
+                        .accessibilityLabel(favoritesViewModel.isFavorite(id: playlistId) ? "Playlist aus Favoriten entfernen" : "Playlist zu Favoriten hinzufügen")
+                        .accessibilityHint("Favoritenstatus der Playlist ändern.")
                 }
             }
         }

@@ -53,48 +53,48 @@ struct MainTabView: View {
 
     var body: some View {
         TabView {
-            HomeView()
+            NavigationStack { HomeView() }
                 .tabItem {
                     Image(systemName: "house.fill")
                     Text("Home")
                 }
 
-            VideoListView(playlistID: ConfigManager.recommendedPlaylistId, context: context)
+            NavigationStack { VideoListView(playlistID: ConfigManager.recommendedPlaylistId, context: context) }
                 .tabItem {
                     Image(systemName: "play.rectangle.fill")
                     Text("Videos")
                 }
 
-            FavoritenView(context: context)
+            NavigationStack { FavoritenView(context: context) }
                 .tabItem {
                     Image(systemName: "heart.fill")
                     Text("Favoriten")
                 }
 
-            CategoriesView()
+            NavigationStack { CategoriesView() }
                 .tabItem {
                     Image(systemName: "square.grid.2x2.fill")
                     Text("Kategorien")
                 }
 
-            MentorsView(mentors: allMentors)
+            NavigationStack { MentorsView(mentors: allMentors) }
                 .tabItem {
                     Image(systemName: "person.2.fill")
                     Text("Mentoren")
                 }
 
-            PlaylistView(playlistId: ConfigManager.recommendedPlaylistId, context: context)
+            NavigationStack { PlaylistView(playlistId: ConfigManager.recommendedPlaylistId, context: context) }
                 .tabItem {
                     Image(systemName: "music.note.list")
                     Text("Playlists")
                 }
 
-            HistoryView()
+            NavigationStack { HistoryView() }
                 .tabItem {
                     Label("Verlauf", systemImage: "clock.arrow.circlepath")
                 }
 
-            SettingsView()
+            NavigationStack { SettingsView() }
                 .tabItem {
                     Image(systemName: "gearshape.fill")
                     Text("Einstellungen")

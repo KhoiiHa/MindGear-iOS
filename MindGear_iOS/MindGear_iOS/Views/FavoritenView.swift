@@ -18,20 +18,12 @@ private enum FavoriteFilter: String, CaseIterable, Identifiable {
         case .playlists: return "rectangle.stack.fill"
         }
     }
-    var emoji: String {
-        switch self {
-        case .all: return "✨"
-        case .videos: return "📹"
-        case .mentors: return "👥"
-        case .playlists: return "🎵"
-        }
-    }
 }
 
 private enum Route: Hashable {
     case mentor(String)    // channelId oder Name
     case playlist(String)  // playlistId
-    // case video(String)  // vorbereitet
+    case video(String)     // videoId
 }
 
 struct FavoritenView: View {
@@ -115,9 +107,8 @@ struct FavoritenView: View {
     }
 
     @ViewBuilder
-    private func sectionHeader(_ title: String, systemImage: String, emoji: String) -> some View {
+    private func sectionHeader(_ title: String, systemImage: String) -> some View {
         HStack(spacing: AppTheme.Spacing.xs) {
-            Text(emoji)
             Image(systemName: systemImage)
             Text(title)
         }
@@ -153,7 +144,7 @@ struct FavoritenView: View {
                             }
                             .onDelete { idx in deleteFrom(list: videoFavorites, at: idx) }
                         } header: {
-                            sectionHeader("Videos", systemImage: "play.rectangle.fill", emoji: "📹")
+                            sectionHeader("Videos", systemImage: "play.rectangle.fill")
                         }
                         .headerProminence(.standard)
                         .listRowBackground(AppTheme.listBackground(for: colorScheme))
@@ -171,7 +162,7 @@ struct FavoritenView: View {
                             }
                             .onDelete { idx in deleteFrom(list: mentorFavorites, at: idx) }
                         } header: {
-                            sectionHeader("Mentoren", systemImage: "person.2.fill", emoji: "👥")
+                            sectionHeader("Mentoren", systemImage: "person.2.fill")
                         }
                         .headerProminence(.standard)
                         .listRowBackground(AppTheme.listBackground(for: colorScheme))
@@ -189,7 +180,7 @@ struct FavoritenView: View {
                             }
                             .onDelete { idx in deleteFrom(list: playlistFavorites, at: idx) }
                         } header: {
-                            sectionHeader("Playlists", systemImage: "rectangle.stack.fill", emoji: "🎵")
+                            sectionHeader("Playlists", systemImage: "rectangle.stack.fill")
                         }
                         .headerProminence(.standard)
                         .listRowBackground(AppTheme.listBackground(for: colorScheme))
@@ -235,36 +226,46 @@ struct FavoritenView: View {
                 }
             case .playlist(let id):
                 PlaylistView(playlistId: id, context: context)
+            case .video(let id):
+                if let video = resolveVideo(for: id) {
+                    VideoDetailView(video: video, context: context)
+                } else {
+                    ContentUnavailableView("Video nicht gefunden", systemImage: "film.stack")
+                }
             }
         }
-        }
     }
+}
 
     @ViewBuilder
     private func row(for item: FavoriteItem) -> some View {
         switch item.type {
         case .video:
-            HStack(spacing: AppTheme.Spacing.m) {
-                if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
-                    ThumbnailView(urlString: url.absoluteString, width: 88, height: 56, cornerRadius: AppTheme.Radius.m)
-                        .accessibilityHidden(true)
-                } else {
-                    Image(systemName: "video")
-                        .frame(width: 88, height: 56)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
-                        .background(AppTheme.Colors.surfaceElevated)
-                        .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.m))
-                        .accessibilityHidden(true)
-                }
-                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                    Text(item.title)
-                        .font(AppTheme.Typography.headline)
-                        .foregroundStyle(AppTheme.Colors.textPrimary)
-                    Text("Video")
-                        .font(AppTheme.Typography.caption)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+            NavigationLink(value: Route.video(item.id)) {
+                HStack(spacing: AppTheme.Spacing.m) {
+                    if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
+                        ThumbnailView(urlString: url.absoluteString, width: 88, height: 56, cornerRadius: AppTheme.Radius.m)
+                            .accessibilityHidden(true)
+                    } else {
+                        Image(systemName: "video")
+                            .frame(width: 88, height: 56)
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                            .background(AppTheme.Colors.surfaceElevated)
+                            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.m))
+                            .accessibilityHidden(true)
+                    }
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                        Text(item.title)
+                            .font(AppTheme.Typography.headline)
+                            .foregroundStyle(AppTheme.Colors.textPrimary)
+                        Text("Video")
+                            .font(AppTheme.Typography.caption)
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                    }
                 }
             }
+            .buttonStyle(.plain)
+            .listRowBackground(AppTheme.listBackground(for: colorScheme))
             .accessibilityElement(children: .combine)
             .accessibilityLabel(item.title)
             .accessibilityValue("Video")
@@ -338,6 +339,25 @@ struct FavoritenView: View {
         }
     }
 
+
+    private func resolveVideo(for id: String) -> Video? {
+        // Favoriten enthalten alle nötigen Felder, daher können wir das Video aus SwiftData rekonstruieren
+        let all: [FavoriteVideoEntity] = (try? context.fetch(FetchDescriptor<FavoriteVideoEntity>())) ?? []
+        // In den Favoriten ist `item.id` in der Regel die Entity-UUID als String; fallback: match über videoURL
+        if let fav = all.first(where: { String(describing: $0.id) == id || $0.videoURL == id }) {
+            return Video(
+                id: fav.id,
+                title: fav.title,
+                description: fav.videoDescription,
+                thumbnailURL: fav.thumbnailURL,
+                videoURL: fav.videoURL,
+                category: fav.category,
+                isFavorite: true
+            )
+        }
+        return nil
+    }
+
     private func deleteFavorite(at offsets: IndexSet) {
         var toDelete: [any PersistentModel] = []
         for index in offsets {
@@ -398,3 +418,4 @@ struct FavoritenView: View {
 extension FavoriteItem {
     fileprivate var _id: String { self.id }
 }
+
