@@ -55,7 +55,7 @@ class FavoritenViewModel: ObservableObject {
         }
         let mentorFavorites = FavoritesManager.shared.getAllMentorFavorites(context: context).map {
             FavoriteItem(
-                id: $0.id,
+                id: $0.id, // Channel-ID des Mentors als eindeutige ID
                 type: .mentor,
                 title: $0.name,
                 thumbnailURL: $0.profileImageURL,

@@ -9,16 +9,25 @@ import Foundation
 
 let allMentors: [Mentor] = [
     Mentor(
-        id: "UC12345...",
-        name: "ChrisWillx",
-        profileImageURL: "https://yt3.ggpht.com/ytc/AAUvwngZDf_example.jpg",
-        bio: "ChrisWillx ist bekannt für seine MEN Series und Mindset-Analysen.",
-        playlists: nil, // Optional: [PlaylistInfo]
+        id: "UCIaH-gZIVC432YRjNVvnyCA", // Channel-ID Chris Williamson (Modern Wisdom)
+        name: "Chris Williamson",
+        profileImageURL: "https://yt3.googleusercontent.com/ytc/AIf8zZQ_example1=s800-c-k-c0x00ffffff-no-rj",
+        bio: "Host von Modern Wisdom. Gespräche über Psychologie, Erfolg und Lebensführung.",
+        playlists: nil,
         socials: [
-            SocialLink(platform: "YouTube", url: "https://youtube.com/@ChrisWillx")
+            SocialLink(platform: "YouTube", url: "https://www.youtube.com/@ChrisWillx")
+        ]
+    ),
+    Mentor(
+        id: "UCRRtZjnxd5N6Vvq-jU9uoOw", // Channel-ID Shi Heng Yi Online
+        name: "Shi Heng Yi",
+        profileImageURL: "https://yt3.googleusercontent.com/ytc/AIf8zZQ_example2=s800-c-k-c0x00ffffff-no-rj",
+        bio: "Shaolin-Lehrer. Fokus auf Disziplin, Achtsamkeit und innere Stärke.",
+        playlists: nil,
+        socials: [
+            SocialLink(platform: "YouTube", url: "https://www.youtube.com/@ShiHengYiOnline")
         ]
     )
-    // Weitere Mentoren kannst du später ergänzen
 ]
 
 /// Resolve a mentor by exact name

@@ -112,20 +112,20 @@ struct MentorDetailView: View {
         .navigationTitle("Mentor-Profil")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            // Herz-Button zum Favorisieren mit roter Farbe bei Favorit
+            // Herz-Button zum Favorisieren
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-                    Task { @MainActor in
-                        await viewModel.toggleFavorite()
-                    }
+                    Task { await viewModel.toggleFavorite() }
                 } label: {
                     Image(systemName: viewModel.isFavorite ? "heart.fill" : "heart")
-                        .foregroundStyle(viewModel.isFavorite ? AppTheme.Colors.danger : AppTheme.Colors.iconPrimary)
+                        .foregroundStyle(viewModel.isFavorite ? AppTheme.Colors.accent : AppTheme.Colors.iconPrimary)
                 }
                 .animation(.easeInOut, value: viewModel.isFavorite)
             }
         }
         // Synchronisieren des Favoritenstatus beim Anzeigen der Ansicht
-        .onAppear { viewModel.startObservingFavorites() }
+        .onAppear {
+            viewModel.startObservingFavorites()
+        }
     }
 }

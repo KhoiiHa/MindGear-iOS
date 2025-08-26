@@ -107,10 +107,10 @@ struct FavoritenView: View {
     }
 
     @ViewBuilder
-    private func sectionHeader(_ title: String, systemImage: String) -> some View {
+    private func sectionHeader(_ title: String, systemImage: String, count: Int) -> some View {
         HStack(spacing: AppTheme.Spacing.xs) {
             Image(systemName: systemImage)
-            Text(title)
+            Text("\(title) (\(count))")
         }
         .font(AppTheme.Typography.footnote)
         .foregroundStyle(AppTheme.Colors.textSecondary)
@@ -121,7 +121,6 @@ struct FavoritenView: View {
     }
 
     var body: some View {
-        NavigationStack {
         List {
             if filteredFavorites.isEmpty {
                 ContentUnavailableView(
@@ -144,7 +143,7 @@ struct FavoritenView: View {
                             }
                             .onDelete { idx in deleteFrom(list: videoFavorites, at: idx) }
                         } header: {
-                            sectionHeader("Videos", systemImage: "play.rectangle.fill")
+                            sectionHeader("Videos", systemImage: "play.rectangle.fill", count: videoFavorites.count)
                         }
                         .headerProminence(.standard)
                         .listRowBackground(AppTheme.listBackground(for: colorScheme))
@@ -162,7 +161,7 @@ struct FavoritenView: View {
                             }
                             .onDelete { idx in deleteFrom(list: mentorFavorites, at: idx) }
                         } header: {
-                            sectionHeader("Mentoren", systemImage: "person.2.fill")
+                            sectionHeader("Mentoren", systemImage: "person.2.fill", count: mentorFavorites.count)
                         }
                         .headerProminence(.standard)
                         .listRowBackground(AppTheme.listBackground(for: colorScheme))
@@ -180,7 +179,7 @@ struct FavoritenView: View {
                             }
                             .onDelete { idx in deleteFrom(list: playlistFavorites, at: idx) }
                         } header: {
-                            sectionHeader("Playlists", systemImage: "rectangle.stack.fill")
+                            sectionHeader("Playlists", systemImage: "rectangle.stack.fill", count: playlistFavorites.count)
                         }
                         .headerProminence(.standard)
                         .listRowBackground(AppTheme.listBackground(for: colorScheme))
@@ -235,7 +234,6 @@ struct FavoritenView: View {
             }
         }
     }
-}
 
     @ViewBuilder
     private func row(for item: FavoriteItem) -> some View {
@@ -365,7 +363,7 @@ struct FavoritenView: View {
             switch item.type {
             case .video:
                 let all: [FavoriteVideoEntity] = (try? context.fetch(FetchDescriptor<FavoriteVideoEntity>())) ?? []
-                if let entity = all.first(where: { String(describing: $0.id) == item.id }) {
+                if let entity = all.first(where: { String(describing: $0.id) == item.id || $0.videoURL == item.id }) {
                     toDelete.append(entity)
                 }
             case .mentor:
@@ -396,7 +394,7 @@ struct FavoritenView: View {
         switch item.type {
         case .video:
             let all: [FavoriteVideoEntity] = (try? context.fetch(FetchDescriptor<FavoriteVideoEntity>())) ?? []
-            if let entity = all.first(where: { String(describing: $0.id) == item.id }) {
+            if let entity = all.first(where: { String(describing: $0.id) == item.id || $0.videoURL == item.id }) {
                 context.delete(entity)
             }
         case .mentor:
