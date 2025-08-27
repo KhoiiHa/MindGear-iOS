@@ -53,7 +53,7 @@ final class VideoManager {
         limit: Int = 5,
         api: APIServiceProtocol = APIService.shared
     ) async throws -> [Video] {
-        let response = try await api.fetchVideos(from: playlistId, apiKey: ConfigManager.apiKey, pageToken: nil)
+        let response = try await api.fetchVideos(from: playlistId, apiKey: ConfigManager.youtubeAPIKey, pageToken: nil)
         return response.items.prefix(limit).compactMap { $0.toVideo(category: category) }
     }
 

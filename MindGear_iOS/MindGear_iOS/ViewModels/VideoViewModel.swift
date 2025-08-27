@@ -84,7 +84,7 @@ class VideoViewModel: ObservableObject {
     @Published var loadMoreError: String? = nil
 
     // Lädt API-Schlüssel dynamisch aus der Config
-    private let apiKey = ConfigManager.apiKey
+    private let apiKey = ConfigManager.youtubeAPIKey
     private let playlistId: String
 
     private let apiService: APIServiceProtocol

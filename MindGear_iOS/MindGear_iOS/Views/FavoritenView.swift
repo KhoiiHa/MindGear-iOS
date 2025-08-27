@@ -218,7 +218,7 @@ struct FavoritenView: View {
         .navigationDestination(for: Route.self) { route in
             switch route {
             case .mentor(let id):
-                if let mentor = getMentor(byChannelId: id) ?? getMentor(byName: id) {
+                if let mentor = resolveMentor(for: id) {
                     MentorDetailView(mentor: mentor, context: context)
                 } else {
                     ContentUnavailableView("Mentor nicht gefunden", systemImage: "person.crop.circle.badge.questionmark")
@@ -354,6 +354,38 @@ struct FavoritenView: View {
             )
         }
         return nil
+    }
+
+    // MARK: - Mentor Resolver (Favorites → Mentor model, then Seeds fallback)
+    private func resolveMentor(for key: String) -> Mentor? {
+        // 1) Try to reconstruct from stored favorites first
+        if let fav = mentorFavorite(matching: key) {
+            return mentor(from: fav)
+        }
+        // 2) Fallback to seed data (MentorData)
+        if let m1 = MentorData.getMentor(byChannelId: key) { return m1 }
+        if let m2 = MentorData.getMentor(byName: key) { return m2 }
+        return nil
+    }
+
+    /// Try to find a FavoriteMentorEntity by Channel-ID (stored as `id`) or display name
+    private func mentorFavorite(matching key: String) -> FavoriteMentorEntity? {
+        let all: [FavoriteMentorEntity] = (try? context.fetch(FetchDescriptor<FavoriteMentorEntity>())) ?? []
+        // Match by Channel-ID (entity stores YouTube channelId in `id`) or by display name
+        return all.first { $0.id == key || $0.name == key }
+    }
+
+    private func mentor(from fav: FavoriteMentorEntity) -> Mentor {
+        // Optional: enrich from seeds for bio/socials if present
+        let seed = MentorData.getMentor(byChannelId: fav.id) ?? MentorData.getMentor(byName: fav.name)
+        return Mentor(
+            id: fav.id,                                     // your Mentor expects `id:` (channelId)
+            name: fav.name,
+            profileImageURL: fav.profileImageURL ?? seed?.profileImageURL,
+            bio: seed?.bio,
+            playlists: seed?.playlists,
+            socials: seed?.socials
+        )
     }
 
     private func deleteFavorite(at offsets: IndexSet) {

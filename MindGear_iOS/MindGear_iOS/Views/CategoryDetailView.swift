@@ -260,7 +260,7 @@ struct PlaylistPreviewSection: View {
         errorMessage = nil
         do {
             // API-Aufruf: nutzt den stabilisierten APIService
-            let response = try await APIService.shared.fetchVideos(from: playlistId, apiKey: ConfigManager.apiKey, pageToken: nil)
+            let response = try await APIService.shared.fetchVideos(from: playlistId, apiKey: ConfigManager.youtubeAPIKey, pageToken: nil)
             // Map auf Domain-Model (robuster Mapper mit Fallbacks)
             let mapped = response.items.compactMap { $0.toVideo(category: categoryName) }
             self.videos = Array(mapped.prefix(limit))

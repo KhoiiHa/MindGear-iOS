@@ -296,6 +296,135 @@ final class APIService: APIServiceProtocol {
         try await performSearchFetch(query: query, apiKey: apiKey, pageToken: pageToken)
     }
 
+    // MARK: - Channels (YouTube Channel Lookup without cache)
+    // Low-level fetch that mirrors the retry/diagnostic style of the other endpoints.
+    private func performChannelFetch(queryItems: [URLQueryItem]) async throws -> YouTubeChannelListResponse {
+        let hosts = [
+            "https://www.googleapis.com/youtube/v3/channels",
+            "https://youtube.googleapis.com/youtube/v3/channels"
+        ]
+        var lastError: Error = AppError.networkError
+
+        for endpoint in hosts {
+            var attempt = 0
+            while attempt < 3 {
+                attempt += 1
+                do {
+                    var components = URLComponents(string: endpoint)!
+                    components.queryItems = queryItems + [
+                        URLQueryItem(name: "prettyPrint", value: "false"),
+                        URLQueryItem(name: "alt", value: "json")
+                    ]
+                    guard let url = components.url else { throw AppError.invalidURL }
+
+                    var request = URLRequest(url: url)
+                    request.httpMethod = "GET"
+                    request.setValue("application/json", forHTTPHeaderField: "Accept")
+                    request.cachePolicy = .reloadIgnoringLocalCacheData
+
+                    #if DEBUG
+                    print("🔎 CHANNEL URL:", url.absoluteString)
+                    #endif
+
+                    let (data, response) = try await APIService.session.data(for: request)
+
+                    #if DEBUG
+                    if let http = response as? HTTPURLResponse {
+                        print("🌐 STATUS:", http.statusCode)
+                        print("🌐 HEADERS:", http.allHeaderFields)
+                    }
+                    #endif
+
+                    if let text = String(data: data.prefix(200), encoding: .utf8),
+                       text.contains("<html") || text.contains("<!DOCTYPE html") {
+                        let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
+                        print("❗️HTML statt JSON (Channels). Vorschau:\n\(preview)")
+                        lastError = AppError.networkError
+                        break
+                    }
+
+                    if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+                        if let yt = try? JSONDecoder().decode(YouTubeAPIErrorEnvelope.self, from: data) {
+                            print("❗️YouTube CHANNEL-Fehler:", yt.error.code, yt.error.message)
+                        } else {
+                            let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
+                            print("❗️HTTP \(http.statusCode). CHANNEL KÖRPER-Vorschau:\n\(preview)")
+                        }
+                        lastError = AppError.networkError
+                        break
+                    }
+
+                    do {
+                        let response = try JSONDecoder().decode(YouTubeChannelListResponse.self, from: data)
+                        return response
+                    } catch {
+                        let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
+                        print("❗️Dekodierung fehlgeschlagen (Channels). Vorschau:\n\(preview)")
+                        lastError = AppError.decodingError
+                        break
+                    }
+                } catch {
+                    print("❗️Transportfehler CHANNELS (Attempt #\(attempt)):", error.localizedDescription)
+                    lastError = error
+                    if let urlError = error as? URLError {
+                        switch urlError.code {
+                        case .cannotParseResponse, .badServerResponse:
+                            break
+                        case .timedOut, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost, .notConnectedToInternet:
+                            let delay = pow(2.0, Double(attempt - 1)) * 0.5
+                            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                            continue
+                        default:
+                            break
+                        }
+                    }
+                    break
+                }
+            }
+        }
+        throw lastError
+    }
+
+    // Strips any leading '@' from a handle string to keep callers flexible
+    private func sanitizeHandle(_ raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.hasPrefix("@") {
+            return String(trimmed.drop(while: { $0 == "@" }))
+        }
+        return trimmed
+    }
+
+    /// Convenience: Channel über Handle (ohne @-Zeichen übergeben: "ShiHengYiOnline")
+    func fetchChannel(byHandle handle: String, apiKey: String) async throws -> YouTubeChannelListResponse {
+        try await performChannelFetch(queryItems: [
+            URLQueryItem(name: "part", value: "snippet,statistics"),
+            URLQueryItem(name: "forHandle", value: "@\(sanitizeHandle(handle))"),
+            URLQueryItem(name: "key", value: apiKey)
+        ])
+    }
+
+    /// Convenience: Channel über Channel-ID (z. B. "UC...")
+    func fetchChannel(byId channelId: String, apiKey: String) async throws -> YouTubeChannelListResponse {
+        try await performChannelFetch(queryItems: [
+            URLQueryItem(name: "part", value: "snippet,statistics"),
+            URLQueryItem(name: "id", value: channelId),
+            URLQueryItem(name: "key", value: apiKey)
+        ])
+    }
+
+    /// Convenience: Versucht zuerst per Channel-ID, fällt bei Bedarf auf Handle zurück und gibt das erste Item
+    func fetchChannel(preferId channelId: String?, handle: String?, apiKey: String) async throws -> YouTubeChannelItem {
+        if let id = channelId, !id.isEmpty {
+            let resp = try await fetchChannel(byId: id, apiKey: apiKey)
+            if let first = resp.items.first { return first }
+        }
+        if let h = handle, !h.isEmpty {
+            let resp = try await fetchChannel(byHandle: h, apiKey: apiKey)
+            if let first = resp.items.first { return first }
+        }
+        throw AppError.networkError
+    }
+
     // Bequemlichkeits-Überladung: erlaubt Aufrufe ohne pageToken (lädt erste Seite)
     func fetchVideos(from playlistId: String, apiKey: String) async throws -> YouTubeResponse {
         try await fetchVideos(from: playlistId, apiKey: apiKey, pageToken: nil)
@@ -304,4 +433,46 @@ final class APIService: APIServiceProtocol {
     static func clearCache() {
         Task { await cache.clear() }
     }
+}
+
+// MARK: - Channels Response Models
+struct YouTubeChannelListResponse: Decodable {
+    let items: [YouTubeChannelItem]
+}
+
+struct YouTubeChannelItem: Decodable {
+    let id: String
+    let snippet: YouTubeChannelSnippet
+    let statistics: YouTubeChannelStatistics?
+}
+
+struct YouTubeChannelSnippet: Decodable {
+    let title: String
+    let description: String
+    let customUrl: String?
+    let publishedAt: String?
+    let thumbnails: YouTubeChannelThumbnails
+}
+
+struct YouTubeChannelThumbnails: Decodable {
+    let high: YouTubeThumbImage?
+    let medium: YouTubeThumbImage?
+    let defaultThumb: YouTubeThumbImage?
+
+    private enum CodingKeys: String, CodingKey {
+        case high, medium
+        case defaultThumb = "default"
+    }
+}
+
+struct YouTubeThumbImage: Decodable {
+    let url: String
+    let width: Int?
+    let height: Int?
+}
+
+struct YouTubeChannelStatistics: Decodable {
+    let subscriberCount: String?
+    let viewCount: String?
+    let videoCount: String?
 }

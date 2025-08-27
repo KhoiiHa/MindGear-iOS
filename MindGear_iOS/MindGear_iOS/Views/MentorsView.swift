@@ -10,16 +10,22 @@ import SwiftData
 import UIKit
 
 struct MentorsView: View {
-    let mentors: [Mentor]
+    @StateObject private var viewModel = MentorViewModel()
     @State private var searchText = ""
     @State private var refreshID = UUID()
     @State private var displayedMentors: [Mentor] = []
     @State private var searchTask: Task<Void, Never>? = nil
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.modelContext) private var modelContext
 
     // Normalisiert Strings für eine robuste, akzent-insensitive Suche
     private func norm(_ s: String) -> String {
         s.folding(options: .diacriticInsensitive, locale: .current).lowercased()
+    }
+
+    // Entfernt ein optionales "[Seed]"-Prefix aus Namen
+    private func cleanSeed(_ s: String) -> String {
+        s.replacingOccurrences(of: #"^\[Seed\]\s*"#, with: "", options: [.regularExpression])
     }
 
     // Wendet die Suche auf die Quellliste an und aktualisiert die Anzeige
@@ -27,16 +33,16 @@ struct MentorsView: View {
     private func applySearch() {
         let q = norm(searchText.trimmingCharacters(in: .whitespacesAndNewlines))
         guard !q.isEmpty else {
-            displayedMentors = mentors
+            displayedMentors = viewModel.mentors
             return
         }
-        displayedMentors = mentors.filter { m in
-            let name = norm(m.name)
+        displayedMentors = viewModel.mentors.filter { m in
+            let name = norm(cleanSeed(m.name))
             let idNorm = norm(m.id)
-            return name.contains(q) || idNorm.contains(q)
+            let bio = norm(m.bio ?? "")
+            return name.contains(q) || idNorm.contains(q) || bio.contains(q)
         }
     }
-    @Environment(\.modelContext) private var modelContext
 
     // Hilfsfunktion, um zu prüfen, ob ein Mentor in den Favoriten ist
     private func isFavorite(_ mentor: Mentor) -> Bool {
@@ -91,7 +97,7 @@ struct MentorsView: View {
 
     var body: some View {
         // Liste der gefilterten Mentoren
-        List(displayedMentors) { mentor in
+        List(displayedMentors, id: \.id) { mentor in
             NavigationLink(destination: MentorDetailView(mentor: mentor, context: modelContext)
                 .onDisappear {
                     refreshID = UUID()
@@ -101,7 +107,7 @@ struct MentorsView: View {
                     // Avatar mit sicherem Fallback (kein endloses Laden)
                     avatarView(for: mentor)
                     // Anzeige des Mentorennamens
-                    Text(mentor.name)
+                    Text(cleanSeed(mentor.name))
                         .font(AppTheme.Typography.headline)
                         .foregroundStyle(AppTheme.Colors.textPrimary)
                     // Herz-Symbol, wenn der Mentor in den Favoriten ist
@@ -124,7 +130,11 @@ struct MentorsView: View {
         .navigationTitle("Mentoren")
         .toolbarBackground(.visible, for: .navigationBar)
         .onAppear {
-            displayedMentors = mentors
+            Task {
+                await viewModel.loadAllMentors(seeds: MentorData.allMentors)
+                displayedMentors = viewModel.mentors
+            }
+
             let tf = UITextField.appearance(whenContainedInInstancesOf: [UISearchBar.self])
             tf.backgroundColor = UIColor(AppTheme.Colors.surface)
             tf.textColor = UIColor(AppTheme.Colors.textPrimary)
@@ -141,6 +151,9 @@ struct MentorsView: View {
                 applySearch()
             }
         }
+        .onChange(of: viewModel.mentors) { _, _ in
+            applySearch()
+        }
         .overlay {
             if displayedMentors.isEmpty && !searchText.isEmpty {
                 ContentUnavailableView(
@@ -151,5 +164,8 @@ struct MentorsView: View {
             }
         }
         .animation(.default, value: displayedMentors)
+        .onDisappear {
+            searchTask?.cancel()
+        }
     }
 }

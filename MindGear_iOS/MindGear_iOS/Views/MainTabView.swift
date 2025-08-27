@@ -77,7 +77,7 @@ struct MainTabView: View {
                     Text("Kategorien")
                 }
 
-            NavigationStack { MentorsView(mentors: allMentors) }
+            NavigationStack { MentorsView() }
                 .tabItem {
                     Image(systemName: "person.2.fill")
                     Text("Mentoren")

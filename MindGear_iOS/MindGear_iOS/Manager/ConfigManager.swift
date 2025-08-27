@@ -10,8 +10,19 @@
 import Foundation
 
 struct ConfigManager {
+    /// Primärer API-Key für YouTube – nur aus Config.plist
+    static var youtubeAPIKey: String {
+        getValue(for: "YOUTUBE_API_KEY")
+    }
+
+    /// Einheitlicher Resolver (portfolio-clean): nutzt ausschließlich `YOUTUBE_API_KEY` aus Config.plist
+    static var resolvedYouTubeAPIKey: String {
+        getValue(for: "YOUTUBE_API_KEY")
+    }
+
+    @available(*, deprecated, message: "Use youtubeAPIKey instead")
     static var apiKey: String {
-        return getValue(for: "API_KEY")
+        getValue(for: "YOUTUBE_API_KEY")
     }
 
     static var chrisWillxChannelId: String {
@@ -22,6 +33,29 @@ struct ConfigManager {
         return getValue(for: "JAYSHETTY_CHANNEL_ID")
     }
 
+    static var shiHengYiChannelId: String? { getOptionalValue(for: "SHIHENGYI_CHANNEL_ID") }
+    static var lexFridmanChannelId: String? { getOptionalValue(for: "LEXFRIDMAN_CHANNEL_ID") }
+    static var diaryOfACEOChannelId: String? { getOptionalValue(for: "DIARYOFACEO_CHANNEL_ID") }
+    static var shawnRyanChannelId: String? { getOptionalValue(for: "SHAWNRYAN_CHANNEL_ID") }
+    static var jordanBPetersonChannelId: String? { getOptionalValue(for: "JORDANBPETERSON_CHANNEL_ID") }
+    static var simonSinekChannelId: String? { getOptionalValue(for: "SIMONSINEK_CHANNEL_ID") }
+    static var theoVonChannelId: String? { getOptionalValue(for: "THEOVON_CHANNEL_ID") }
+
+    /// Liste aller bekannten Mentor-Channel-IDs/Handles aus der Config.
+    /// Nur vorhandene Keys werden zurückgegeben (kein Crash bei fehlenden Einträgen).
+    static var mentorChannelTokens: [String] {
+        var tokens: [String] = []
+        tokens.append(chrisWillxChannelId)
+        tokens.append(jayShettyChannelId)
+        if let v = shiHengYiChannelId { tokens.append(v) }
+        if let v = lexFridmanChannelId { tokens.append(v) }
+        if let v = diaryOfACEOChannelId { tokens.append(v) }
+        if let v = shawnRyanChannelId { tokens.append(v) }
+        if let v = jordanBPetersonChannelId { tokens.append(v) }
+        if let v = simonSinekChannelId { tokens.append(v) }
+        if let v = theoVonChannelId { tokens.append(v) }
+        return tokens
+    }
 
     static var shawnRyanPlaylistId: String {
         return getValue(for: "SHAWNRYAN_PLAYLIST")
@@ -54,6 +88,17 @@ struct ConfigManager {
     static var shiHengYiPlaylistId: String {
         return getValue(for: "SHIHENGYI_PLAYLIST")
     }
+
+    /// Liefert den Wert aus Config.plist, falls vorhanden; sonst `nil`.
+    private static func getOptionalValue(for key: String) -> String? {
+        guard let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
+              let dict = NSDictionary(contentsOfFile: path),
+              let value = dict[key] as? String else {
+            return nil
+        }
+        return value
+    }
+
 
     private static func getValue(for key: String) -> String {
         guard let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
