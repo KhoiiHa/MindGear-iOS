@@ -13,6 +13,7 @@ struct MentorDetailView: View {
     private var modelContext: ModelContext
     @StateObject var viewModel: MentorViewModel
     @State private var lastUpdated: Date? = nil
+    @State private var configPlaylists: [PlaylistInfo] = []
 
     // Entfernt optionales "[Seed]"-Prefix aus dem Namen
     private func cleanSeed(_ s: String) -> String {
@@ -134,16 +135,37 @@ struct MentorDetailView: View {
                     }
 
                     // Playlists anzeigen und Navigation ermöglichen, falls vorhanden
-                    if let playlists = m.playlists, !playlists.isEmpty {
+                    let allPlaylists = (m.playlists ?? []) + configPlaylists
+                    if !allPlaylists.isEmpty {
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
                             Text("Playlists")
                                 .font(AppTheme.Typography.headline)
                                 .foregroundStyle(AppTheme.Colors.textPrimary)
-                            ForEach(playlists) { playlist in
+                            ForEach(allPlaylists) { playlist in
                                 NavigationLink(destination: VideoListView(playlistID: playlist.playlistID, context: modelContext)) {
-                                    Text(playlist.title)
-                                        .font(AppTheme.Typography.subheadline)
-                                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                                    HStack(alignment: .center, spacing: AppTheme.Spacing.m) {
+                                        ThumbnailView(urlString: playlist.thumbnailURL ?? "")
+                                            .frame(width: 120, height: 68)
+                                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(playlist.title)
+                                                .font(AppTheme.Typography.subheadline)
+                                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                                                .lineLimit(2)
+                                            if !playlist.subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                                Text(playlist.subtitle)
+                                                    .font(AppTheme.Typography.footnote)
+                                                    .foregroundStyle(AppTheme.Colors.textTertiary)
+                                                    .lineLimit(2)
+                                            }
+                                        }
+                                        Spacer(minLength: 0)
+                                        Image(systemName: "chevron.right")
+                                            .font(.footnote)
+                                            .foregroundStyle(AppTheme.Colors.iconSecondary)
+                                    }
+                                    .contentShape(Rectangle())
                                 }
                             }
                         }
@@ -195,6 +217,7 @@ struct MentorDetailView: View {
         }
         .task {
             await viewModel.loadFromAPIIfPossible()
+            await loadConfigPlaylists()
         }
         .onChange(of: viewModel.mentor?.name, initial: false) { _, newValue in
             if let new = newValue, !new.isEmpty, !new.hasPrefix("[Seed]") {
@@ -204,5 +227,17 @@ struct MentorDetailView: View {
         .onChange(of: viewModel.mentor?.profileImageURL, initial: false) { _, _ in
             lastUpdated = Date()
         }
+    }
+
+    private func loadConfigPlaylists() async {
+        guard let mentor = viewModel.mentor else { return }
+        let ids = ConfigManager.playlists(for: mentor.id)
+        var results: [PlaylistInfo] = []
+        for pid in ids {
+            if let info = try? await APIService.shared.fetchPlaylistInfo(playlistId: pid) {
+                results.append(info)
+            }
+        }
+        await MainActor.run { self.configPlaylists = results }
     }
 }

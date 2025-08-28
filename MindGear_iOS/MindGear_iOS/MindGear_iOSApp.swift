@@ -3,6 +3,13 @@ import SwiftData
 
 @main
 struct MindGear_iOSApp: App {
+    init() {
+        // Configure global URLCache for smoother thumbnail reuse (memory ~50MB, disk ~200MB)
+        let memoryCapacity = 50 * 1024 * 1024
+        let diskCapacity = 200 * 1024 * 1024
+        URLCache.shared = URLCache(memoryCapacity: memoryCapacity, diskCapacity: diskCapacity, directory: nil)
+    }
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             FavoriteVideoEntity.self,

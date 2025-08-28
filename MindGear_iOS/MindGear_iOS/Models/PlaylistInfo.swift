@@ -17,4 +17,5 @@ struct PlaylistInfo: Identifiable, Hashable, Codable {
     let subtitle: String
     let iconName: String
     let playlistID: String
+    let thumbnailURL: String?
 }

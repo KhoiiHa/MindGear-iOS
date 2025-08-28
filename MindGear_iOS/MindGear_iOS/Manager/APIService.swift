@@ -425,6 +425,77 @@ final class APIService: APIServiceProtocol {
         throw AppError.networkError
     }
 
+    // MARK: - Playlist Info (YouTube Playlist Lookup)
+    func fetchPlaylistInfo(playlistId: String, apiKey: String = ConfigManager.youtubeAPIKey) async throws -> PlaylistInfo {
+        let hosts = [
+            "https://www.googleapis.com/youtube/v3/playlists",
+            "https://youtube.googleapis.com/youtube/v3/playlists"
+        ]
+        var lastError: Error = AppError.networkError
+
+        for endpoint in hosts {
+            var attempt = 0
+            while attempt < 3 {
+                attempt += 1
+                do {
+                    var components = URLComponents(string: endpoint)!
+                    components.queryItems = [
+                        URLQueryItem(name: "part", value: "snippet"),
+                        URLQueryItem(name: "id", value: playlistId),
+                        URLQueryItem(name: "key", value: apiKey),
+                        URLQueryItem(name: "prettyPrint", value: "false"),
+                        URLQueryItem(name: "alt", value: "json")
+                    ]
+                    guard let url = components.url else { throw AppError.invalidURL }
+
+                    var request = URLRequest(url: url)
+                    request.httpMethod = "GET"
+                    request.setValue("application/json", forHTTPHeaderField: "Accept")
+                    request.cachePolicy = .reloadIgnoringLocalCacheData
+
+                    let (data, response) = try await APIService.session.data(for: request)
+
+                    if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+                        lastError = AppError.networkError
+                        break
+                    }
+
+                    struct PlaylistResponse: Decodable {
+                        struct Item: Decodable {
+                            let id: String
+                            let snippet: Snippet
+                        }
+                        struct Snippet: Decodable {
+                            let title: String
+                            let description: String
+                            let thumbnails: [String: YouTubeThumbImage]?
+                        }
+                        let items: [Item]
+                    }
+
+                    let decoded = try JSONDecoder().decode(PlaylistResponse.self, from: data)
+                    if let first = decoded.items.first {
+                        let thumbUrl = first.snippet.thumbnails?["medium"]?.url ?? first.snippet.thumbnails?["default"]?.url ?? ""
+                        return PlaylistInfo(
+                            title: first.snippet.title,
+                            subtitle: first.snippet.description,
+                            iconName: "list.bullet",
+                            playlistID: first.id,
+                            thumbnailURL: thumbUrl
+                        )
+                    } else {
+                        lastError = AppError.decodingError
+                        break
+                    }
+                } catch {
+                    lastError = error
+                    continue
+                }
+            }
+        }
+        throw lastError
+    }
+
     // Bequemlichkeits-Überladung: erlaubt Aufrufe ohne pageToken (lädt erste Seite)
     func fetchVideos(from playlistId: String, apiKey: String) async throws -> YouTubeResponse {
         try await fetchVideos(from: playlistId, apiKey: apiKey, pageToken: nil)

@@ -51,14 +51,14 @@ struct HomeView: View {
                         .padding(.top, AppTheme.Spacing.m)
 
                         let playlists: [PlaylistInfo] = [
-                            PlaylistInfo(title: "Die M.E.N. Series", subtitle: "ChrisWillx", iconName: "star.circle.fill", playlistID: ConfigManager.recommendedPlaylistId),
-                            PlaylistInfo(title: "On Purpose", subtitle: "Jay Shetty", iconName: "leaf.fill", playlistID: ConfigManager.jayShettyPlaylistId),
-                            PlaylistInfo(title: "The Diary Of A CEO", subtitle: "Steven Bartlett", iconName: "book.circle.fill", playlistID: ConfigManager.diaryOfACeoPlaylistId),
-                            PlaylistInfo(title: "This Past Weekend", subtitle: "Theo Von", iconName: "mic.circle.fill", playlistID: ConfigManager.theoVonPlaylistId),
-                            PlaylistInfo(title: "Psychology & Society", subtitle: "Jordan B. Peterson", iconName: "brain.head.profile", playlistID: ConfigManager.jordanBPetersonPlaylistId),
-                            PlaylistInfo(title: "Leadership & Inspiration", subtitle: "Simon Sinek", iconName: "person.3.sequence.fill", playlistID: ConfigManager.simonSinekPlaylistId),
-                            PlaylistInfo(title: "Shaolin Wisdom", subtitle: "Shi Heng Yi", iconName: "flame.fill", playlistID: ConfigManager.shiHengYiPlaylistId),
-                            PlaylistInfo(title: "The Shawn Ryan Show", subtitle: "Shawn Ryan", iconName: "shield.lefthalf.fill", playlistID: ConfigManager.shawnRyanPlaylistId),
+                            PlaylistInfo(title: "Die M.E.N. Series", subtitle: "ChrisWillx", iconName: "star.circle.fill", playlistID: ConfigManager.recommendedPlaylistId, thumbnailURL: nil),
+                            PlaylistInfo(title: "On Purpose", subtitle: "Jay Shetty", iconName: "leaf.fill", playlistID: ConfigManager.jayShettyPlaylistId, thumbnailURL: nil),
+                            PlaylistInfo(title: "The Diary Of A CEO", subtitle: "Steven Bartlett", iconName: "book.circle.fill", playlistID: ConfigManager.diaryOfACeoPlaylistId, thumbnailURL: nil),
+                            PlaylistInfo(title: "This Past Weekend", subtitle: "Theo Von", iconName: "mic.circle.fill", playlistID: ConfigManager.theoVonPlaylistId, thumbnailURL: nil),
+                            PlaylistInfo(title: "Psychology & Society", subtitle: "Jordan B. Peterson", iconName: "brain.head.profile", playlistID: ConfigManager.jordanBPetersonPlaylistId, thumbnailURL: nil),
+                            PlaylistInfo(title: "Leadership & Inspiration", subtitle: "Simon Sinek", iconName: "person.3.sequence.fill", playlistID: ConfigManager.simonSinekPlaylistId, thumbnailURL: nil),
+                            PlaylistInfo(title: "Shaolin Wisdom", subtitle: "Shi Heng Yi", iconName: "flame.fill", playlistID: ConfigManager.shiHengYiPlaylistId, thumbnailURL: nil),
+                            PlaylistInfo(title: "The Shawn Ryan Show", subtitle: "Shawn Ryan", iconName: "shield.lefthalf.fill", playlistID: ConfigManager.shawnRyanPlaylistId, thumbnailURL: nil),
                         ]
 
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.m) {

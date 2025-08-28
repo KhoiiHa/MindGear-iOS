@@ -1,6 +1,14 @@
 import SwiftUI
 import UIKit
 
+final class ImageMemoryCache {
+    static let shared = ImageMemoryCache()
+    private let cache = NSCache<NSURL, UIImage>()
+    private init() { cache.countLimit = 200 }
+    func image(for url: URL) -> UIImage? { cache.object(forKey: url as NSURL) }
+    func insert(_ image: UIImage, for url: URL) { cache.setObject(image, forKey: url as NSURL) }
+}
+
 /// MindGear ThumbnailView – robust & bewusst „lean“ gebaut
 ///
 /// Warum diese View existiert (sichtbar für Reviewer/Bewerter):
@@ -25,6 +33,7 @@ struct ThumbnailView: View {
 
     /// 0 = primäre URL, 1 = alternative Host-URL (nur falls ytimg)
     @State private var attempt = 0
+    @State private var uiImage: UIImage? = nil
 
     // MARK: - Helpers
     private func sanitize(_ s: String) -> String {
@@ -101,50 +110,62 @@ struct ThumbnailView: View {
             .accessibilityLabel("Vorschaubild")
             .accessibilityElement(children: .ignore)
             // Bei neuem Inhalt: Retry-Zustand zurücksetzen
-            .task(id: urlString) { await MainActor.run { attempt = 0 } }
+            .task(id: urlString) { await MainActor.run {
+                attempt = 0
+                uiImage = nil
+            } }
     }
 
     @ViewBuilder
     private var content: some View {
-        if let url = currentURL {
-            // Cache‑First: sofort anzeigen, wenn vorhanden (keine Netzrunde)
-            let request = URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)
-            if let cachedResponse = URLCache.shared.cachedResponse(for: request),
-               let uiImage = UIImage(data: cachedResponse.data) {
-                Image(uiImage: uiImage)
+        if let img = uiImage {
+            Image(uiImage: img)
+                .resizable()
+                .scaledToFill()
+                .clipped()
+        } else if let url = currentURL {
+            // 0) Memory cache first
+            if let mem = ImageMemoryCache.shared.image(for: url) {
+                Image(uiImage: mem)
                     .resizable()
                     .scaledToFill()
                     .clipped()
             } else {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .empty:
-                        placeholder.redacted(reason: .placeholder)
-
-                    case .success(let image):
-                        image.resizable().scaledToFill().clipped()
-
-                    case .failure:
-                        // Genau ein Auto‑Fallback auf den nächsten Kandidaten (z. B. Alt‑Host oder hqdefault)
-                        if attempt < max(0, candidateURLs.count - 1) {
-                            Color.clear
-                                .task {
-                                    try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 s
-                                    await MainActor.run { attempt = min(attempt + 1, candidateURLs.count - 1) }
+                let request = URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)
+                if let cachedResponse = URLCache.shared.cachedResponse(for: request),
+                   let cachedImage = UIImage(data: cachedResponse.data) {
+                    Image(uiImage: cachedImage)
+                        .resizable()
+                        .scaledToFill()
+                        .clipped()
+                        .task { ImageMemoryCache.shared.insert(cachedImage, for: url) }
+                } else {
+                    placeholder
+                        .redacted(reason: .placeholder)
+                        .task {
+                            do {
+                                let (data, _) = try await URLSession.shared.data(for: request)
+                                if let loaded = UIImage(data: data) {
+                                    ImageMemoryCache.shared.insert(loaded, for: url)
+                                    await MainActor.run { self.uiImage = loaded }
+                                } else {
+                                    try? await Task.sleep(nanoseconds: 300_000_000)
+                                    await MainActor.run {
+                                        if attempt < max(0, candidateURLs.count - 1) {
+                                            attempt = min(attempt + 1, candidateURLs.count - 1)
+                                        }
+                                    }
                                 }
-                        } else {
-                            failureView
-                                .modifier(TapToRetry(enabled: enableTapToRetry) {
-                                    // Manueller Retry: erneut versuchen (startet wieder mit primärem Kandidaten)
-                                    attempt = 0
-                                })
+                            } catch {
+                                try? await Task.sleep(nanoseconds: 300_000_000)
+                                await MainActor.run {
+                                    if attempt < max(0, candidateURLs.count - 1) {
+                                        attempt = min(attempt + 1, candidateURLs.count - 1)
+                                    }
+                                }
+                            }
                         }
-
-                    @unknown default:
-                        placeholder
-                    }
                 }
-                .transaction { $0.animation = nil } // kein Fade‑In → wirkt schneller
             }
         } else {
             // Kein gültiger URL‑Kandidat → klarer Fallback

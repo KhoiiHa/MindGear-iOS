@@ -89,6 +89,17 @@ struct ConfigManager {
         return getValue(for: "SHIHENGYI_PLAYLIST")
     }
 
+    /// Gibt alle Playlist-IDs zurück, die einem Mentor-Channel zugeordnet sind (MENTOR_PLAYLISTS in Config.plist).
+    static func playlists(for mentorId: String) -> [String] {
+        guard let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
+              let dict = NSDictionary(contentsOfFile: path),
+              let playlistsDict = dict["MENTOR_PLAYLISTS"] as? [String: Any],
+              let arr = playlistsDict[mentorId] as? [String] else {
+            return []
+        }
+        return arr
+    }
+
     /// Liefert den Wert aus Config.plist, falls vorhanden; sonst `nil`.
     private static func getOptionalValue(for key: String) -> String? {
         guard let path = Bundle.main.path(forResource: "Config", ofType: "plist"),

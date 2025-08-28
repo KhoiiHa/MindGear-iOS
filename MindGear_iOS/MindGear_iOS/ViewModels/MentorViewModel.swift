@@ -55,6 +55,10 @@ class MentorViewModel: ObservableObject {
     }
     
     // MARK: - Helpers
+    /// Normalisiert Strings für vergleichende Suche (ä/ö/ü = a/o/u, Case-insensitive)
+    private func norm(_ s: String) -> String {
+        s.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+    }
     private func handleFromSocials(for m: Mentor) -> String? {
         guard let socials = m.socials else { return nil }
         for s in socials where s.platform.lowercased() == "youtube" {
@@ -146,6 +150,41 @@ class MentorViewModel: ObservableObject {
             self.mentors = loaded
             self.isLoading = false
         }
+    }
+
+    /// Filtert die Mentorenliste nach einem Suchstring in Name, Bio
+    func filteredMentors(query: String) -> [Mentor] {
+        let q = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !q.isEmpty else { return mentors }
+        return mentors.filter { m in
+            let name = m.name.lowercased()
+            let bio  = (m.bio ?? "").lowercased()
+            return name.contains(q) || bio.contains(q)
+        }
+    }
+
+    /// Liefert Auto-Vervollständigungs-Vorschläge aus Name, Bio
+    func suggestions(for query: String, limit: Int = 10) -> [String] {
+        let q = norm(query.trimmingCharacters(in: .whitespacesAndNewlines))
+        guard !q.isEmpty else { return [] }
+        var seen = Set<String>()
+        var result: [String] = []
+        for m in mentors {
+            let candidates: [String] = [
+                m.name,
+                m.bio ?? ""
+            ]
+            for c in candidates {
+                guard !c.isEmpty else { continue }
+                let key = norm(c)
+                if key.contains(q) && !seen.contains(key) {
+                    seen.insert(key)
+                    result.append(c)
+                    if result.count >= limit { return result }
+                }
+            }
+        }
+        return result
     }
 
     deinit {
