@@ -3,6 +3,7 @@ import SwiftData
 
 @main
 struct MindGear_iOSApp: App {
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
     init() {
         // Configure global URLCache for smoother thumbnail reuse (memory ~50MB, disk ~200MB)
         let memoryCapacity = 50 * 1024 * 1024
@@ -35,9 +36,15 @@ struct MindGear_iOSApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainTabView()
-                .tint(AppTheme.Colors.accent)
-                .preferredColorScheme(.dark) // fixed dark UI to match the app's moodboard
+            Group {
+                if hasSeenOnboarding {
+                    MainTabView()
+                } else {
+                    OnboardingView()
+                }
+            }
+            .tint(AppTheme.Colors.accent)
+            .preferredColorScheme(.dark) // fixed dark UI to match the app's moodboard
         }
         .modelContainer(sharedModelContainer)
     }

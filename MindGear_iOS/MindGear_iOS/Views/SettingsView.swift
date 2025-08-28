@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
     @Environment(\.colorScheme) private var colorScheme
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -46,6 +47,9 @@ struct SettingsView: View {
                         }
                     }
                     .tint(AppTheme.Colors.primary)
+                    .onChange(of: viewModel.notificationsEnabled, initial: false) { _, _ in
+                        viewModel.toggleNotifications()
+                    }
                 } header: {
                     Text("Benachrichtigungen")
                         .font(AppTheme.Typography.subtitle)
@@ -82,6 +86,31 @@ struct SettingsView: View {
                         .foregroundStyle(AppTheme.Colors.textSecondary)
                 }
                 .listRowBackground(AppTheme.Colors.surface)
+
+                Section {
+                    Button(role: .destructive) {
+                        hasSeenOnboarding = false
+                    } label: {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(AppTheme.Colors.accent.opacity(0.15))
+                                    .frame(width: 36, height: 36)
+                                Image(systemName: "arrow.counterclockwise")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(AppTheme.Colors.accent)
+                            }
+                            Text("Onboarding zurücksetzen")
+                                .font(AppTheme.Typography.body)
+                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                        }
+                    }
+                } header: {
+                    Text("Demo")
+                        .font(AppTheme.Typography.subtitle)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                }
+                .listRowBackground(AppTheme.Colors.surface)
             }
             .scrollContentBackground(.hidden)
             .scrollIndicators(.hidden)
@@ -89,6 +118,9 @@ struct SettingsView: View {
             .tint(AppTheme.Colors.primary)
             .navigationTitle("Einstellungen")
             .toolbarBackground(.visible, for: .navigationBar)
+            .onAppear {
+                viewModel.syncNotificationStatus()
+            }
         }
         .preferredColorScheme(.dark)
     }

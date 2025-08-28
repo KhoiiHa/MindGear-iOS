@@ -20,4 +20,27 @@ class SettingsViewModel: ObservableObject {
         self.username = UserDefaults.standard.string(forKey: Self.usernameKey) ?? ""
         self.notificationsEnabled = UserDefaults.standard.bool(forKey: Self.notificationsKey)
     }
+
+    /// Synchronizes the notificationsEnabled flag with the actual system authorization status
+    func syncNotificationStatus() {
+        NotificationManager.shared.getAuthorizationStatus { status in
+            switch status {
+            case .authorized, .provisional:
+                self.notificationsEnabled = true
+            default:
+                self.notificationsEnabled = false
+            }
+        }
+    }
+
+    /// Toggles notifications: requests permission if enabling, opens settings if already denied
+    func toggleNotifications() {
+        if notificationsEnabled {
+            NotificationManager.shared.requestAuthorization { granted in
+                self.notificationsEnabled = granted
+            }
+        } else {
+            NotificationManager.shared.openSystemSettings()
+        }
+    }
 }
