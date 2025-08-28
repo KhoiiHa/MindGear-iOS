@@ -19,90 +19,70 @@ Durch thematische Empfehlungen, Favoritenfunktion und eine leistungsstarke Suche
 
 ---
 
-## 🧩 **Features (aktuell)**
+## 🧩 **Features**
 
-- ✅ **YouTube-Integration (WebView)**  
-  → Videos direkt in der App abspielen
-
-- ✅ **Optimierte Favoriten-Funktion**  
-  → Sortierung nach „Zuletzt hinzugefügt“ & Offline-Kennzeichnung
-
-- ✅ **Tägliche Empfehlung**  
-  → Jeden Tag ein neuer Impuls
-
-- ✅ **Erweiterte Suchfunktion**  
-  → Autovervollständigung & Filterung nach Kategorien/Mentoren
-
-- ✅ **Komplett neues Dark-Mode-Design**  
-  → Einheitliche Farb- und Typografie-Tokens über `AppTheme`
-
-- ✅ **Modernisiertes Suchfeld**  
-  → Mit Icon, Clear-Button & systemnaher Hybrid-Suche
-
-- ✅ **Explore-Sektion mit Filterchips**  
-  → Thematische Entdeckung und schnelle Navigation
-
-- ✅ **Pull-to-Refresh & Empty States**  
-  → Einheitliches Nutzerfeedback in allen Listen
-
-- ✅ **Glassy TabBar mit Accent-Pill**  
-  → Moderner iOS-Look & klare Hervorhebung des aktiven Tabs
-
-- ✅ **100 % kostenfreie Entwicklung**  
-  → Kein Abo, keine Bezahlschranken
+- ✅ **Navigation über MainTabView** – Home, Videos, Favoriten, Kategorien, Mentoren, Playlists, Verlauf, Einstellungen  
+- ✅ **HomeView** – Startseite mit kuratierten Playlists  
+- ✅ **VideoListView** – Videos einer YouTube-Playlist, Suche mit Autovervollständigung & Pull-to-Refresh  
+- ✅ **VideoDetailView** – integrierter YouTube-Player, Beschreibung, Favoriten-Button, automatisches Speichern im Verlauf  
+- ✅ **FavoritenView** – einheitliche Verwaltung von Video-, Mentor- und Playlist-Favoriten, inkl. Suche & Swipe-to-Delete  
+- ✅ **CategoriesView / CategoryDetailView** – thematische Entdeckung mit Playlist-Vorschauen  
+- ✅ **MentorsView / MentorDetailView** – Seed-Daten + API-Update, Detailansicht mit Bio, Social Links & Playlists  
+- ✅ **HistoryView** – zuletzt gesehene Videos, mit Löschfunktion  
+- ✅ **SettingsView** – Benutzername, Notifications-Toggle (Stub), Link zum Verlauf  
+- ✅ **Dark-Mode Design** – konsistentes Theming über `AppTheme`  
+- ✅ **Offline-Fallbacks** – Seed-Daten, Response-Caching, Network-Retry  
+- ✅ **Suche mit Debounce & Vorschlägen** – modernes `SearchField`  
 
 ---
 
 ## 🛠️ **Tech Stack & Architektur**
 
-- **SwiftUI** – Deklaratives UI-Framework von Apple  
-- **MVVM** – Strukturierte Trennung von Logik und Darstellung  
-- **SwiftData** – Lokale Favoriten-Speicherung & Caching  
+- **SwiftUI** – Deklaratives UI-Framework  
+- **MVVM** – saubere Trennung von Views, ViewModels & Models  
+- **SwiftData** – Favoriten, Playlists & Watch-History (`FavoriteVideoEntity`, `FavoriteMentorEntity`, `FavoritePlaylistEntity`, `WatchHistoryEntity`)  
+- **YouTube API** – PlaylistItems & Channel-Endpunkte  
 - **WebKit/WebView** – Einbettung externer Videos  
-- **YouTube API** – Dynamische Video- & Kanal-Daten  
-- **Utility-Module** – z. B. `ThumbnailURLBuilder`, `OfflineStatusManager`  
-- **AppTheme.swift** – Zentrale Steuerung von Farben, Typografie, Spacing & Radius
+- **Manager/Services**  
+  - `APIService` – YouTube-API mit Caching & Retry  
+  - `NetworkManager` & `NetworkMonitor` – Offline-Erkennung & Statusprüfung  
+  - `FavoritesManager` – zentrales Favoriten-Handling  
+  - `VideoManager` – Video-/Playlist-Helfer  
+  - `ConfigManager` – Zugriff auf API-Key & Playlist-IDs aus `Config.plist`  
+  - `NotificationManager`, `AnalyticsManager` – vorbereitet für kommende Features  
 
 ---
 
-## ✨ **Design-Inspiration (Figma UI Kits)**
+## ✨ **Design-Inspiration (Figma)**
 
-Die visuelle Gestaltung von MindGear basiert auf einer Auswahl hochwertiger UI-Vorlagen aus der Figma Community, die speziell in Bezug auf Klarheit, Zielgruppenansprache und Dark-Mode-Ästhetik ausgewählt wurden:
+Die visuelle Gestaltung basiert auf hochwertigen Figma UI-Kits aus der Community, angepasst für Zielgruppe & Dark-Mode:  
+- 🥇 Onboarding Screens – Simple & Smart  
+- 🥈 Freud – Mental Health App Kit  
+- 🥉 Meditation Mobile App (DesignWave Studio)  
+- 🧩 Lumina – Productivity App (Dark Mode)  
+- 🔄 Mental Wellness Mobile App – Modern UI Kit  
 
-- 🥇 [Onboarding Screens – Simple & Smart](https://www.figma.com/community/file/1281617727220411922)  
-  *Reduziertes, modernes Einstiegslayout – diente als Grundlage für den Startscreen.*
-
-- 🥈 [Freud – Mental Health App Kit](https://www.figma.com/community/file/1419755383210168032)  
-  *Modulare Komponenten für Favoriten-, Profil- und Empfehlungsscreens.*
-
-- 🥉 [Meditation Mobile App (DesignWave Studio)](https://www.figma.com/community/file/1218131950418014247)  
-  *Inspiriert durch typografische Klarheit und visuelle Ruhe.*
-
-- 🧩 [Lumina – Productivity App (Dark Mode)](https://www.figma.com/community/file/1374035111201279802)  
-  *Strukturiertes Dark-UI mit technischer Präzision für Fokusbereiche.*
-
-- 🔄 [Mental Wellness Mobile App – Modern UI Kit](https://www.figma.com/community/file/1379207519852717015)  
-  *Ergänzende UI-Bausteine für Navigation, Buttons und Tab-Leisten.*
-
-Diese Vorlagen wurden in Moodboard und Prototyping-Phase ausgewertet und selektiv ins Designsystem der App übernommen.
+Diese Vorlagen flossen ins Moodboard und in den finalen Prototypen ein.
 
 ---
 
-## 🧪 **In Planung (Next Steps)**
+## 🧪 **Offene Punkte (To-Dos)**
 
-- [ ] Benutzer-Profile & Einstellungen  
-- [ ] Push-Benachrichtigungen (Reminder)  
-- [ ] Erweiterte thematische Playlists & Kategorien  
-- [ ] Vollständiger Offline-Modus für gespeicherte Inhalte  
-- [ ] Fortschrittsanzeige & tägliche Routinen  
+- [ ] `OnboardingView` – Navigation & Inhalte umsetzen  
+- [ ] `NotificationManager` – echte Push-Benachrichtigungen (Reminder)  
+- [ ] `AnalyticsManager` – Anbindung an Analytics-SDK  
+- [ ] Konsistente Naming-Strategie (Deutsch/Englisch vereinheitlichen)  
+- [ ] Duplikate auflösen (`VideoManager` vs. `Video.swift`)  
+- [ ] Erweiterte Detailansichten für Playlists & History  
+- [ ] Suche-Chips in `VideoListView` aktivieren  
 
 ---
 
 ## 📆 **Projektstatus**
 
 - 🔄 **Letztes Update:** August 2025  
-- 🧱 **Aktueller Fokus:** UX-/UI-Overhaul, konsistentes Dark-Theme, Favoriten-Logik  
-- 🎯 **Ziel:** Erste Testphase & Nutzerfeedback im Spätsommer 2025
+- 🧱 **Aktueller Fokus:** Favoriten-Logik, API-Integration, Dark-Mode  
+- 🎯 **Ziel:** Testphase & Release-Readiness  
 
 ---
 
