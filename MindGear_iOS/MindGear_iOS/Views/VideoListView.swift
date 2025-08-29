@@ -64,6 +64,7 @@ struct VideoListView: View {
         .padding(.top, AppTheme.Spacing.s)
         .accessibilityLabel("Suche")
         .accessibilityHint("Eingeben, um Ergebnisse zu filtern.")
+        .accessibilityIdentifier("playlistSearchField")
     }
 
     private func togglePlaylistFavorite() {
@@ -89,6 +90,7 @@ struct VideoListView: View {
                     VideoRow(video: video)
                 }
                 .listRowSeparator(.hidden)
+                .accessibilityIdentifier("videoCell_\(video.id)")
                 .onAppear {
                     // Infinite Scroll entfernt - kein Nachladen mehr hier
                 }

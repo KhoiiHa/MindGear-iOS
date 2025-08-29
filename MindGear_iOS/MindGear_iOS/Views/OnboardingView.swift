@@ -16,6 +16,7 @@ struct OnboardingView: View {
                     .foregroundStyle(AppTheme.Colors.textSecondary)
                     .padding(.top, 16)
                     .padding(.trailing, 16)
+                    .accessibilityIdentifier("onboardingSkipButton")
 
                 VStack(spacing: AppTheme.Spacing.l) {
                     TabView(selection: $page) {
@@ -54,6 +55,7 @@ struct OnboardingView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
                     .padding(.horizontal, AppTheme.Spacing.m)
+                    .accessibilityIdentifier(page < 2 ? "onboardingNextButton" : "onboardingStartButton")
 
                     VStack(spacing: 6) {
                         HStack(spacing: 6) {

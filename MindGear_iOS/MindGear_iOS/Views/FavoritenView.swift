@@ -88,6 +88,14 @@ struct FavoritenView: View {
                         Text("\(f.rawValue) (\(count(for: f)))")
                     } icon: { Image(systemName: f.icon) }
                     .tag(f)
+                    .accessibilityIdentifier({
+                        switch f {
+                        case .videos: return "favoritesVideosTab"
+                        case .mentors: return "favoritesMentorsTab"
+                        case .playlists: return "favoritesPlaylistsTab"
+                        default: return "favoritesAllTab"
+                        }
+                    }())
                 }
             }
             .pickerStyle(.segmented)

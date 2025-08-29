@@ -110,6 +110,7 @@ struct MentorsView: View {
                     Text(cleanSeed(mentor.name))
                         .font(AppTheme.Typography.headline)
                         .foregroundStyle(AppTheme.Colors.textPrimary)
+                        .accessibilityIdentifier("mentorCell_\(mentor.id)")
                     // Herz-Symbol, wenn der Mentor in den Favoriten ist
                     if isFavorite(mentor) {
                         Image(systemName: "heart.fill")
@@ -126,6 +127,7 @@ struct MentorsView: View {
         .listRowSeparatorTint(AppTheme.Colors.separator)
         // Suchleiste zur Filterung der Mentoren
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Mentoren suchen")
+        .accessibilityIdentifier("mentorSearchField")
         .tint(AppTheme.Colors.accent)
         .navigationTitle("Mentoren")
         .toolbarBackground(.visible, for: .navigationBar)

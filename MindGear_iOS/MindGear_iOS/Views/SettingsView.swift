@@ -4,6 +4,7 @@ struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
+    @State private var showResetAlert = false
 
     var body: some View {
         NavigationStack {
@@ -89,7 +90,7 @@ struct SettingsView: View {
 
                 Section {
                     Button(role: .destructive) {
-                        hasSeenOnboarding = false
+                        showResetAlert = true
                     } label: {
                         HStack(spacing: 12) {
                             ZStack {
@@ -104,6 +105,14 @@ struct SettingsView: View {
                                 .font(AppTheme.Typography.body)
                                 .foregroundStyle(AppTheme.Colors.textPrimary)
                         }
+                    }
+                    .alert("Onboarding wirklich zurücksetzen?", isPresented: $showResetAlert) {
+                        Button("Abbrechen", role: .cancel) {}
+                        Button("Zurücksetzen", role: .destructive) {
+                            hasSeenOnboarding = false
+                        }
+                    } message: {
+                        Text("Beim nächsten Start wird das Onboarding erneut angezeigt.")
                     }
                 } header: {
                     Text("Demo")
