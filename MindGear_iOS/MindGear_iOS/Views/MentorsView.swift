@@ -120,6 +120,7 @@ struct MentorsView: View {
                 .accessibilityIdentifier("mentorCell_\(mentor.id)")
             }
         }
+        .accessibilityIdentifier("mentorsList")
         .id(refreshID)
         .listStyle(.plain)
         .scrollIndicators(.hidden)

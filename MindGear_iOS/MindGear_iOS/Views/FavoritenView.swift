@@ -270,6 +270,7 @@ struct FavoritenView: View {
                     }
                 }
             }
+            .accessibilityIdentifier("favoriteCell_video_\(item.id)")
             .buttonStyle(.plain)
             .listRowBackground(AppTheme.listBackground(for: colorScheme))
             .accessibilityElement(children: .combine)
@@ -306,6 +307,7 @@ struct FavoritenView: View {
                     }
                 }
             }
+            .accessibilityIdentifier("favoriteCell_mentor_\(item.id)")
             .buttonStyle(.plain)
             .listRowBackground(AppTheme.listBackground(for: colorScheme))
             .accessibilityElement(children: .combine)
@@ -336,6 +338,7 @@ struct FavoritenView: View {
                     }
                 }
             }
+            .accessibilityIdentifier("favoriteCell_playlist_\(item.id)")
             .buttonStyle(.plain)
             .listRowBackground(AppTheme.listBackground(for: colorScheme))
             .accessibilityElement(children: .combine)

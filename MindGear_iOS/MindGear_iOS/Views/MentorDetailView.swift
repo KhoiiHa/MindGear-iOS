@@ -80,6 +80,7 @@ struct MentorDetailView: View {
                         .clipShape(Circle())
                         .overlay(Circle().stroke(AppTheme.Colors.accent, lineWidth: 2))
                         .shadow(color: AppTheme.Colors.shadowCard.opacity(0.6), radius: 12, x: 0, y: 6)
+                        .accessibilityIdentifier("mentorProfileImage")
                     } else {
                         Image(systemName: "person.crop.circle.fill")
                             .resizable()
@@ -89,12 +90,14 @@ struct MentorDetailView: View {
                             .overlay(Circle().stroke(AppTheme.Colors.accent, lineWidth: 2))
                             .foregroundStyle(AppTheme.Colors.iconSecondary)
                             .shadow(color: AppTheme.Colors.shadowCard.opacity(0.6), radius: 12, x: 0, y: 6)
+                            .accessibilityIdentifier("mentorProfileImage")
                     }
 
                     // Name des Mentors anzeigen
                     Text(cleanSeed(m.name))
                         .font(AppTheme.Typography.title)
                         .foregroundStyle(AppTheme.Colors.textPrimary)
+                        .accessibilityIdentifier("mentorName")
 
                     // Biografie des Mentors anzeigen
                     if let bio = m.bio {
@@ -102,6 +105,7 @@ struct MentorDetailView: View {
                             .font(AppTheme.Typography.body)
                             .multilineTextAlignment(.center)
                             .foregroundStyle(AppTheme.Colors.textSecondary)
+                            .accessibilityIdentifier("mentorBio")
                     }
 
                     if let ts = lastUpdated {
@@ -166,6 +170,7 @@ struct MentorDetailView: View {
                                             .foregroundStyle(AppTheme.Colors.iconSecondary)
                                     }
                                     .contentShape(Rectangle())
+                                    .accessibilityIdentifier("mentorPlaylistCell_\(playlist.playlistID)")
                                 }
                             }
                         }
@@ -184,6 +189,7 @@ struct MentorDetailView: View {
                             .padding(.top, 16)
                             .font(AppTheme.Typography.headline)
                             .foregroundStyle(AppTheme.Colors.accent)
+                            .accessibilityIdentifier("mentorChannelLink")
                     }
                 } else {
                     // Fallback, wenn (noch) kein Mentor vorhanden
@@ -192,8 +198,8 @@ struct MentorDetailView: View {
                         .foregroundStyle(AppTheme.Colors.textSecondary)
                 }
             }
-            .padding(AppTheme.Spacing.l)
         }
+        .accessibilityIdentifier("mentorDetailScroll")
         .background(AppTheme.Colors.background.ignoresSafeArea())
         .navigationTitle("Mentor-Profil")
         .navigationBarTitleDisplayMode(.inline)
@@ -208,6 +214,7 @@ struct MentorDetailView: View {
                     Image(systemName: viewModel.isFavorite ? "heart.fill" : "heart")
                         .foregroundStyle(viewModel.isFavorite ? AppTheme.Colors.accent : AppTheme.Colors.iconPrimary)
                 }
+                .accessibilityIdentifier("mentorFavoriteButton")
                 .animation(.easeInOut, value: viewModel.isFavorite)
             }
         }

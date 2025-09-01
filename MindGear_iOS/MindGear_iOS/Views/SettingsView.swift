@@ -51,6 +51,7 @@ struct SettingsView: View {
                     .onChange(of: viewModel.notificationsEnabled, initial: false) { _, _ in
                         viewModel.toggleNotifications()
                     }
+                    .accessibilityIdentifier("notificationsToggle")
                 } header: {
                     Text("Benachrichtigungen")
                         .font(AppTheme.Typography.subtitle)
@@ -106,6 +107,7 @@ struct SettingsView: View {
                                 .foregroundStyle(AppTheme.Colors.textPrimary)
                         }
                     }
+                    .accessibilityIdentifier("resetOnboardingButton")
                     .alert("Onboarding wirklich zurücksetzen?", isPresented: $showResetAlert) {
                         Button("Abbrechen", role: .cancel) {}
                         Button("Zurücksetzen", role: .destructive) {

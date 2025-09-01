@@ -9,6 +9,10 @@ struct MindGear_iOSApp: App {
         let memoryCapacity = 50 * 1024 * 1024
         let diskCapacity = 200 * 1024 * 1024
         URLCache.shared = URLCache(memoryCapacity: memoryCapacity, diskCapacity: diskCapacity, directory: nil)
+        
+        if CommandLine.arguments.contains("-resetOnboarding") {
+            UserDefaults.standard.set(false, forKey: "hasSeenOnboarding")
+        }
     }
 
     var sharedModelContainer: ModelContainer = {
