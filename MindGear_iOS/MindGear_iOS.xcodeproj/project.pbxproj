@@ -7,12 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A64571912E454C650066E038 /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = A64571902E454C5F0066E038 /* .swiftlint.yml */; };
+                A64571912E454C650066E038 /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = A64571902E454C5F0066E038 /* .swiftlint.yml */; };
+                B000000000000000000000100 /* E2E_MindGearTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B000000000000000000000001 /* E2E_MindGearTests.swift */; };
+                B000000000000000000000101 /* Waits.swift in Sources */ = {isa = PBXBuildFile; fileRef = B000000000000000000000002 /* Waits.swift */; };
+                B000000000000000000000102 /* ScreenshotHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B000000000000000000000003 /* ScreenshotHelper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		A64571902E454C5F0066E038 /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
-		A6A2C70F2DDB8AB70045251D /* MindGear_iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MindGear_iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+                A64571902E454C5F0066E038 /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
+                A6A2C70F2DDB8AB70045251D /* MindGear_iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MindGear_iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+                B000000000000000000000001 /* E2E_MindGearTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = E2E_MindGearTests.swift; sourceTree = "<group>"; };
+                B000000000000000000000002 /* Waits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Waits.swift; sourceTree = "<group>"; };
+                B000000000000000000000003 /* ScreenshotHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotHelper.swift; sourceTree = "<group>"; };
+                B000000000000000000000300 /* MindGear_iOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MindGear_iOSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -24,59 +31,104 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		A6A2C70C2DDB8AB70045251D /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
+                A6A2C70C2DDB8AB70045251D /* Frameworks */ = {
+                        isa = PBXFrameworksBuildPhase;
+                        buildActionMask = 2147483647;
+                        files = (
+                        );
+                        runOnlyForDeploymentPostprocessing = 0;
+                };
+                B000000000000000000000201 /* Frameworks */ = {
+                        isa = PBXFrameworksBuildPhase;
+                        buildActionMask = 2147483647;
+                        files = (
+                        );
+                        runOnlyForDeploymentPostprocessing = 0;
+                };
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		A6A2C7062DDB8AB70045251D = {
 			isa = PBXGroup;
-			children = (
-				A64571902E454C5F0066E038 /* .swiftlint.yml */,
-				A6A2C7112DDB8AB70045251D /* MindGear_iOS */,
-				A6A2C7102DDB8AB70045251D /* Products */,
-			);
+                        children = (
+                                A64571902E454C5F0066E038 /* .swiftlint.yml */,
+                                A6A2C7112DDB8AB70045251D /* MindGear_iOS */,
+                                B000000000000000000000011 /* MindGear_iOSUITests */,
+                                A6A2C7102DDB8AB70045251D /* Products */,
+                        );
 			sourceTree = "<group>";
 		};
-		A6A2C7102DDB8AB70045251D /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				A6A2C70F2DDB8AB70045251D /* MindGear_iOS.app */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
+                A6A2C7102DDB8AB70045251D /* Products */ = {
+                        isa = PBXGroup;
+                        children = (
+                                A6A2C70F2DDB8AB70045251D /* MindGear_iOS.app */,
+                                B000000000000000000000300 /* MindGear_iOSUITests.xctest */,
+                        );
+                        name = Products;
+                        sourceTree = "<group>";
+                };
+                B000000000000000000000010 /* Helpers */ = {
+                        isa = PBXGroup;
+                        children = (
+                                B000000000000000000000002 /* Waits.swift */,
+                                B000000000000000000000003 /* ScreenshotHelper.swift */,
+                        );
+                        path = Helpers;
+                        sourceTree = "<group>";
+                };
+                B000000000000000000000011 /* MindGear_iOSUITests */ = {
+                        isa = PBXGroup;
+                        children = (
+                                B000000000000000000000001 /* E2E_MindGearTests.swift */,
+                                B000000000000000000000010 /* Helpers */,
+                        );
+                        path = MindGear_iOSUITests;
+                        sourceTree = "<group>";
+                };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A6A2C70E2DDB8AB70045251D /* MindGear_iOS */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = A6A2C71C2DDB8AB80045251D /* Build configuration list for PBXNativeTarget "MindGear_iOS" */;
-			buildPhases = (
-				A6A2C70B2DDB8AB70045251D /* Sources */,
-				A6A2C70C2DDB8AB70045251D /* Frameworks */,
-				A6A2C70D2DDB8AB70045251D /* Resources */,
-				A6C881EB2E4542E500D9276C /* Run SwiftLint */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				A6A2C7112DDB8AB70045251D /* MindGear_iOS */,
-			);
-			name = MindGear_iOS;
-			packageProductDependencies = (
-			);
-			productName = MindGear_iOS;
-			productReference = A6A2C70F2DDB8AB70045251D /* MindGear_iOS.app */;
-			productType = "com.apple.product-type.application";
-		};
+                A6A2C70E2DDB8AB70045251D /* MindGear_iOS */ = {
+                        isa = PBXNativeTarget;
+                        buildConfigurationList = A6A2C71C2DDB8AB80045251D /* Build configuration list for PBXNativeTarget "MindGear_iOS" */;
+                        buildPhases = (
+                                A6A2C70B2DDB8AB70045251D /* Sources */,
+                                A6A2C70C2DDB8AB70045251D /* Frameworks */,
+                                A6A2C70D2DDB8AB70045251D /* Resources */,
+                                A6C881EB2E4542E500D9276C /* Run SwiftLint */,
+                        );
+                        buildRules = (
+                        );
+                        dependencies = (
+                        );
+                        fileSystemSynchronizedGroups = (
+                                A6A2C7112DDB8AB70045251D /* MindGear_iOS */,
+                        );
+                        name = MindGear_iOS;
+                        packageProductDependencies = (
+                        );
+                        productName = MindGear_iOS;
+                        productReference = A6A2C70F2DDB8AB70045251D /* MindGear_iOS.app */;
+                        productType = "com.apple.product-type.application";
+                };
+                B000000000000000000000400 /* MindGear_iOSUITests */ = {
+                        isa = PBXNativeTarget;
+                        buildConfigurationList = B000000000000000000000602 /* Build configuration list for PBXNativeTarget "MindGear_iOSUITests" */;
+                        buildPhases = (
+                                B000000000000000000000200 /* Sources */,
+                                B000000000000000000000201 /* Frameworks */,
+                                B000000000000000000000202 /* Resources */,
+                        );
+                        buildRules = (
+                        );
+                        dependencies = (
+                                B000000000000000000000501 /* PBXTargetDependency */,
+                        );
+                        name = MindGear_iOSUITests;
+                        productName = MindGear_iOSUITests;
+                        productReference = B000000000000000000000300 /* MindGear_iOSUITests.xctest */;
+                        productType = "com.apple.product-type.bundle.ui-testing";
+                };
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -86,12 +138,16 @@
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1630;
 				LastUpgradeCheck = 1630;
-				TargetAttributes = {
-					A6A2C70E2DDB8AB70045251D = {
-						CreatedOnToolsVersion = 16.3;
-					};
-				};
-			};
+                                TargetAttributes = {
+                                        A6A2C70E2DDB8AB70045251D = {
+                                                CreatedOnToolsVersion = 16.3;
+                                        };
+                                        B000000000000000000000400 = {
+                                                CreatedOnToolsVersion = 16.3;
+                                                TestTargetID = A6A2C70E2DDB8AB70045251D;
+                                        };
+                                };
+                        };
 			buildConfigurationList = A6A2C70A2DDB8AB70045251D /* Build configuration list for PBXProject "MindGear_iOS" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -107,21 +163,29 @@
 			productRefGroup = A6A2C7102DDB8AB70045251D /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
-			targets = (
-				A6A2C70E2DDB8AB70045251D /* MindGear_iOS */,
-			);
-		};
+                        targets = (
+                                A6A2C70E2DDB8AB70045251D /* MindGear_iOS */,
+                                B000000000000000000000400 /* MindGear_iOSUITests */,
+                        );
+                };
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		A6A2C70D2DDB8AB70045251D /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A64571912E454C650066E038 /* .swiftlint.yml in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
+                A6A2C70D2DDB8AB70045251D /* Resources */ = {
+                        isa = PBXResourcesBuildPhase;
+                        buildActionMask = 2147483647;
+                        files = (
+                                A64571912E454C650066E038 /* .swiftlint.yml in Resources */,
+                        );
+                        runOnlyForDeploymentPostprocessing = 0;
+                };
+                B000000000000000000000202 /* Resources */ = {
+                        isa = PBXResourcesBuildPhase;
+                        buildActionMask = 2147483647;
+                        files = (
+                        );
+                        runOnlyForDeploymentPostprocessing = 0;
+                };
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
@@ -148,14 +212,38 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		A6A2C70B2DDB8AB70045251D /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
+                A6A2C70B2DDB8AB70045251D /* Sources */ = {
+                        isa = PBXSourcesBuildPhase;
+                        buildActionMask = 2147483647;
+                        files = (
+                        );
+                        runOnlyForDeploymentPostprocessing = 0;
+                };
+                B000000000000000000000200 /* Sources */ = {
+                        isa = PBXSourcesBuildPhase;
+                        buildActionMask = 2147483647;
+                        files = (
+                                B000000000000000000000100 /* E2E_MindGearTests.swift in Sources */,
+                                B000000000000000000000101 /* Waits.swift in Sources */,
+                                B000000000000000000000102 /* ScreenshotHelper.swift in Sources */,
+                        );
+                        runOnlyForDeploymentPostprocessing = 0;
+                };
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+                B000000000000000000000501 /* PBXTargetDependency */ = {isa = PBXTargetDependency; target = A6A2C70E2DDB8AB70045251D /* MindGear_iOS */; targetProxy = B000000000000000000000500 /* PBXContainerItemProxy */; };
+/* End PBXTargetDependency section */
+
+/* Begin PBXContainerItemProxy section */
+                B000000000000000000000500 /* PBXContainerItemProxy */ = {
+                        isa = PBXContainerItemProxy;
+                        containerPortal = A6A2C7072DDB8AB70045251D /* Project object */;
+                        proxyType = 1;
+                        remoteGlobalIDString = A6A2C70E2DDB8AB70045251D;
+                        remoteInfo = MindGear_iOS;
+                };
+/* End PBXContainerItemProxy section */
 
 /* Begin XCBuildConfiguration section */
 		A6A2C71A2DDB8AB80045251D /* Debug */ = {
@@ -311,38 +399,78 @@
 			};
 			name = Debug;
 		};
-		A6A2C71E2DDB8AB80045251D /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 98P96D2387;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "de.KhoiiHa.MindGear-iOS";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
-			};
-			name = Release;
-		};
+                A6A2C71E2DDB8AB80045251D /* Release */ = {
+                        isa = XCBuildConfiguration;
+                        buildSettings = {
+                                ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+                                ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+                                CODE_SIGN_STYLE = Automatic;
+                                CURRENT_PROJECT_VERSION = 1;
+                                DEVELOPMENT_TEAM = 98P96D2387;
+                                ENABLE_PREVIEWS = YES;
+                                GENERATE_INFOPLIST_FILE = YES;
+                                INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+                                INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+                                INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+                                INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+                                INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+                                LD_RUNPATH_SEARCH_PATHS = (
+                                        "$(inherited)",
+                                        "@executable_path/Frameworks",
+                                );
+                                MARKETING_VERSION = 1.0;
+                                PRODUCT_BUNDLE_IDENTIFIER = "de.KhoiiHa.MindGear-iOS";
+                                PRODUCT_NAME = "$(TARGET_NAME)";
+                                SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+                                SUPPORTS_MACCATALYST = NO;
+                                SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+                                SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+                                SWIFT_EMIT_LOC_STRINGS = YES;
+                                SWIFT_VERSION = 5.0;
+                                TARGETED_DEVICE_FAMILY = 1;
+                        };
+                        name = Release;
+                };
+                B000000000000000000000600 /* Debug */ = {
+                        isa = XCBuildConfiguration;
+                        buildSettings = {
+                                CODE_SIGN_STYLE = Automatic;
+                                DEVELOPMENT_TEAM = 98P96D2387;
+                                GENERATE_INFOPLIST_FILE = YES;
+                                IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+                                LD_RUNPATH_SEARCH_PATHS = (
+                                        "$(inherited)",
+                                        "@executable_path/Frameworks",
+                                        "@loader_path/Frameworks",
+                                );
+                                PRODUCT_BUNDLE_IDENTIFIER = de.khoiiha.MindGear_iOSUITests;
+                                PRODUCT_NAME = "$(TARGET_NAME)";
+                                SWIFT_VERSION = 5.0;
+                                TARGETED_DEVICE_FAMILY = 1;
+                                TEST_TARGET_NAME = MindGear_iOS;
+                        };
+                        name = Debug;
+                };
+                B000000000000000000000601 /* Release */ = {
+                        isa = XCBuildConfiguration;
+                        buildSettings = {
+                                CODE_SIGN_STYLE = Automatic;
+                                DEVELOPMENT_TEAM = 98P96D2387;
+                                GENERATE_INFOPLIST_FILE = YES;
+                                IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+                                LD_RUNPATH_SEARCH_PATHS = (
+                                        "$(inherited)",
+                                        "@executable_path/Frameworks",
+                                        "@loader_path/Frameworks",
+                                );
+                                PRODUCT_BUNDLE_IDENTIFIER = de.khoiiha.MindGear_iOSUITests;
+                                PRODUCT_NAME = "$(TARGET_NAME)";
+                                SWIFT_VERSION = 5.0;
+                                TARGETED_DEVICE_FAMILY = 1;
+                                TEST_TARGET_NAME = MindGear_iOS;
+                        };
+                        name = Release;
+                };
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -355,15 +483,24 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A6A2C71C2DDB8AB80045251D /* Build configuration list for PBXNativeTarget "MindGear_iOS" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A6A2C71D2DDB8AB80045251D /* Debug */,
-				A6A2C71E2DDB8AB80045251D /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
+                A6A2C71C2DDB8AB80045251D /* Build configuration list for PBXNativeTarget "MindGear_iOS" */ = {
+                        isa = XCConfigurationList;
+                        buildConfigurations = (
+                                A6A2C71D2DDB8AB80045251D /* Debug */,
+                                A6A2C71E2DDB8AB80045251D /* Release */,
+                        );
+                        defaultConfigurationIsVisible = 0;
+                        defaultConfigurationName = Release;
+                };
+                B000000000000000000000602 /* Build configuration list for PBXNativeTarget "MindGear_iOSUITests" */ = {
+                        isa = XCConfigurationList;
+                        buildConfigurations = (
+                                B000000000000000000000600 /* Debug */,
+                                B000000000000000000000601 /* Release */,
+                        );
+                        defaultConfigurationIsVisible = 0;
+                        defaultConfigurationName = Release;
+                };
 /* End XCConfigurationList section */
 	};
 	rootObject = A6A2C7072DDB8AB70045251D /* Project object */;
