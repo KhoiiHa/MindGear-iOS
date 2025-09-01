@@ -110,13 +110,14 @@ struct MentorsView: View {
                     Text(cleanSeed(mentor.name))
                         .font(AppTheme.Typography.headline)
                         .foregroundStyle(AppTheme.Colors.textPrimary)
-                        .accessibilityIdentifier("mentorCell_\(mentor.id)")
                     // Herz-Symbol, wenn der Mentor in den Favoriten ist
                     if isFavorite(mentor) {
                         Image(systemName: "heart.fill")
                             .foregroundStyle(AppTheme.Colors.accent)
                     }
                 }
+                .contentShape(Rectangle())
+                .accessibilityIdentifier("mentorCell_\(mentor.id)")
             }
         }
         .id(refreshID)
@@ -127,7 +128,6 @@ struct MentorsView: View {
         .listRowSeparatorTint(AppTheme.Colors.separator)
         // Suchleiste zur Filterung der Mentoren
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Mentoren suchen")
-        .accessibilityIdentifier("mentorSearchField")
         .tint(AppTheme.Colors.accent)
         .navigationTitle("Mentoren")
         .toolbarBackground(.visible, for: .navigationBar)
@@ -145,6 +145,8 @@ struct MentorsView: View {
                 string: "Mentoren suchen",
                 attributes: [.foregroundColor: UIColor(AppTheme.Colors.textSecondary)]
             )
+            let sb = UISearchBar.appearance()
+            sb.accessibilityIdentifier = "mentorSearchField"
         }
         .onChange(of: searchText, initial: false) { _, _ in
             searchTask?.cancel()

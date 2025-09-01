@@ -106,72 +106,67 @@ struct VideoListView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .topTrailing) {
+            VStack(spacing: 0) {
+                // 🔎 Sichtbares Suchfeld für UI-Tests (playlistSearchField)
+                headerSearch
                 videosList
-                    .navigationTitle("Videos")
-                    .toolbarTitleDisplayMode(.large)
-                    .toolbarBackground(.visible, for: .navigationBar)
-                    .toolbarBackground(.visible, for: .navigationBar)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .navigationBarTrailing) {
-                            Toggle(isOn: favoritesOnlyBinding) {
-                                Image(systemName: viewModel.showFavoritesOnly ? "heart.fill" : "heart")
-                                    .foregroundStyle(viewModel.showFavoritesOnly ? AppTheme.Colors.accent : AppTheme.Colors.iconSecondary)
-                            }
-                            .toggleStyle(.button)
-                            .accessibilityLabel("Nur Favoriten anzeigen")
-                            .accessibilityHint("Nur gespeicherte Videos ein- oder ausblenden.")
-
-                            Button {
-                                togglePlaylistFavorite()
-                            } label: {
-                                Image(systemName: isPlaylistFavorite ? "star.fill" : "star")
-                                    .foregroundStyle(isPlaylistFavorite ? AppTheme.Colors.highlight : AppTheme.Colors.iconSecondary)
-                            }
-                            .accessibilityLabel(isPlaylistFavorite ? "Playlist aus Favoriten entfernen" : "Playlist zu Favoriten hinzufügen")
-                            .accessibilityHint("Favoritenstatus der Playlist ändern.")
-                        }
-                    }
-                    // Removed searchable-related modifiers
-
-                    // Pull-to-Refresh: manuelles Neuladen der aktuellen Playlist
-                    .refreshable {
-                        await viewModel.loadVideos(forceReload: true)
-                    }
-                    .tint(AppTheme.Colors.accent)
-                    .scrollDismissesKeyboard(.immediately)
-                    // Lädt initial und nur erneut, wenn sich die Playlist-ID ändert
-                    .task(id: playlistID) {
-                        isPlaylistFavorite = FavoritesManager.shared.isPlaylistFavorite(id: playlistID, context: context)
-                        await viewModel.loadVideos()
-                    }
-                    .alert(isPresented: errorAlertBinding) {
-                        Alert(
-                            title: Text("Fehler"),
-                            message: Text(viewModel.errorMessage ?? "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es später erneut."),
-                            dismissButton: .default(Text("OK"), action: { viewModel.errorMessage = nil })
-                        )
-                    }
-                    .overlay {
-                        if !viewModel.searchText.isEmpty && viewModel.filteredVideos.isEmpty {
-                            ContentUnavailableView(
-                                "Keine Treffer",
-                                systemImage: "magnifyingglass",
-                                description: Text("Begriff anpassen oder Verlauf nutzen.")
-                            )
-                        }
-                    }
-                    .overlay {
-                        if viewModel.showFavoritesOnly && viewModel.filteredVideos.isEmpty {
-                            ContentUnavailableView(
-                                "Keine Video-Favoriten",
-                                systemImage: "heart.fill",
-                                description: Text("Speichere Videos mit dem Herz in der Detailansicht.")
-                            )
-                        }
-                    }
-                    .animation(.default, value: viewModel.filteredVideos)
             }
+            .navigationTitle("Videos")
+            .toolbarTitleDisplayMode(.large)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbar {
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Toggle(isOn: favoritesOnlyBinding) {
+                        Image(systemName: viewModel.showFavoritesOnly ? "heart.fill" : "heart")
+                            .foregroundStyle(viewModel.showFavoritesOnly ? AppTheme.Colors.accent : AppTheme.Colors.iconSecondary)
+                    }
+                    .toggleStyle(.button)
+                    .accessibilityLabel("Nur Favoriten anzeigen")
+                    .accessibilityHint("Nur gespeicherte Videos ein- oder ausblenden.")
+
+                    Button { togglePlaylistFavorite() } label: {
+                        Image(systemName: isPlaylistFavorite ? "star.fill" : "star")
+                            .foregroundStyle(isPlaylistFavorite ? AppTheme.Colors.highlight : AppTheme.Colors.iconSecondary)
+                    }
+                    .accessibilityLabel(isPlaylistFavorite ? "Playlist aus Favoriten entfernen" : "Playlist zu Favoriten hinzufügen")
+                    .accessibilityHint("Favoritenstatus der Playlist ändern.")
+                }
+            }
+            // Pull-to-Refresh: manuelles Neuladen der aktuellen Playlist
+            .refreshable { await viewModel.loadVideos(forceReload: true) }
+            .tint(AppTheme.Colors.accent)
+            .scrollDismissesKeyboard(.immediately)
+            // Lädt initial und nur erneut, wenn sich die Playlist-ID ändert
+            .task(id: playlistID) {
+                isPlaylistFavorite = FavoritesManager.shared.isPlaylistFavorite(id: playlistID, context: context)
+                await viewModel.loadVideos()
+            }
+            .alert(isPresented: errorAlertBinding) {
+                Alert(
+                    title: Text("Fehler"),
+                    message: Text(viewModel.errorMessage ?? "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es später erneut."),
+                    dismissButton: .default(Text("OK"), action: { viewModel.errorMessage = nil })
+                )
+            }
+            .overlay {
+                if !viewModel.searchText.isEmpty && viewModel.filteredVideos.isEmpty {
+                    ContentUnavailableView(
+                        "Keine Treffer",
+                        systemImage: "magnifyingglass",
+                        description: Text("Begriff anpassen oder Verlauf nutzen.")
+                    )
+                }
+            }
+            .overlay {
+                if viewModel.showFavoritesOnly && viewModel.filteredVideos.isEmpty {
+                    ContentUnavailableView(
+                        "Keine Video-Favoriten",
+                        systemImage: "heart.fill",
+                        description: Text("Speichere Videos mit dem Herz in der Detailansicht.")
+                    )
+                }
+            }
+            .animation(.default, value: viewModel.filteredVideos)
         }
     }
 }
