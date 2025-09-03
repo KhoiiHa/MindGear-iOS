@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import UIKit
 
 struct MentorsView: View {
     @StateObject private var viewModel = MentorViewModel()
@@ -17,6 +16,30 @@ struct MentorsView: View {
     @State private var searchTask: Task<Void, Never>? = nil
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
+
+    // Eigene Suchleiste (statt .searchable) mit stabiler Accessibility-ID
+    private var headerSearch: some View {
+        SearchField(
+            text: $searchText,
+            placeholder: "Mentoren suchen",
+            suggestions: [],
+            onSubmit: {
+                applySearch()
+            },
+            onTapSuggestion: { suggestion in
+                // no suggestions in this screen yet; keep hook for future
+            },
+            accessibilityIdentifier: "mentorSearchField"
+        )
+        .padding(.horizontal, AppTheme.Spacing.m)
+        .padding(.vertical, AppTheme.Spacing.s)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isSearchField)
+        .accessibilityLabel("Mentoren suchen")
+        .accessibilityHint("Tippe, um Mentoren zu suchen")
+        .accessibilityIdentifier("mentorSearchField")
+        .accessibilityValue(searchText)
+    }
 
     // Normalisiert Strings für eine robuste, akzent-insensitive Suche
     private func norm(_ s: String) -> String {
@@ -117,8 +140,8 @@ struct MentorsView: View {
                     }
                 }
                 .contentShape(Rectangle())
-                .accessibilityIdentifier("mentorCell_\(mentor.id)")
             }
+            .accessibilityIdentifier("mentorCell_\(mentor.id)")
         }
         .accessibilityIdentifier("mentorsList")
         .id(refreshID)
@@ -127,9 +150,12 @@ struct MentorsView: View {
         .scrollContentBackground(.hidden)
         .background(AppTheme.listBackground(for: colorScheme))
         .listRowSeparatorTint(AppTheme.Colors.separator)
-        // Suchleiste zur Filterung der Mentoren
-        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Mentoren suchen")
-        .tint(AppTheme.Colors.accent)
+        .safeAreaInset(edge: .top) {
+            headerSearch
+                .padding(.bottom, 8)
+                .background(AppTheme.listBackground(for: colorScheme))
+                .overlay(Rectangle().fill(AppTheme.Colors.separator).frame(height: 1), alignment: .bottom)
+        }
         .navigationTitle("Mentoren")
         .toolbarBackground(.visible, for: .navigationBar)
         .onAppear {
@@ -137,17 +163,6 @@ struct MentorsView: View {
                 await viewModel.loadAllMentors(seeds: MentorData.allMentors)
                 displayedMentors = viewModel.mentors
             }
-
-            let tf = UITextField.appearance(whenContainedInInstancesOf: [UISearchBar.self])
-            tf.backgroundColor = UIColor(AppTheme.Colors.surface)
-            tf.textColor = UIColor(AppTheme.Colors.textPrimary)
-            tf.tintColor = UIColor(AppTheme.Colors.accent)
-            tf.attributedPlaceholder = NSAttributedString(
-                string: "Mentoren suchen",
-                attributes: [.foregroundColor: UIColor(AppTheme.Colors.textSecondary)]
-            )
-            let sb = UISearchBar.appearance()
-            sb.accessibilityIdentifier = "mentorSearchField"
         }
         .onChange(of: searchText, initial: false) { _, _ in
             searchTask?.cancel()

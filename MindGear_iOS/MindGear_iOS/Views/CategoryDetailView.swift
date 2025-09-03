@@ -254,10 +254,16 @@ struct PlaylistPreviewSection: View {
     }
 
     // Lädt die ersten Videos einer Playlist über den APIService und mappt sie auf `Video`
+    @MainActor
     func loadPreview(limit: Int = 5) async {
         if hasLoaded { return }
         isLoading = true
         errorMessage = nil
+        guard !ConfigManager.youtubeAPIKey.isEmpty else {
+            self.errorMessage = "API-Schlüssel fehlt."
+            self.isLoading = false
+            return
+        }
         do {
             // API-Aufruf: nutzt den stabilisierten APIService
             let response = try await APIService.shared.fetchVideos(from: playlistId, apiKey: ConfigManager.youtubeAPIKey, pageToken: nil)

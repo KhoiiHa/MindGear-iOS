@@ -48,10 +48,12 @@ struct SettingsView: View {
                         }
                     }
                     .tint(AppTheme.Colors.primary)
+                    .toggleStyle(.switch)
                     .onChange(of: viewModel.notificationsEnabled, initial: false) { _, _ in
                         viewModel.toggleNotifications()
                     }
                     .accessibilityIdentifier("notificationsToggle")
+                    .accessibilityHint("Schalte Benachrichtigungen an oder aus")
                 } header: {
                     Text("Benachrichtigungen")
                         .font(AppTheme.Typography.subtitle)
@@ -128,6 +130,7 @@ struct SettingsView: View {
             .background(AppTheme.listBackground(for: colorScheme))
             .tint(AppTheme.Colors.primary)
             .navigationTitle("Einstellungen")
+            .accessibilityIdentifier("settingsScreen")
             .toolbarBackground(.visible, for: .navigationBar)
             .onAppear {
                 viewModel.syncNotificationStatus()

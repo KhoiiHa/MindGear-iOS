@@ -55,27 +55,31 @@ struct PlaylistView: View {
     // Schlankes Suchfeld – Debounce steckt im ViewModel
     private var headerSearch: some View {
         SearchField(
-            text: Binding(
-                get: { viewModel.searchText },
-                set: { viewModel.updateSearch(text: $0) }
-            ),
+            text: searchTextBinding,
+            placeholder: "Suche",
             suggestions: suggestionItems,
             onSubmit: { viewModel.commitSearchTerm() },
             onTapSuggestion: { s in
                 viewModel.updateSearch(text: s)
                 viewModel.commitSearchTerm()
-            }
+            },
+            accessibilityIdentifier: "playlistSearchField"
         )
         .padding(.horizontal, AppTheme.Spacing.m)
         .padding(.top, AppTheme.Spacing.s)
         .accessibilityLabel("Suche")
         .accessibilityHint("Eingeben, um Ergebnisse zu filtern.")
+        .accessibilityAddTraits(.isSearchField)
     }
 
     var body: some View {
         List(viewModel.filteredVideos) { video in
-            VideoRow(video: video)
+            NavigationLink(destination: VideoDetailView(video: video, context: context)) {
+                VideoRow(video: video)
+            }
+            .accessibilityIdentifier("playlistCell_\(video.id)")
         }
+        .accessibilityIdentifier("playlistList")
         .refreshable {
             await viewModel.loadVideos(forceReload: true)
         }
@@ -125,6 +129,7 @@ struct PlaylistView: View {
                         .accessibilityLabel(favoritesViewModel.isFavorite(id: playlistId) ? "Playlist aus Favoriten entfernen" : "Playlist zu Favoriten hinzufügen")
                         .accessibilityHint("Favoritenstatus der Playlist ändern.")
                 }
+                .accessibilityIdentifier("favoriteButton")
             }
         }
     }

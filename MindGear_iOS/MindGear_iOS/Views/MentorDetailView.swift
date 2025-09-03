@@ -138,49 +138,49 @@ struct MentorDetailView: View {
                             .foregroundStyle(AppTheme.Colors.textTertiary)
                     }
 
-                    // Playlists anzeigen und Navigation ermöglichen, falls vorhanden
-                    let allPlaylists = (m.playlists ?? []) + configPlaylists
-                    if !allPlaylists.isEmpty {
-                        VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
-                            Text("Playlists")
-                                .font(AppTheme.Typography.headline)
-                                .foregroundStyle(AppTheme.Colors.textPrimary)
-                            ForEach(allPlaylists) { playlist in
-                                NavigationLink(destination: VideoListView(playlistID: playlist.playlistID, context: modelContext)) {
-                                    HStack(alignment: .center, spacing: AppTheme.Spacing.m) {
-                                        ThumbnailView(urlString: playlist.thumbnailURL ?? "")
-                                            .frame(width: 120, height: 68)
-                                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(playlist.title)
-                                                .font(AppTheme.Typography.subheadline)
-                                                .foregroundStyle(AppTheme.Colors.textPrimary)
-                                                .lineLimit(2)
-                                            if !playlist.subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                                Text(playlist.subtitle)
-                                                    .font(AppTheme.Typography.footnote)
-                                                    .foregroundStyle(AppTheme.Colors.textTertiary)
+                    Group {
+                        let allPlaylists = (m.playlists ?? []) + configPlaylists
+                        if !allPlaylists.isEmpty {
+                            VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
+                                Text("Playlists")
+                                    .font(AppTheme.Typography.headline)
+                                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                                ForEach(allPlaylists) { playlist in
+                                    NavigationLink(destination: VideoListView(playlistID: playlist.playlistID, context: modelContext)) {
+                                        HStack(alignment: .center, spacing: AppTheme.Spacing.m) {
+                                            ThumbnailView(urlString: playlist.thumbnailURL ?? "")
+                                                .frame(width: 120, height: 68)
+                                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                            VStack(alignment: .leading, spacing: 4) {
+                                                Text(playlist.title)
+                                                    .font(AppTheme.Typography.subheadline)
+                                                    .foregroundStyle(AppTheme.Colors.textPrimary)
                                                     .lineLimit(2)
+                                                if !playlist.subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                                    Text(playlist.subtitle)
+                                                        .font(AppTheme.Typography.footnote)
+                                                        .foregroundStyle(AppTheme.Colors.textTertiary)
+                                                        .lineLimit(2)
+                                                }
                                             }
+                                            Spacer(minLength: 0)
+                                            Image(systemName: "chevron.right")
+                                                .font(.footnote)
+                                                .foregroundStyle(AppTheme.Colors.iconSecondary)
                                         }
-                                        Spacer(minLength: 0)
-                                        Image(systemName: "chevron.right")
-                                            .font(.footnote)
-                                            .foregroundStyle(AppTheme.Colors.iconSecondary)
+                                        .contentShape(Rectangle())
+                                        .accessibilityIdentifier("playlistCell_\(playlist.playlistID)")
                                     }
-                                    .contentShape(Rectangle())
-                                    .accessibilityIdentifier("mentorPlaylistCell_\(playlist.playlistID)")
                                 }
                             }
+                            .accessibilityIdentifier("playlistSection")
+                            .padding(.top)
+                            .padding(.horizontal, AppTheme.Spacing.m)
+                        } else {
+                            Text("Keine Playlists verknüpft.")
+                                .font(AppTheme.Typography.footnote)
+                                .foregroundStyle(AppTheme.Colors.textTertiary)
                         }
-                        .padding(.top)
-                        .padding(.horizontal, AppTheme.Spacing.m)
-                    } else {
-                        // Hinweis, wenn keine Playlists verknüpft sind
-                        Text("Keine Playlists verknüpft.")
-                            .font(AppTheme.Typography.footnote)
-                            .foregroundStyle(AppTheme.Colors.textTertiary)
                     }
 
                     // Link zum YouTube-Kanal des Mentors
@@ -198,6 +198,7 @@ struct MentorDetailView: View {
                         .foregroundStyle(AppTheme.Colors.textSecondary)
                 }
             }
+            .accessibilityIdentifier("mentorDetailContent")
         }
         .accessibilityIdentifier("mentorDetailScroll")
         .background(AppTheme.Colors.background.ignoresSafeArea())

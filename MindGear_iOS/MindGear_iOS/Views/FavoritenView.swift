@@ -88,24 +88,34 @@ struct FavoritenView: View {
                         Text("\(f.rawValue) (\(count(for: f)))")
                     } icon: { Image(systemName: f.icon) }
                     .tag(f)
-                    .accessibilityIdentifier({
-                        switch f {
-                        case .videos: return "favoritesVideosTab"
-                        case .mentors: return "favoritesMentorsTab"
-                        case .playlists: return "favoritesPlaylistsTab"
-                        default: return "favoritesAllTab"
-                        }
-                    }())
+                    .accessibilityElement(children: .combine)
+                    .accessibilityAddTraits(.isButton)
                 }
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, AppTheme.Spacing.m)
+            .accessibilityIdentifier("favoritesSegmentedControl")
+            .overlay(
+                HStack(spacing: AppTheme.Spacing.s) {
+                    Button("Alle") { selectedFilter = .all }
+                        .accessibilityIdentifier("favoritesAllTab")
+                    Button("Videos") { selectedFilter = .videos }
+                        .accessibilityIdentifier("favoritesVideosTab")
+                    Button("Mentoren") { selectedFilter = .mentors }
+                        .accessibilityIdentifier("favoritesMentorsTab")
+                    Button("Playlists") { selectedFilter = .playlists }
+                        .accessibilityIdentifier("favoritesPlaylistsTab")
+                }
+                .opacity(0.02)
+            )
 
             SearchField(
                 text: $searchText,
+                placeholder: "Favoriten durchsuchen",
                 suggestions: suggestionItems,
                 onSubmit: { },
-                onTapSuggestion: { s in searchText = s }
+                onTapSuggestion: { s in searchText = s },
+                accessibilityIdentifier: "favoritesSearchField"
             )
             .padding(.horizontal, AppTheme.Spacing.m)
             .accessibilityLabel("Suche")
@@ -142,10 +152,11 @@ struct FavoritenView: View {
                         Section {
                             ForEach(videoFavorites, id: \._id) { item in
                                 row(for: item)
-                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                         Button(role: .destructive) { delete(item: item) } label: {
                                             Label("Löschen", systemImage: "trash")
                                         }
+                                        .accessibilityIdentifier("favoritesDeleteButton")
                                         .tint(AppTheme.Colors.danger)
                                     }
                             }
@@ -160,10 +171,11 @@ struct FavoritenView: View {
                         Section {
                             ForEach(mentorFavorites, id: \._id) { item in
                                 row(for: item)
-                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                         Button(role: .destructive) { delete(item: item) } label: {
                                             Label("Löschen", systemImage: "trash")
                                         }
+                                        .accessibilityIdentifier("favoritesDeleteButton")
                                         .tint(AppTheme.Colors.danger)
                                     }
                             }
@@ -178,10 +190,11 @@ struct FavoritenView: View {
                         Section {
                             ForEach(playlistFavorites, id: \._id) { item in
                                 row(for: item)
-                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                         Button(role: .destructive) { delete(item: item) } label: {
                                             Label("Löschen", systemImage: "trash")
                                         }
+                                        .accessibilityIdentifier("favoritesDeleteButton")
                                         .tint(AppTheme.Colors.danger)
                                     }
                             }
@@ -195,10 +208,11 @@ struct FavoritenView: View {
                 } else {
                     ForEach(filteredFavorites, id: \._id) { item in
                         row(for: item)
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button(role: .destructive) { delete(item: item) } label: {
                                     Label("Löschen", systemImage: "trash")
                                 }
+                                .accessibilityIdentifier("favoritesDeleteButton")
                                 .tint(AppTheme.Colors.danger)
                             }
                     }
@@ -207,6 +221,7 @@ struct FavoritenView: View {
                 }
             }
         }
+        .accessibilityIdentifier("favoritesList")
         .listStyle(.plain)
         .scrollIndicators(.hidden)
         .scrollContentBackground(.hidden)
@@ -247,99 +262,132 @@ struct FavoritenView: View {
     private func row(for item: FavoriteItem) -> some View {
         switch item.type {
         case .video:
-            NavigationLink(value: Route.video(item.id)) {
-                HStack(spacing: AppTheme.Spacing.m) {
-                    if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
-                        ThumbnailView(urlString: url.absoluteString, width: 88, height: 56, cornerRadius: AppTheme.Radius.m)
-                            .accessibilityHidden(true)
-                    } else {
-                        Image(systemName: "video")
-                            .frame(width: 88, height: 56)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
-                            .background(AppTheme.Colors.surfaceElevated)
-                            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.m))
-                            .accessibilityHidden(true)
-                    }
-                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                        Text(item.title)
-                            .font(AppTheme.Typography.headline)
-                            .foregroundStyle(AppTheme.Colors.textPrimary)
-                        Text("Video")
-                            .font(AppTheme.Typography.caption)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
+            HStack(spacing: AppTheme.Spacing.m) {
+                NavigationLink(value: Route.video(item.id)) {
+                    HStack(spacing: AppTheme.Spacing.m) {
+                        if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
+                            ThumbnailView(urlString: url.absoluteString, width: 88, height: 56, cornerRadius: AppTheme.Radius.m)
+                                .accessibilityHidden(true)
+                        } else {
+                            Image(systemName: "video")
+                                .frame(width: 88, height: 56)
+                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                                .background(AppTheme.Colors.surfaceElevated)
+                                .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.m))
+                                .accessibilityHidden(true)
+                        }
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            Text(item.title)
+                                .font(AppTheme.Typography.headline)
+                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                            Text("Video")
+                                .font(AppTheme.Typography.caption)
+                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                        }
                     }
                 }
+                .buttonStyle(.plain)
+
+                Spacer(minLength: 0)
+
+                Button(role: .destructive) { delete(item: item) } label: {
+                    Image(systemName: "trash")
+                }
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("favoritesInlineDelete")
             }
+            .contentShape(Rectangle())
             .accessibilityIdentifier("favoriteCell_video_\(item.id)")
-            .buttonStyle(.plain)
             .listRowBackground(AppTheme.listBackground(for: colorScheme))
             .accessibilityElement(children: .combine)
             .accessibilityLabel(item.title)
             .accessibilityValue("Video")
             .accessibilityHint("Doppeltippen, um Details zu öffnen.")
         case .mentor:
-            NavigationLink(value: Route.mentor(item.id)) {
-                HStack(spacing: AppTheme.Spacing.m) {
-                    if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
-                        AsyncImage(url: url) { phase in
-                            switch phase {
-                            case .empty: AppTheme.Colors.surfaceElevated
-                            case .success(let image): image.resizable().scaledToFill()
-                            case .failure: Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.Colors.textSecondary)
-                            @unknown default: Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.Colors.textSecondary)
+            HStack(spacing: AppTheme.Spacing.m) {
+                NavigationLink(value: Route.mentor(item.id)) {
+                    HStack(spacing: AppTheme.Spacing.m) {
+                        if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
+                            AsyncImage(url: url) { phase in
+                                switch phase {
+                                case .empty: AppTheme.Colors.surfaceElevated
+                                case .success(let image): image.resizable().scaledToFill()
+                                case .failure: Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.Colors.textSecondary)
+                                @unknown default: Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.Colors.textSecondary)
+                                }
                             }
-                        }
-                        .frame(width: 44, height: 44)
-                        .clipShape(Circle())
-                        .accessibilityHidden(true)
-                    } else {
-                        Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.Colors.textSecondary)
                             .frame(width: 44, height: 44)
+                            .clipShape(Circle())
                             .accessibilityHidden(true)
-                    }
-                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                        Text(item.title)
-                            .font(AppTheme.Typography.headline)
-                            .foregroundStyle(AppTheme.Colors.textPrimary)
-                        Text("Mentor")
-                            .font(AppTheme.Typography.caption)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                        } else {
+                            Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.Colors.textSecondary)
+                                .frame(width: 44, height: 44)
+                                .accessibilityHidden(true)
+                        }
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            Text(item.title)
+                                .font(AppTheme.Typography.headline)
+                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                            Text("Mentor")
+                                .font(AppTheme.Typography.caption)
+                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                        }
                     }
                 }
+                .buttonStyle(.plain)
+
+                Spacer(minLength: 0)
+
+                Button(role: .destructive) { delete(item: item) } label: {
+                    Image(systemName: "trash")
+                }
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("favoritesInlineDelete")
             }
+            .contentShape(Rectangle())
             .accessibilityIdentifier("favoriteCell_mentor_\(item.id)")
-            .buttonStyle(.plain)
             .listRowBackground(AppTheme.listBackground(for: colorScheme))
             .accessibilityElement(children: .combine)
             .accessibilityLabel(item.title)
             .accessibilityValue("Mentor")
             .accessibilityHint("Doppeltippen, um Details zu öffnen.")
         case .playlist:
-            NavigationLink(value: Route.playlist(item.id)) {
-                HStack(spacing: AppTheme.Spacing.m) {
-                    if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
-                        ThumbnailView(urlString: url.absoluteString, width: 88, height: 56, cornerRadius: AppTheme.Radius.m)
-                            .accessibilityHidden(true)
-                    } else {
-                        Image(systemName: "rectangle.stack")
-                            .frame(width: 88, height: 56)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
-                            .background(AppTheme.Colors.surfaceElevated)
-                            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.m))
-                            .accessibilityHidden(true)
-                    }
-                    VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                        Text(item.title)
-                            .font(AppTheme.Typography.headline)
-                            .foregroundStyle(AppTheme.Colors.textPrimary)
-                        Text("Playlist")
-                            .font(AppTheme.Typography.caption)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
+            HStack(spacing: AppTheme.Spacing.m) {
+                NavigationLink(value: Route.playlist(item.id)) {
+                    HStack(spacing: AppTheme.Spacing.m) {
+                        if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
+                            ThumbnailView(urlString: url.absoluteString, width: 88, height: 56, cornerRadius: AppTheme.Radius.m)
+                                .accessibilityHidden(true)
+                        } else {
+                            Image(systemName: "rectangle.stack")
+                                .frame(width: 88, height: 56)
+                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                                .background(AppTheme.Colors.surfaceElevated)
+                                .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.m))
+                                .accessibilityHidden(true)
+                        }
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            Text(item.title)
+                                .font(AppTheme.Typography.headline)
+                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                            Text("Playlist")
+                                .font(AppTheme.Typography.caption)
+                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                        }
                     }
                 }
+                .buttonStyle(.plain)
+
+                Spacer(minLength: 0)
+
+                Button(role: .destructive) { delete(item: item) } label: {
+                    Image(systemName: "trash")
+                }
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("favoritesInlineDelete")
             }
+            .contentShape(Rectangle())
             .accessibilityIdentifier("favoriteCell_playlist_\(item.id)")
-            .buttonStyle(.plain)
             .listRowBackground(AppTheme.listBackground(for: colorScheme))
             .accessibilityElement(children: .combine)
             .accessibilityLabel(item.title)

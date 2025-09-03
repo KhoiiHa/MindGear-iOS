@@ -51,6 +51,7 @@ struct VideoRow: View {
                     .foregroundStyle(isFavorite ? AppTheme.Colors.accent : AppTheme.Colors.iconSecondary)
                     .frame(width: 44, height: 44, alignment: .center)
             }
+            .accessibilityIdentifier("favoriteButton")
             .buttonStyle(.plain)
             .contentShape(Rectangle())
             .accessibilityLabel(isFavorite ? "Video aus Favoriten entfernen" : "Video zu Favoriten hinzufügen")
@@ -61,6 +62,7 @@ struct VideoRow: View {
         .padding(.vertical, AppTheme.Spacing.s)
         // Barrierefreiheit: Titel als Hauptlabel, Rest wird kombiniert
         .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("videoCell_\(video.id)")
         .accessibilityLabel(video.title)
         .accessibilityValue(isFavorite ? "In Favoriten" : "Nicht in Favoriten")
         .accessibilityHint("Doppeltippen, um Details zu öffnen.")

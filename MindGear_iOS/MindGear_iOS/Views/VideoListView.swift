@@ -48,23 +48,21 @@ struct VideoListView: View {
 
     // Schlankes, wiederverwendbares Suchfeld – Debounce steckt im ViewModel
     private var headerSearch: some View {
-        SearchField(
+        TextField(
+            "In Playlist suchen",
             text: Binding(
                 get: { viewModel.searchText },
                 set: { viewModel.updateSearch(text: $0) }
-            ),
-            suggestions: Array(viewModel.searchHistory.prefix(5)),
-            onSubmit: { viewModel.commitSearchTerm() },
-            onTapSuggestion: { q in
-                viewModel.updateSearch(text: q)
-                viewModel.commitSearchTerm()
-            }
+            )
         )
+        .textInputAutocapitalization(.never)
+        .autocorrectionDisabled(true)
+        .submitLabel(.search)
+        .onSubmit { viewModel.commitSearchTerm() }
+        .accessibilityIdentifier("playlistSearchField")
         .padding(.horizontal, AppTheme.Spacing.m)
         .padding(.top, AppTheme.Spacing.s)
-        .accessibilityLabel("Suche")
-        .accessibilityHint("Eingeben, um Ergebnisse zu filtern.")
-        .accessibilityIdentifier("playlistSearchField")
+        .textFieldStyle(.roundedBorder)
     }
 
     private func togglePlaylistFavorite() {
@@ -102,6 +100,7 @@ struct VideoListView: View {
         .listRowSeparator(.hidden)
         .listRowSeparatorTint(AppTheme.Colors.separator)
         .background(AppTheme.listBackground(for: colorScheme))
+        .accessibilityIdentifier("videosList")
     }
 
     var body: some View {
@@ -121,6 +120,7 @@ struct VideoListView: View {
                             .foregroundStyle(viewModel.showFavoritesOnly ? AppTheme.Colors.accent : AppTheme.Colors.iconSecondary)
                     }
                     .toggleStyle(.button)
+                    .accessibilityIdentifier("favoritesOnlyToggle")
                     .accessibilityLabel("Nur Favoriten anzeigen")
                     .accessibilityHint("Nur gespeicherte Videos ein- oder ausblenden.")
 
@@ -129,6 +129,7 @@ struct VideoListView: View {
                             .foregroundStyle(isPlaylistFavorite ? AppTheme.Colors.highlight : AppTheme.Colors.iconSecondary)
                     }
                     .accessibilityLabel(isPlaylistFavorite ? "Playlist aus Favoriten entfernen" : "Playlist zu Favoriten hinzufügen")
+                    .accessibilityIdentifier("playlistFavoriteButton")
                     .accessibilityHint("Favoritenstatus der Playlist ändern.")
                 }
             }

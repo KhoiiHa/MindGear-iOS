@@ -1,16 +1,10 @@
-//
-//  MainTabView.swift
-//  MindGear_iOS
-//
-//  Created by Vu Minh Khoi Ha on 04.07.25.
-//
-
-
 import SwiftUI
 import SwiftData
 import UIKit
 
 struct MainTabView: View {
+    enum Tab: Hashable { case home, mentors, videos, favorites, settings }
+    @State private var selection: Tab
     @Environment(\.modelContext) private var context
     @Environment(\.colorScheme) private var colorScheme
 
@@ -38,6 +32,10 @@ struct MainTabView: View {
 
         // Remove custom pill for now; we'll re-introduce later if desired
         UITabBar.appearance().selectionIndicatorImage = nil
+
+        // Default selected tab: switch to Mentors when running UI tests that expect it
+        let wantsMentorsDefault = ProcessInfo.processInfo.arguments.contains("UITEST_DEFAULT_TAB_MENTORS")
+        _selection = State(initialValue: wantsMentorsDefault ? .mentors : .home)
     }
 
     private static func makeSelectionIndicatorImage(fill: UIColor, stroke: UIColor, cornerRadius: CGFloat, lineWidth: CGFloat) -> UIImage {
@@ -52,35 +50,57 @@ struct MainTabView: View {
     }
 
     var body: some View {
-        TabView {
+        TabView(selection: $selection) {
+            // 1) Home – sichtbar
             NavigationStack { HomeView() }
                 .tabItem {
                     Image(systemName: "house.fill")
-                    Text("Home")
+                    Text("Start")
                 }
+                .accessibilityIdentifier("tab_home")
+                .tag(Tab.home)
 
+            // 2) Mentoren – sichtbar (XCUITest-relevant)
+            NavigationStack { MentorsView() }
+                .tabItem {
+                    Image(systemName: "person.2.fill")
+                    Text("Mentoren")
+                }
+                .accessibilityIdentifier("tab_mentors")
+                .tag(Tab.mentors)
+
+            // 3) Videos – sichtbar
             NavigationStack { VideoListView(playlistID: ConfigManager.recommendedPlaylistId, context: context) }
                 .tabItem {
                     Image(systemName: "play.rectangle.fill")
                     Text("Videos")
                 }
+                .accessibilityIdentifier("tab_videos")
+                .tag(Tab.videos)
 
+            // 4) Favoriten – sichtbar
             NavigationStack { FavoritenView(context: context) }
                 .tabItem {
                     Image(systemName: "heart.fill")
                     Text("Favoriten")
                 }
+                .accessibilityIdentifier("tab_favorites")
+                .tag(Tab.favorites)
 
+            // 5) Einstellungen – sichtbar (XCUITest-relevant)
+            NavigationStack { SettingsView() }
+                .tabItem {
+                    Image(systemName: "gearshape.fill")
+                    Text("Einstellungen")
+                }
+                .accessibilityIdentifier("tab_settings")
+                .tag(Tab.settings)
+
+            // 6+) Weitere Tabs – landen automatisch unter "Mehr"
             NavigationStack { CategoriesView() }
                 .tabItem {
                     Image(systemName: "square.grid.2x2.fill")
                     Text("Kategorien")
-                }
-
-            NavigationStack { MentorsView() }
-                .tabItem {
-                    Image(systemName: "person.2.fill")
-                    Text("Mentoren")
                 }
 
             NavigationStack { PlaylistView(playlistId: ConfigManager.recommendedPlaylistId, context: context) }
@@ -93,14 +113,9 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Verlauf", systemImage: "clock.arrow.circlepath")
                 }
-
-            NavigationStack { SettingsView() }
-                .tabItem {
-                    Image(systemName: "gearshape.fill")
-                    Text("Einstellungen")
-                }
         }
         .tint(AppTheme.Colors.accent)
+        .toolbar(.visible, for: .tabBar)
     }
 }
 

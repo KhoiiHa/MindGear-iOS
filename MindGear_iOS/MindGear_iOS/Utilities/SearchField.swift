@@ -6,6 +6,7 @@ import SwiftUI
 struct SearchField: View {
     // Gebundener Suchtext (Debounce im ViewModel über updateSearch(text:))
     @Binding var text: String
+    var placeholder: String = "Suche"
 
     // Optional angezeigte Vorschläge (z. B. Verlauf)
     var suggestions: [String] = []
@@ -13,6 +14,7 @@ struct SearchField: View {
     // Aktionen
     var onSubmit: () -> Void = {}
     var onTapSuggestion: (String) -> Void = { _ in }
+    var accessibilityIdentifier: String? = nil
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -23,13 +25,15 @@ struct SearchField: View {
                     .foregroundStyle(AppTheme.Colors.textSecondary)
                     .accessibilityHidden(true)
 
-                TextField("Suche Videos", text: $text)
+                TextField(placeholder, text: $text)
                     .submitLabel(.search)
                     .disableAutocorrection(true)
                     .textInputAutocapitalization(.never)
                     .font(AppTheme.Typography.body)
                     .accessibilityLabel("Suche")
                     .accessibilityHint("Eingeben, um Ergebnisse zu filtern.")
+                    .accessibilityIdentifier(accessibilityIdentifier ?? "")
+                    .accessibilityAddTraits(.isSearchField)
                     .onSubmit { onSubmit() }
 
                 if !text.isEmpty {
@@ -72,15 +76,18 @@ struct SearchField: View {
     }
 }
 
+
 // MARK: - Preview (nur für Entwicklung)
 #Preview("SearchField") {
     @Previewable @State var query: String = ""
     return VStack {
         SearchField(
             text: $query,
+            placeholder: "Suche Videos",
             suggestions: ["Disziplin", "Fokus", "Mindset"],
             onSubmit: { print("Submit: \(query)") },
-            onTapSuggestion: { s in query = s }
+            onTapSuggestion: { s in query = s },
+            accessibilityIdentifier: "previewSearchField"
         )
         .padding()
         Spacer()

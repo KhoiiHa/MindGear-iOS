@@ -63,6 +63,8 @@ struct VideoDetailView: View {
                                 .stroke(AppTheme.Colors.cardStroke(for: colorScheme), lineWidth: 1)
                         )
                         .shadow(color: AppTheme.Colors.shadowCard.opacity(0.6), radius: 8, x: 0, y: 4)
+                        .accessibilityIdentifier("videoWebView")
+                        .accessibilityHidden(true)
                 } else {
                     Text("Ungültige Video-URL")
                         .foregroundStyle(AppTheme.Colors.accent)
@@ -75,11 +77,13 @@ struct VideoDetailView: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(AppTheme.Colors.textPrimary)
                     .lineLimit(3)
+                    .accessibilityIdentifier("videoTitle")
 
                 // Description
                 Text(video.description)
                     .font(AppTheme.Typography.body)
                     .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .accessibilityIdentifier("videoDescription")
 
                 Spacer()
             }
@@ -102,7 +106,11 @@ struct VideoDetailView: View {
                         .imageScale(.large)
                         .foregroundStyle(isFavorite ? AppTheme.Colors.accent : AppTheme.Colors.iconSecondary)
                 }
+                .accessibilityIdentifier("favoriteButton")
                 .accessibilityLabel(isFavorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen")
+                .accessibilityHint("Favorit umschalten")
+                .accessibilityAddTraits(.isButton)
+                .contentShape(Rectangle())
             }
         }
         .alert("Video konnte nicht geladen werden", isPresented: $loadError) {
