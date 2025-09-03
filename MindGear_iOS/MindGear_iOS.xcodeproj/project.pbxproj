@@ -26,34 +26,9 @@
 		B000000000000000000000300 /* MindGear_iOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MindGear_iOSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		A6A476E02E65D3660072CC96 /* Exceptions for "MindGear_iOS" folder in "MindGear_iOS" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				MindGear_iOSUITests/E2E_MindGearTests.swift,
-				MindGear_iOSUITests/Helpers/ScreenshotHelper.swift,
-				MindGear_iOSUITests/Helpers/Waits.swift,
-			);
-			target = A6A2C70E2DDB8AB70045251D /* MindGear_iOS */;
-		};
-		A6A476E12E65D3660072CC96 /* Exceptions for "MindGear_iOS" folder in "MindGear_iOSUITests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				MindGear_iOSUITests/E2E_MindGearTests.swift,
-				MindGear_iOSUITests/Helpers/ScreenshotHelper.swift,
-				MindGear_iOSUITests/Helpers/Waits.swift,
-			);
-			target = B000000000000000000000400 /* MindGear_iOSUITests */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A6A2C7112DDB8AB70045251D /* MindGear_iOS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				A6A476E02E65D3660072CC96 /* Exceptions for "MindGear_iOS" folder in "MindGear_iOS" target */,
-				A6A476E12E65D3660072CC96 /* Exceptions for "MindGear_iOS" folder in "MindGear_iOSUITests" target */,
-			);
 			path = MindGear_iOS;
 			sourceTree = "<group>";
 		};
@@ -147,7 +122,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1630;
-				LastUpgradeCheck = 1630;
+				LastUpgradeCheck = 1640;
 				TargetAttributes = {
 					A6A2C70E2DDB8AB70045251D = {
 						CreatedOnToolsVersion = 16.3;
@@ -446,6 +421,10 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "de.khoiiha.MindGear-iOSUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				TEST_TARGET_NAME = MindGear_iOS;
@@ -466,6 +445,10 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "de.khoiiha.MindGear-iOSUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				TEST_TARGET_NAME = MindGear_iOS;
