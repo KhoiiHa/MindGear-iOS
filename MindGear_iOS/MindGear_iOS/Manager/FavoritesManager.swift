@@ -13,8 +13,10 @@ import SwiftData
 @MainActor
 final class FavoritesManager {
     static let shared = FavoritesManager()
+    private let defaultsKey = "simpleFavorites"
+    private let defaults = UserDefaults.standard
 
-    private init() {}
+    init() {}
 
     // Prüft, ob ein Video als Favorit markiert ist ✅
     func isVideoFavorite(video: Video, context: ModelContext) -> Bool {
@@ -176,6 +178,36 @@ final class FavoritesManager {
             print("Error fetching playlist favorites: \(error)")
             return []
         }
+    }
+
+    // MARK: - Einfache Favoriten nach ID
+
+    /// Schaltet den Favoritenstatus für eine beliebige ID um.
+    func toggle(_ id: String) {
+        var items = Set(all())
+        if items.contains(id) {
+            items.remove(id)
+        } else {
+            items.insert(id)
+        }
+        defaults.set(Array(items), forKey: defaultsKey)
+    }
+
+    /// Prüft, ob eine ID als Favorit hinterlegt ist.
+    func isFavorite(_ id: String) -> Bool {
+        return all().contains(id)
+    }
+
+    /// Liefert alle gespeicherten Favoriten-IDs.
+    func all() -> [String] {
+        return defaults.stringArray(forKey: defaultsKey) ?? []
+    }
+
+    /// Entfernt eine ID aus den Favoriten.
+    func remove(_ id: String) {
+        var items = all()
+        items.removeAll { $0 == id }
+        defaults.set(items, forKey: defaultsKey)
     }
 
 }
