@@ -4,9 +4,11 @@
 <dict>
 	<key>RECOMMENDED_PLAYLIST</key>
 	<string>PLkL7BvJXiqSSAplLnPAyhA13Hk2rQQDmo</string>
-	<key>YOUTUBE_API_KEY</key>
-	<string>AIzaSyDOl0c6scnoCOouZvf9Rsynzac4O30_Sb4</string>
-	<key>CHRISWILLX_CHANNEL_ID</key>
+        <key>YOUTUBE_API_KEY</key>
+        <string>AIzaSyDOl0c6scnoCOouZvf9Rsynzac4O30_Sb4</string>
+        <key>API_BASE_URL</key>
+        <string>https://www.googleapis.com/youtube/v3</string>
+        <key>CHRISWILLX_CHANNEL_ID</key>
 	<string>UCmblfJ2d1yQfLrNlVJXL7Zw</string>
 	<key>CHRISWILLX_PLAYLIST</key>
 	<string>PLkL7BvJXiqSQu3i72hSrG4vUkDuaneHuB</string>

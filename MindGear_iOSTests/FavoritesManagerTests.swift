@@ -36,4 +36,15 @@ final class FavoritesManagerTests: XCTestCase {
         // Then
         XCTAssertTrue(secondInstance.isFavorite(testID), "Favoriten sollten über Instanzen hinweg erhalten bleiben")
     }
+
+    func testAllReturnsExactIDs() {
+        // Given
+        let ids = ["1", "2", "3"]
+
+        // When
+        ids.forEach { manager.toggle($0) }
+
+        // Then
+        XCTAssertEqual(Set(manager.all()), Set(ids), "all() sollte genau die hinzugefügten IDs enthalten")
+    }
 }

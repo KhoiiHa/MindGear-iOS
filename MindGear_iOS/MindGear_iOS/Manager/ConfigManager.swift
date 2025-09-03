@@ -15,6 +15,15 @@ struct ConfigManager {
         getValue(for: "YOUTUBE_API_KEY")
     }
 
+    /// Basis-URL für API-Aufrufe, aus der Config gelesen
+    static func apiBaseURL() -> URL {
+        let urlString = getValue(for: "API_BASE_URL")
+        guard let url = URL(string: urlString), !urlString.isEmpty else {
+            fatalError("❌ API_BASE_URL ungültig oder fehlt in Config.plist")
+        }
+        return url
+    }
+
     /// Einheitlicher Resolver (portfolio-clean): nutzt ausschließlich `YOUTUBE_API_KEY` aus Config.plist
     static var resolvedYouTubeAPIKey: String {
         getValue(for: "YOUTUBE_API_KEY")
