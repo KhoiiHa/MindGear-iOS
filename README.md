@@ -53,6 +53,17 @@ Durch thematische Empfehlungen, Favoritenfunktion und eine leistungsstarke Suche
 
 ---
 
+## ✅ **Testabdeckung**
+
+Alle wichtigen Kernkomponenten wurden mit **Unit Tests** abgesichert  
+(ConfigManager, FavoritesManager, MentorSearch).  
+
+<p align="center">
+  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1756995107/Unit_Tests_vavwls.png" alt="Unit Tests – alle grün" width="600" />
+</p>
+
+---
+
 ## ✨ **Design-Inspiration (Figma)**
 
 Die visuelle Gestaltung basiert auf hochwertigen Figma UI-Kits aus der Community, angepasst für Zielgruppe & Dark-Mode:  
@@ -63,18 +74,6 @@ Die visuelle Gestaltung basiert auf hochwertigen Figma UI-Kits aus der Community
 - 🔄 Mental Wellness Mobile App – Modern UI Kit  
 
 Diese Vorlagen flossen ins Moodboard und in den finalen Prototypen ein.
-
----
-
-## 🧪 **Offene Punkte (To-Dos)**
-
-- [ ] `OnboardingView` – Navigation & Inhalte umsetzen  
-- [ ] `NotificationManager` – echte Push-Benachrichtigungen (Reminder)  
-- [ ] `AnalyticsManager` – Anbindung an Analytics-SDK  
-- [ ] Konsistente Naming-Strategie (Deutsch/Englisch vereinheitlichen)  
-- [ ] Duplikate auflösen (`VideoManager` vs. `Video.swift`)  
-- [ ] Erweiterte Detailansichten für Playlists & History  
-- [ ] Suche-Chips in `VideoListView` aktivieren  
 
 ---
 
