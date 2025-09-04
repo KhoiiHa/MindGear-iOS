@@ -15,13 +15,38 @@ struct ConfigManager {
         getValue(for: "YOUTUBE_API_KEY")
     }
 
-    /// Basis-URL für API-Aufrufe, aus der Config gelesen
+    /// Basis-URL für API-Aufrufe, aus der Config gelesen (normalisiert & validiert)
     static func apiBaseURL() -> URL {
-        let urlString = getValue(for: "API_BASE_URL")
-        guard let url = URL(string: urlString), !urlString.isEmpty else {
-            fatalError("❌ API_BASE_URL ungültig oder fehlt in Config.plist")
+        var raw = getValue(for: "API_BASE_URL").trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // trailing Slash entfernen
+        while raw.hasSuffix("/") { raw.removeLast() }
+
+        // http -> https umschreiben
+        if raw.lowercased().hasPrefix("http://") {
+            raw = "https://" + raw.dropFirst("http://".count)
         }
-        return url
+
+        // Parsen & Regeln prüfen
+        guard let parsed = URL(string: raw),
+              let scheme = parsed.scheme?.lowercased(), scheme == "https",
+              let host = parsed.host, !host.isEmpty,
+              (parsed.path.isEmpty || parsed.path == "/"),
+              parsed.query == nil,
+              parsed.fragment == nil
+        else {
+            fatalError("❌ API_BASE_URL ungültig – erwarte eine HTTPS-URL mit Host und ohne Pfad/Query/Fragment, z. B. https://api.example.com")
+        }
+
+        // Saubere URL ohne impliziten "/"-Pfad zurückgeben
+        var comps = URLComponents()
+        comps.scheme = "https"
+        comps.host = parsed.host
+        comps.port = parsed.port
+        guard let cleanURL = comps.url else {
+            fatalError("❌ API_BASE_URL konnte nicht aufgebaut werden")
+        }
+        return cleanURL
     }
 
     /// Einheitlicher Resolver (portfolio-clean): nutzt ausschließlich `YOUTUBE_API_KEY` aus Config.plist

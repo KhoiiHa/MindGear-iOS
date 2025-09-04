@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "62DDE861-18C4-4A7C-913B-CF24B2E3137D",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:MindGear_iOS.xcodeproj",
+        "identifier" : "A62727412E68866A00C1C4AF",
+        "name" : "MindGear_iOSTests"
+      }
+    }
+  ],
+  "version" : 1
+}

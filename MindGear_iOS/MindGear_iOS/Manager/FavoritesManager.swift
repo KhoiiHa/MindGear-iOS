@@ -9,8 +9,6 @@ import SwiftData
 // Diese Datei verwaltet Favoriten für Videos und Mentoren.
 // Sie ermöglicht das Speichern, Abrufen und Verwalten von Favoriten, um Nutzern eine personalisierte Erfahrung zu bieten.
 
-
-@MainActor
 final class FavoritesManager {
     static let shared = FavoritesManager()
     private let defaultsKey = "simpleFavorites"
@@ -18,6 +16,7 @@ final class FavoritesManager {
 
     init() {}
 
+    @MainActor
     // Prüft, ob ein Video als Favorit markiert ist ✅
     func isVideoFavorite(video: Video, context: ModelContext) -> Bool {
         do {
@@ -32,6 +31,7 @@ final class FavoritesManager {
         }
     }
 
+    @MainActor
     // Prüft, ob der Mentor als Favorit gespeichert ist
     func isMentorFavorite(mentor: Mentor, context: ModelContext) -> Bool {
         do {
@@ -46,6 +46,7 @@ final class FavoritesManager {
         }
     }
 
+    @MainActor
     // Schaltet den Favoritenstatus eines Videos um (hinzufügen oder entfernen)
     func toggleVideoFavorite(video: Video, context: ModelContext) async {
         do {
@@ -79,6 +80,7 @@ final class FavoritesManager {
         }
     }
 
+    @MainActor
     // Schaltet den Favoritenstatus eines Mentors um
     func toggleMentorFavorite(mentor: Mentor, context: ModelContext) async {
         do {
@@ -108,6 +110,7 @@ final class FavoritesManager {
         return data
     }
 
+    @MainActor
     /// Liefert alle gespeicherten Video-Favoriten zurück 📂
     func getAllVideoFavorites(context: ModelContext) -> [FavoriteVideoEntity] {
         do {
@@ -121,6 +124,7 @@ final class FavoritesManager {
         }
     }
 
+    @MainActor
     /// Gibt alle gespeicherten Mentor-Favoriten zurück 📋
     func getAllMentorFavorites(context: ModelContext) -> [FavoriteMentorEntity] {
         do {
@@ -131,6 +135,7 @@ final class FavoritesManager {
         }
     }
 
+    @MainActor
     // Prüft, ob eine Playlist als Favorit gespeichert ist
     func isPlaylistFavorite(id: String, context: ModelContext) -> Bool {
         do {
@@ -144,6 +149,7 @@ final class FavoritesManager {
         }
     }
 
+    @MainActor
     // Schaltet den Favoritenstatus einer Playlist um
     func togglePlaylistFavorite(id: String, title: String, thumbnailURL: String, context: ModelContext) async {
         do {
@@ -167,6 +173,7 @@ final class FavoritesManager {
         }
     }
 
+    @MainActor
     /// Gibt alle gespeicherten Playlist-Favoriten zurück
     func getAllPlaylistFavorites(context: ModelContext) -> [FavoritePlaylistEntity] {
         do {
