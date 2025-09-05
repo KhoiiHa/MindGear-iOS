@@ -8,10 +8,8 @@
 import SwiftUI
 import SwiftData
 
-
 struct HomeView: View {
     @Environment(\.modelContext) private var context
-    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         NavigationStack {
@@ -43,6 +41,7 @@ struct HomeView: View {
                                 .font(AppTheme.Typography.title)
                                 .foregroundStyle(AppTheme.Colors.textPrimary)
                                 .accessibilityHeading(.h1)
+                                .accessibilityIdentifier("homeHeaderTitle")
                             Text("Welche Perspektive bringt dich heute weiter?")
                                 .font(AppTheme.Typography.subheadline)
                                 .foregroundStyle(AppTheme.Colors.textSecondary)
@@ -75,6 +74,7 @@ struct HomeView: View {
                                 .tracking(0.6)
                                 .accessibilityHeading(.h2)
                                 .accessibilityLabel("Deine Mentoren")
+                                .accessibilityIdentifier("homeMentorsSectionTitle")
 
                             ForEach(playlists) { playlist in
                                 PlaylistCard(
@@ -84,6 +84,8 @@ struct HomeView: View {
                                     playlistID: playlist.playlistID,
                                     context: context
                                 )
+                                .mgCard()
+                                .accessibilityIdentifier("homePlaylistCard_\(playlist.playlistID)")
                             }
                         }
 

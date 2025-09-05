@@ -47,6 +47,11 @@ struct MindGear_iOSApp: App {
                     OnboardingView()
                 }
             }
+            .onAppear {
+                if UserDefaults.standard.object(forKey: "hasSeenOnboarding") == nil {
+                    hasSeenOnboarding = false
+                }
+            }
             .tint(AppTheme.Colors.accent)
             .preferredColorScheme(.dark) // fixed dark UI to match the app's moodboard
         }

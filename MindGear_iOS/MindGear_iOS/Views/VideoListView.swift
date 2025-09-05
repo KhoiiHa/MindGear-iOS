@@ -85,8 +85,16 @@ struct VideoListView: View {
         List {
             ForEach(viewModel.filteredVideos) { (video: Video) in
                 NavigationLink(destination: VideoDetailView(video: video, context: context)) {
-                    VideoRow(video: video)
+                    VStack(spacing: 0) {
+                        VideoRow(video: video)
+                            .accessibilityIdentifier("videoCellContent_\(video.id)")
+                    }
+                    .mgCard()
+                    .padding(.horizontal, AppTheme.Spacing.m)
+                    .padding(.vertical, AppTheme.Spacing.s)
                 }
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
                 .accessibilityIdentifier("videoCell_\(video.id)")
                 .onAppear {

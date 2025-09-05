@@ -85,8 +85,19 @@ struct VideoDetailView: View {
                     .foregroundStyle(AppTheme.Colors.textSecondary)
                     .accessibilityIdentifier("videoDescription")
 
+                Button(action: {
+                    if let url = URL(string: video.videoURL) {
+                        UIApplication.shared.open(url)
+                    }
+                }) {
+                    Label("Im Browser öffnen", systemImage: "safari")
+                }
+                .buttonStyle(PillButtonStyle())
+                .accessibilityIdentifier("detailOpenInBrowserButton")
+
                 Spacer()
             }
+            .mgCard()
             .padding(AppTheme.Spacing.m)
         }
         .scrollIndicators(.hidden)

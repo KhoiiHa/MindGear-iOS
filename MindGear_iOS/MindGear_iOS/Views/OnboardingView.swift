@@ -44,6 +44,7 @@ struct OnboardingView: View {
                     .tabViewStyle(.page)
                     .indexViewStyle(.page(backgroundDisplayMode: .interactive))
                     .frame(maxHeight: 520)
+                    .accessibilityIdentifier("onboardingPageControl")
 
                     Button(action: advance) {
                         Text(page < 2 ? "Weiter" : "Los geht’s")
