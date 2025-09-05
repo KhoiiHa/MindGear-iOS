@@ -8,14 +8,16 @@
 > ✨ Dieses Projekt zeigt nicht nur technische, sondern auch gestalterische Stärke:  
 > Von AppTheme-Architektur bis hin zum Dark-Mode-Redesign wurden alle UI-Komponenten konsistent und portfolio-reif umgesetzt.
 
-**MindGear** ist eine native iOS-App für Männer, die in herausfordernden Zeiten Orientierung, mentale Stärke und neue Impulse suchen.  
-Die App bietet eine kuratierte Auswahl an YouTube-Videos und Podcasts von bekannten Denkern, Mentoren und Interviewern wie:
+---
 
-- Chris Williamson, Lex Fridman  
-- The Diary of a CEO, HealthyGamerGG, Shi Heng Yi  
-- Jordan B. Peterson, Simon Sinek, Jay Shetty u. v. m.
+## 🚀 **Highlights**
 
-Durch thematische Empfehlungen, Favoritenfunktion und eine leistungsstarke Suche unterstützt MindGear dich dabei, neue Perspektiven zu gewinnen und deine innere Widerstandskraft zu stärken.
+- Native iOS-App mit **SwiftUI + MVVM**
+- **Favoriten, Verlauf & Kategorien** mit SwiftData
+- **YouTube API Integration** (Videos, Playlists, Mentoren)
+- **Dark Mode & konsistentes Design** über AppTheme
+- **Offline-fähig** dank Caching & Retry
+- **Unit Tests** mit grünem Status
 
 ---
 
@@ -36,20 +38,54 @@ Durch thematische Empfehlungen, Favoritenfunktion und eine leistungsstarke Suche
 
 ---
 
+## 🖼️ **Screenshots (Platzhalter)**
+
+👉 Hier werden künftig Screenshots aus dem iOS-Simulator eingefügt:  
+- HomeView  
+- VideoDetailView  
+- MentorsView  
+
+*(aktuell Platzhalter – Screens folgen in Kürze)*
+
+---
+
 ## 🛠️ **Tech Stack & Architektur**
 
-- **SwiftUI** – Deklaratives UI-Framework  
-- **MVVM** – saubere Trennung von Views, ViewModels & Models  
+- **SwiftUI** – deklaratives UI-Framework  
+- **MVVM-Architektur** – konsequent umgesetzt für sauberen, testbaren Code  
 - **SwiftData** – Favoriten, Playlists & Watch-History (`FavoriteVideoEntity`, `FavoriteMentorEntity`, `FavoritePlaylistEntity`, `WatchHistoryEntity`)  
 - **YouTube API** – PlaylistItems & Channel-Endpunkte  
 - **WebKit/WebView** – Einbettung externer Videos  
-- **Manager/Services**  
-  - `APIService` – YouTube-API mit Caching & Retry  
-  - `NetworkManager` & `NetworkMonitor` – Offline-Erkennung & Statusprüfung  
+- **Manager & Services**  
+  - `APIService` – YouTube-API mit Caching, Retry & Guards bei fehlenden Keys  
+  - `NetworkManager` & `NetworkMonitor` – Offline-Erkennung, API-Key-Prüfung & Statusprüfung  
   - `FavoritesManager` – zentrales Favoriten-Handling  
   - `VideoManager` – Video-/Playlist-Helfer  
   - `ConfigManager` – Zugriff auf API-Key & Playlist-IDs aus `Config.plist`  
   - `NotificationManager`, `AnalyticsManager` – vorbereitet für kommende Features  
+
+---
+
+## 🔐 **Setup & Secrets**
+
+MindGear nutzt eine lokale `Config.plist` für API-Keys & IDs.  
+**Die echte Datei ist absichtlich nicht im Repo** – stattdessen liegt eine Vorlage (`Config.sample.plist`) bei.
+
+**So startest du das Projekt:**
+1. Kopiere `MindGear_iOS/Config/Config.sample.plist` → `Config.plist`.
+2. Trage deinen **YouTube Data API v3** Key bei `YOUTUBE_API_KEY` ein.  
+   (Optional: weitere Channel-/Playlist-IDs einfügen.)
+3. Build & Run in Xcode.
+
+> `.gitignore` sorgt dafür, dass `Config.plist` nicht ins Repo gelangt.
+
+**Ohne API-Key?**  
+- Die App crasht nicht.  
+- Requests werden übersprungen, stattdessen werden Seed-Daten/Caches genutzt.  
+- Im Debugger erscheinen klare Logs wie:  
+  - `⚠️ [ConfigManager] Kein gültiger YOUTUBE_API_KEY (leer/REPLACE_ME).`  
+  - `⚠️ [APIService] Kein gültiger API Key – überspringe Request, nutze Seed/Cache.`  
+  - `⚠️ [NetworkManager] offline – skip network …`
 
 ---
 
@@ -79,9 +115,8 @@ Diese Vorlagen flossen ins Moodboard und in den finalen Prototypen ein.
 
 ## 📆 **Projektstatus**
 
-- 🔄 **Letztes Update:** August 2025  
-- 🧱 **Aktueller Fokus:** Favoriten-Logik, API-Integration, Dark-Mode  
-- 🎯 **Ziel:** Testphase & Release-Readiness  
+- 🔄 **Letztes Update:** September 2025  
+- 🧱 **Aktueller Stand:** iOS-Version fertig für Portfolio, inkl. API-Härtung & Onboarding  
 
 ---
 
