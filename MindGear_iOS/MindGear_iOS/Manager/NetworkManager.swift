@@ -88,10 +88,26 @@ final class NetworkManager {
     static let shared = NetworkManager()
     private init() {}
 
+    // MARK: - Helpers
+    private func isValidApiKey(_ key: String) -> Bool {
+        let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmed.isEmpty && trimmed != "REPLACE_ME"
+    }
+
+    private var monitor: NetworkMonitor { NetworkMonitor.shared }
+
     /// Lädt einen Mentor per YouTube-Handle (z. B. "ShiHengYiOnline") und mappt ihn auf dein `Mentor`-Model.
     @MainActor
     func loadMentor(byHandle handle: String, apiKey: String) async throws -> Mentor {
         dlog("fetch by handle=\(handle), key=\(maskKey(apiKey))")
+        guard isValidApiKey(apiKey) else {
+            dlog("⚠️ missing/placeholder API key – skip network (byHandle)")
+            throw AppError.networkError
+        }
+        guard monitor.isOnline else {
+            dlog("⚠️ offline – skip network (byHandle)")
+            throw AppError.networkError
+        }
         let response = try await APIService.shared.fetchChannel(byHandle: handle, apiKey: apiKey)
         guard let item = response.items.first else { throw AppError.networkError }
         dlog("OK by handle → id=\(item.id), title=\(item.snippet.title)")
@@ -102,6 +118,14 @@ final class NetworkManager {
     @MainActor
     func loadMentor(byChannelId id: String, apiKey: String) async throws -> Mentor {
         dlog("fetch by channelId=\(id), key=\(maskKey(apiKey))")
+        guard isValidApiKey(apiKey) else {
+            dlog("⚠️ missing/placeholder API key – skip network (byChannelId)")
+            throw AppError.networkError
+        }
+        guard monitor.isOnline else {
+            dlog("⚠️ offline – skip network (byChannelId)")
+            throw AppError.networkError
+        }
         let response = try await APIService.shared.fetchChannel(byId: id, apiKey: apiKey)
         guard let item = response.items.first else { throw AppError.networkError }
         dlog("OK by id → id=\(item.id), title=\(item.snippet.title)")
@@ -113,6 +137,15 @@ final class NetworkManager {
     func loadMentor(preferId channelId: String?, handle: String?, apiKey: String) async throws -> Mentor {
         let idTrimmed = channelId?.trimmingCharacters(in: .whitespacesAndNewlines)
         let handleTrimmed = handle?.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard isValidApiKey(apiKey) else {
+            dlog("⚠️ missing/placeholder API key – skip network (preferId/handle)")
+            throw AppError.networkError
+        }
+        guard monitor.isOnline else {
+            dlog("⚠️ offline – skip network (preferId/handle)")
+            throw AppError.networkError
+        }
 
         guard (idTrimmed?.isEmpty == false) || (handleTrimmed?.isEmpty == false) else {
             dlog("❗️missing identifiers: both channelId and handle are empty")

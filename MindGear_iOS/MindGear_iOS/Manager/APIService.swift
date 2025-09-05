@@ -56,6 +56,12 @@ final class APIService: APIServiceProtocol {
 
     private init() {}
 
+    // MARK: - Helpers
+    private func isValidApiKey(_ key: String) -> Bool {
+        let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmed.isEmpty && trimmed != "REPLACE_ME"
+    }
+
     // Führt den tatsächlichen Netzwerkabruf aus (ohne Cache/Koaleszierung)
     private func performNetworkFetch(playlistId: String, apiKey: String, pageToken: String?) async throws -> YouTubeResponse {
         // Versuche beide bekannten Hosts, um Probleme mit Edge-Netzwerken zu umgehen
@@ -259,6 +265,10 @@ final class APIService: APIServiceProtocol {
     }
 
     func fetchVideos(from playlistId: String, apiKey: String, pageToken: String?) async throws -> YouTubeResponse {
+        guard isValidApiKey(apiKey) else {
+            print("⚠️ [APIService] Kein gültiger YouTube API Key – überspringe Request und nutze Seed/Cache (fetchVideos).")
+            throw AppError.networkError
+        }
         let key = CacheKey(playlistId: playlistId, pageToken: pageToken)
 
         // 1) Cache-Hit? Direkt zurückgeben
@@ -293,7 +303,11 @@ final class APIService: APIServiceProtocol {
 
     // MARK: - Suche (ohne Session-Cache, bewusst einfach gehalten)
     func searchVideos(query: String, apiKey: String, pageToken: String?) async throws -> YouTubeSearchResponse {
-        try await performSearchFetch(query: query, apiKey: apiKey, pageToken: pageToken)
+        guard isValidApiKey(apiKey) else {
+            print("⚠️ [APIService] Kein gültiger YouTube API Key – überspringe Request und nutze Seed/Cache (searchVideos).")
+            throw AppError.networkError
+        }
+        return try await performSearchFetch(query: query, apiKey: apiKey, pageToken: pageToken)
     }
 
     // MARK: - Channels (YouTube Channel Lookup without cache)
@@ -396,7 +410,11 @@ final class APIService: APIServiceProtocol {
 
     /// Convenience: Channel über Handle (ohne @-Zeichen übergeben: "ShiHengYiOnline")
     func fetchChannel(byHandle handle: String, apiKey: String) async throws -> YouTubeChannelListResponse {
-        try await performChannelFetch(queryItems: [
+        guard isValidApiKey(apiKey) else {
+            print("⚠️ [APIService] Kein gültiger YouTube API Key – überspringe Request (fetchChannel byHandle).")
+            throw AppError.networkError
+        }
+        return try await performChannelFetch(queryItems: [
             URLQueryItem(name: "part", value: "snippet,statistics"),
             URLQueryItem(name: "forHandle", value: "@\(sanitizeHandle(handle))"),
             URLQueryItem(name: "key", value: apiKey)
@@ -405,7 +423,11 @@ final class APIService: APIServiceProtocol {
 
     /// Convenience: Channel über Channel-ID (z. B. "UC...")
     func fetchChannel(byId channelId: String, apiKey: String) async throws -> YouTubeChannelListResponse {
-        try await performChannelFetch(queryItems: [
+        guard isValidApiKey(apiKey) else {
+            print("⚠️ [APIService] Kein gültiger YouTube API Key – überspringe Request (fetchChannel byId).")
+            throw AppError.networkError
+        }
+        return try await performChannelFetch(queryItems: [
             URLQueryItem(name: "part", value: "snippet,statistics"),
             URLQueryItem(name: "id", value: channelId),
             URLQueryItem(name: "key", value: apiKey)
@@ -414,6 +436,10 @@ final class APIService: APIServiceProtocol {
 
     /// Convenience: Versucht zuerst per Channel-ID, fällt bei Bedarf auf Handle zurück und gibt das erste Item
     func fetchChannel(preferId channelId: String?, handle: String?, apiKey: String) async throws -> YouTubeChannelItem {
+        guard isValidApiKey(apiKey) else {
+            print("⚠️ [APIService] Kein gültiger YouTube API Key – überspringe Request (fetchChannel preferId/handle).")
+            throw AppError.networkError
+        }
         if let id = channelId, !id.isEmpty {
             let resp = try await fetchChannel(byId: id, apiKey: apiKey)
             if let first = resp.items.first { return first }
@@ -427,6 +453,10 @@ final class APIService: APIServiceProtocol {
 
     // MARK: - Playlist Info (YouTube Playlist Lookup)
     func fetchPlaylistInfo(playlistId: String, apiKey: String = ConfigManager.youtubeAPIKey) async throws -> PlaylistInfo {
+        guard isValidApiKey(apiKey) else {
+            print("⚠️ [APIService] Kein gültiger YouTube API Key – überspringe Request (fetchPlaylistInfo).")
+            throw AppError.networkError
+        }
         let hosts = [
             "https://www.googleapis.com/youtube/v3/playlists",
             "https://youtube.googleapis.com/youtube/v3/playlists"

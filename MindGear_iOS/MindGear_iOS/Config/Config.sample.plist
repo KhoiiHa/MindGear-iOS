@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>RECOMMENDED_PLAYLIST</key><string>REPLACE_ME</string>
+    <key>YOUTUBE_API_KEY</key><string>REPLACE_ME</string>
+    <key>API_BASE_URL</key><string>https://www.googleapis.com</string>
+
+    <key>CHRISWILLX_CHANNEL_ID</key><string>REPLACE_ME</string>
+    <key>CHRISWILLX_PLAYLIST</key><string>REPLACE_ME</string>
+
+    <key>JAYSHETTY_CHANNEL_ID</key><string>REPLACE_ME</string>
+    <key>JAYSHETTY_PLAYLIST</key><string>REPLACE_ME</string>
+
+    <key>DIARYOFACEO_CHANNEL_ID</key><string>REPLACE_ME</string>
+    <key>DIARYOFACEO_PLAYLIST</key><string>REPLACE_ME</string>
+
+    <key>THEOVON_CHANNEL_ID</key><string>REPLACE_ME</string>
+    <key>THEOVON_PLAYLIST</key><string>REPLACE_ME</string>
+
+    <key>JORDANBPETERSON_CHANNEL_ID</key><string>REPLACE_ME</string>
+    <key>JORDANBPETERSON_PLAYLIST</key><string>REPLACE_ME</string>
+
+    <key>SIMONSINEK_CHANNEL_ID</key><string>REPLACE_ME</string>
+    <key>SIMONSINEK_PLAYLIST</key><string>REPLACE_ME</string>
+
+    <key>SHIHENGYI_CHANNEL_ID</key><string>REPLACE_ME</string>
+    <key>SHIHENGYI_PLAYLIST</key><string>REPLACE_ME</string>
+
+    <key>SHAWNRYAN_CHANNEL_ID</key><string>REPLACE_ME</string>
+    <key>SHAWNRYAN_PLAYLIST</key><string>REPLACE_ME</string>
+</dict>
+</plist>
