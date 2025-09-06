@@ -1,0 +1,41 @@
+{
+  "fetchedAt": "2025-09-06T10:00:58.801Z",
+  "playlists": [
+    {
+      "id": "PLkL7BvJXiqSQu3i72hSrG4vUkDuaneHuB",
+      "title": "Modern Wisdom",
+      "description": "Every Modern Wisdom podcast episode, back to back, uninterrupted. Enjoy.",
+      "channelTitle": "Chris Williamson",
+      "thumbnails": {
+        "default": "https://i.ytimg.com/vi/dacBJJ46z98/default.jpg",
+        "medium": "https://i.ytimg.com/vi/dacBJJ46z98/mqdefault.jpg",
+        "high": "https://i.ytimg.com/vi/dacBJJ46z98/hqdefault.jpg"
+      },
+      "mentor": "Chris Williamson"
+    },
+    {
+      "id": "PLgCOAz4cqZMTQ4Blgkfr4IqU2YAJWJzN1",
+      "title": "A Bit of Optimism Podcast",
+      "description": "The future is always bright if you know where to look. Join me as I talk with people who inspire me about life, love, leadership, and silver linings. The hope is that we all leave with something I think we need these days… A Bit of Optimism. \nThanks for listening.",
+      "channelTitle": "Simon Sinek",
+      "thumbnails": {
+        "default": "https://i.ytimg.com/vi/gydPHELj7jE/default.jpg",
+        "medium": "https://i.ytimg.com/vi/gydPHELj7jE/mqdefault.jpg",
+        "high": "https://i.ytimg.com/vi/gydPHELj7jE/hqdefault.jpg"
+      },
+      "mentor": "Simon Sinek"
+    },
+    {
+      "id": "PL4pqo9Uoh0Wu2SY7VR-W33uxteqG1GV0m",
+      "title": "Faith and Spirituality",
+      "description": "",
+      "channelTitle": "Shawn Ryan Show",
+      "thumbnails": {
+        "default": "https://i.ytimg.com/vi/Hu7RhiqC4Nw/default.jpg",
+        "medium": "https://i.ytimg.com/vi/Hu7RhiqC4Nw/mqdefault.jpg",
+        "high": "https://i.ytimg.com/vi/Hu7RhiqC4Nw/hqdefault.jpg"
+      },
+      "mentor": "Shawn Ryan"
+    }
+  ]
+}
