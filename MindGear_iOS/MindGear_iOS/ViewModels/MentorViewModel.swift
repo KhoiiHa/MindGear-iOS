@@ -10,6 +10,7 @@ import SwiftData
 
 @MainActor
 class MentorViewModel: ObservableObject {
+    // MARK: - State
     @Published var mentor: Mentor?
     /// Liste aller Mentoren für die MentorsView
     @Published var mentors: [Mentor] = []
@@ -22,11 +23,13 @@ class MentorViewModel: ObservableObject {
     private let favoritesManager = FavoritesManager.shared
     private var favoritesObserver: NSObjectProtocol?
 
+    // MARK: - Init
     init(mentor: Mentor? = nil, context: ModelContext? = nil) {
         self.mentor = mentor
         self.context = context
     }
 
+    // MARK: - Favorites
     /// Startet einen Listener auf Favoriten-Änderungen und hält den Status synchron.
     func startObservingFavorites() {
         guard mentor != nil, context != nil else { return }
@@ -72,6 +75,7 @@ class MentorViewModel: ObservableObject {
 
     private func handleFromSocials() -> String? { guard let mentor = mentor else { return nil }; return handleFromSocials(for: mentor) }
 
+    // MARK: - Loading Single Mentor
     /// Lädt echte Mentor-Daten aus der YouTube API (falls verfügbar)
     func loadFromAPIIfPossible() async {
         isLoading = true
@@ -121,6 +125,7 @@ class MentorViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Loading All Mentors
     /// Lädt alle Mentoren (API-first, Seeds als Fallback)
     func loadAllMentors(seeds: [Mentor]) async {
         isLoading = true
@@ -152,6 +157,7 @@ class MentorViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Search
     /// Filtert die Mentorenliste nach einem Suchstring in Name, Bio
     func filteredMentors(query: String) -> [Mentor] {
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
@@ -163,6 +169,7 @@ class MentorViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Suggestions
     /// Liefert Auto-Vervollständigungs-Vorschläge aus Name, Bio
     func suggestions(for query: String, limit: Int = 10) -> [String] {
         let q = norm(query.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -187,6 +194,7 @@ class MentorViewModel: ObservableObject {
         return result
     }
 
+    // MARK: - Lifecycle
     deinit {
         if let obs = favoritesObserver { NotificationCenter.default.removeObserver(obs) }
     }

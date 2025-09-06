@@ -6,8 +6,10 @@ struct VideoListView: View {
     private let context: ModelContext
     @StateObject private var viewModel: VideoViewModel
     @State private var isPlaylistFavorite: Bool = false
-    @StateObject private var network = NetworkMonitor.shared
+    @ObservedObject private var network = NetworkMonitor.shared
     @State private var selectedChip: String? = nil
+    @State private var showErrorAlert: Bool = false
+    @State private var firstLoad: Bool = true
     private let exploreChips: [String] = [
         "Mindset",
         "Disziplin & Fokus",
@@ -30,14 +32,6 @@ struct VideoListView: View {
         )
     }
 
-    // Separate Binding für den Alert, entlastet den Typsystem-Checker
-    private var errorAlertBinding: Binding<Bool> {
-        Binding(
-            get: { viewModel.errorMessage != nil },
-            set: { newValue in if !newValue { viewModel.errorMessage = nil } }
-        )
-    }
-
     // Explizite Bindings entlasten die Dynamik von $viewModel
     private var favoritesOnlyBinding: Binding<Bool> {
         Binding(
@@ -45,6 +39,9 @@ struct VideoListView: View {
             set: { viewModel.showFavoritesOnly = $0 }
         )
     }
+
+    // Entkoppelte Referenz auf das StateObject (verhindert Wrapper-Inferenz in Subviews)
+    private var vmRef: VideoViewModel { viewModel }
 
     // Schlankes, wiederverwendbares Suchfeld – Debounce steckt im ViewModel
     private var headerSearch: some View {
@@ -81,34 +78,45 @@ struct VideoListView: View {
     }
 
     // Ausgelagerte Liste zur Entlastung der Typinferenz
-    private var videosList: some View {
-        List {
-            ForEach(viewModel.filteredVideos) { (video: Video) in
-                NavigationLink(destination: VideoDetailView(video: video, context: context)) {
-                    VStack(spacing: 0) {
-                        VideoRow(video: video)
-                            .accessibilityIdentifier("videoCellContent_\(video.id)")
+    @ViewBuilder private var videosList: some View {
+        Group {
+            let isEmpty = vmRef.filteredVideos.isEmpty
+            if firstLoad && isEmpty {
+                VStack(spacing: 12) {
+                    ProgressView()
+                        .accessibilityIdentifier("loadingSpinner")
+                    Text("Lade Videos…")
+                        .font(AppTheme.Typography.footnote)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            } else {
+                List {
+                    ForEach(vmRef.filteredVideos) { (video: Video) in
+                        NavigationLink(destination: VideoDetailView(video: video, context: context)) {
+                            VStack(spacing: 0) {
+                                VideoRow(video: video)
+                                    .accessibilityIdentifier("videoCellContent_\(video.id)")
+                            }
+                            .mgCard()
+                            .padding(.horizontal, AppTheme.Spacing.m)
+                            .padding(.vertical, AppTheme.Spacing.s)
+                        }
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .accessibilityIdentifier("videoCell_\(video.id)")
                     }
-                    .mgCard()
-                    .padding(.horizontal, AppTheme.Spacing.m)
-                    .padding(.vertical, AppTheme.Spacing.s)
                 }
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
+                .listStyle(.plain)
+                .scrollIndicators(.hidden)
+                .scrollContentBackground(.hidden)
                 .listRowSeparator(.hidden)
-                .accessibilityIdentifier("videoCell_\(video.id)")
-                .onAppear {
-                    // Infinite Scroll entfernt - kein Nachladen mehr hier
-                }
+                .listRowSeparatorTint(AppTheme.Colors.separator)
+                .background(AppTheme.listBackground(for: colorScheme))
+                .accessibilityIdentifier("videosList")
             }
         }
-        .listStyle(.plain)
-        .scrollIndicators(.hidden)
-        .scrollContentBackground(.hidden)
-        .listRowSeparator(.hidden)
-        .listRowSeparatorTint(AppTheme.Colors.separator)
-        .background(AppTheme.listBackground(for: colorScheme))
-        .accessibilityIdentifier("videosList")
     }
 
     var body: some View {
@@ -149,12 +157,16 @@ struct VideoListView: View {
             .task(id: playlistID) {
                 isPlaylistFavorite = FavoritesManager.shared.isPlaylistFavorite(id: playlistID, context: context)
                 await viewModel.loadVideos()
+                firstLoad = false
             }
-            .alert(isPresented: errorAlertBinding) {
+            .onChange(of: viewModel.errorMessage) { _, newValue in
+                showErrorAlert = (newValue != nil)
+            }
+            .alert(isPresented: $showErrorAlert) {
                 Alert(
                     title: Text("Fehler"),
                     message: Text(viewModel.errorMessage ?? "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es später erneut."),
-                    dismissButton: .default(Text("OK"), action: { viewModel.errorMessage = nil })
+                    dismissButton: .default(Text("OK"), action: { viewModel.errorMessage = nil; showErrorAlert = false })
                 )
             }
             .overlay {
@@ -173,6 +185,17 @@ struct VideoListView: View {
                         systemImage: "heart.fill",
                         description: Text("Speichere Videos mit dem Herz in der Detailansicht.")
                     )
+                }
+            }
+            .overlay(alignment: .top) {
+                if let offline = viewModel.offlineMessage, !offline.isEmpty {
+                    Text(offline)
+                        .font(AppTheme.Typography.caption)
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 12)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Capsule())
+                        .padding(.top, 8)
                 }
             }
             .animation(.default, value: viewModel.filteredVideos)

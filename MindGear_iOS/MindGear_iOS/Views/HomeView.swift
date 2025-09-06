@@ -5,11 +5,42 @@
 //  Created by Vu Minh Khoi Ha on 04.07.25.
 //
 
+
 import SwiftUI
 import SwiftData
 
+// Lightweight VM for remote playlists (GitHub Actions cache)
+@MainActor
+private final class HomeRemoteViewModel: ObservableObject {
+    @Published var remotePlaylists: [PlaylistInfo] = []
+    @Published var isLoading = false
+    @Published var errorMessage: String?
+
+    func load() async {
+        guard remotePlaylists.isEmpty else { return } // only once per appearance
+        isLoading = true; defer { isLoading = false }
+        do {
+            let remote = try await RemoteCacheService.loadPlaylists()
+            let mapped: [PlaylistInfo] = remote.playlists.map { m in
+                let thumb = m.thumbnails?.high ?? m.thumbnails?.medium ?? m.thumbnails?.`default`
+                return PlaylistInfo(
+                    title: m.title,
+                    subtitle: m.channelTitle ?? (m.mentor ?? "Playlist"),
+                    iconName: "play.circle.fill",
+                    playlistID: m.id,
+                    thumbnailURL: thumb
+                )
+            }
+            self.remotePlaylists = mapped
+        } catch {
+            print("ℹ️ HomeView Remote playlists failed → fallback: \(error.localizedDescription)")
+        }
+    }
+}
+
 struct HomeView: View {
     @Environment(\.modelContext) private var context
+    @StateObject private var rvm = HomeRemoteViewModel()
 
     var body: some View {
         NavigationStack {
@@ -76,16 +107,38 @@ struct HomeView: View {
                                 .accessibilityLabel("Deine Mentoren")
                                 .accessibilityIdentifier("homeMentorsSectionTitle")
 
-                            ForEach(playlists) { playlist in
-                                PlaylistCard(
-                                    title: playlist.title,
-                                    subtitle: "Playlist von \(playlist.subtitle)",
-                                    iconName: playlist.iconName,
-                                    playlistID: playlist.playlistID,
-                                    context: context
-                                )
-                                .mgCard()
-                                .accessibilityIdentifier("homePlaylistCard_\(playlist.playlistID)")
+                            if rvm.isLoading && rvm.remotePlaylists.isEmpty {
+                                HStack {
+                                    ProgressView()
+                                    Text("Lade empfohlene Playlists…")
+                                        .font(AppTheme.Typography.footnote)
+                                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                                }
+                                .padding(.vertical, AppTheme.Spacing.s)
+                            } else if !rvm.remotePlaylists.isEmpty {
+                                ForEach(rvm.remotePlaylists) { playlist in
+                                    PlaylistCard(
+                                        title: playlist.title,
+                                        subtitle: "Playlist von \(playlist.subtitle)",
+                                        iconName: playlist.iconName,
+                                        playlistID: playlist.playlistID,
+                                        context: context
+                                    )
+                                    .mgCard()
+                                    .accessibilityIdentifier("homePlaylistCard_\(playlist.playlistID)")
+                                }
+                            } else {
+                                ForEach(playlists) { playlist in
+                                    PlaylistCard(
+                                        title: playlist.title,
+                                        subtitle: "Playlist von \(playlist.subtitle)",
+                                        iconName: playlist.iconName,
+                                        playlistID: playlist.playlistID,
+                                        context: context
+                                    )
+                                    .mgCard()
+                                    .accessibilityIdentifier("homePlaylistCard_\(playlist.playlistID)")
+                                }
                             }
                         }
 
@@ -95,6 +148,8 @@ struct HomeView: View {
                     .padding(.bottom, AppTheme.Spacing.l)
                     .scrollIndicators(.hidden)
                 }
+                .task { await rvm.load() }
+                .refreshable { await rvm.load() }
             }
         }
         

@@ -12,8 +12,10 @@ import SwiftData
 /// Nutzt SwiftData mit FetchDescriptor/SortDescriptor (ohne async/await).
 @MainActor
 final class HistoryViewModel: ObservableObject {
+    // MARK: - State
     @Published var history: [WatchHistoryEntity] = []
 
+    // MARK: - Loading
     /// Lädt den Verlauf, sortiert nach `watchedAt` (neueste zuerst).
     func loadHistory(context: ModelContext) {
         let descriptor = FetchDescriptor<WatchHistoryEntity>(
@@ -26,6 +28,7 @@ final class HistoryViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Mutations
     /// Fügt einen Verlaufseintrag hinzu oder aktualisiert den Zeitstempel, falls bereits vorhanden.
     func addToHistory(videoId: String, title: String, thumbnailURL: String, context: ModelContext) {
         do {
@@ -52,6 +55,7 @@ final class HistoryViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Deletion
     /// Entfernt einen Verlaufseintrag.
     func deleteFromHistory(entry: WatchHistoryEntity, context: ModelContext) {
         context.delete(entry)

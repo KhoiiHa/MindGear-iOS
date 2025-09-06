@@ -14,6 +14,7 @@ struct MentorsView: View {
     @State private var refreshID = UUID()
     @State private var displayedMentors: [Mentor] = []
     @State private var searchTask: Task<Void, Never>? = nil
+    @State private var firstLoad: Bool = true
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
 
@@ -159,9 +160,11 @@ struct MentorsView: View {
         .navigationTitle("Mentoren")
         .toolbarBackground(.visible, for: .navigationBar)
         .onAppear {
-            Task {
+            Task { @MainActor in
+                firstLoad = true
                 await viewModel.loadAllMentors(seeds: MentorData.allMentors)
                 displayedMentors = viewModel.mentors
+                firstLoad = false
             }
         }
         .onChange(of: searchText, initial: false) { _, _ in
@@ -174,8 +177,15 @@ struct MentorsView: View {
         .onChange(of: viewModel.mentors) { _, _ in
             applySearch()
         }
-        .overlay {
-            if displayedMentors.isEmpty && !searchText.isEmpty {
+        .refreshable {
+            await viewModel.loadAllMentors(seeds: MentorData.allMentors)
+            await MainActor.run { applySearch() }
+        }
+        .overlay(alignment: .center) {
+            if firstLoad && displayedMentors.isEmpty {
+                ProgressView("Lade Mentoren…")
+                    .padding()
+            } else if displayedMentors.isEmpty && !searchText.isEmpty {
                 ContentUnavailableView(
                     "Keine Treffer",
                     systemImage: "magnifyingglass",

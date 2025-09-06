@@ -13,14 +13,17 @@ import SwiftData
 /// Nutzt `FavoritePlaylistEntity` (SwiftData) und den `FavoritesManager`.
 @MainActor
 final class PlaylistFavoritesViewModel: ObservableObject {
+    // MARK: - State
     @Published var favoritePlaylists: [FavoritePlaylistEntity] = []
 
     private let context: ModelContext
 
+    // MARK: - Init
     init(context: ModelContext) {
         self.context = context
     }
 
+    // MARK: - Loading
     /// Lädt alle Playlist-Favoriten (neueste zuerst)
     func reload() {
         let desc = FetchDescriptor<FavoritePlaylistEntity>(
@@ -34,6 +37,7 @@ final class PlaylistFavoritesViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Queries
     /// Prüft, ob eine Playlist bereits favorisiert ist
     func isFavorite(id playlistId: String) -> Bool {
         do {
@@ -47,6 +51,7 @@ final class PlaylistFavoritesViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Mutations
     /// Toggle – setzt oder entfernt den Favoritenstatus
     func toggleFavorite(id playlistId: String, title: String, thumbnailURL: String) async {
         await FavoritesManager.shared.togglePlaylistFavorite(
@@ -58,6 +63,7 @@ final class PlaylistFavoritesViewModel: ObservableObject {
         reload()
     }
 
+    // MARK: - Deletion
     /// Entfernt explizit einen Favoriten nach ID
     func removeFavorite(id playlistId: String) {
         do {

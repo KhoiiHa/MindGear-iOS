@@ -125,7 +125,14 @@ struct VideoDetailView: View {
             }
         }
         .alert("Video konnte nicht geladen werden", isPresented: $loadError) {
-            Button("OK", role: .cancel) { }
+            Button("Erneut versuchen") {
+                if let embedURL = makeYouTubeEmbedURL(from: video.videoURL) {
+                    loadError = false
+                    // Trigger reload of the WebView
+                    NotificationCenter.default.post(name: .init("ReloadVideoWebView"), object: embedURL)
+                }
+            }
+            Button("Abbrechen", role: .cancel) { }
         } message: {
             Text("Bitte überprüfe deine Internetverbindung oder die Video-URL.")
         }
@@ -173,6 +180,11 @@ struct VideoWebView: UIViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
         webView.scrollView.isScrollEnabled = false
+        NotificationCenter.default.addObserver(forName: .init("ReloadVideoWebView"), object: nil, queue: .main) { note in
+            if let url = note.object as? URL {
+                webView.load(URLRequest(url: url))
+            }
+        }
         return webView
     }
 

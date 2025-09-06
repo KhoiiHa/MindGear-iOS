@@ -136,6 +136,27 @@ class VideoViewModel: ObservableObject {
         return url
     }
 
+    // Mappt Remote-JSON (GitHub Actions Cache) -> bestehendes Video-Modell
+    private func mapFromRemote(_ remote: RemoteVideosCache) -> [Video] {
+        let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
+        return remote.videos.compactMap { item in
+            guard let id = item.id else { return nil }
+            let thumb = item.thumbnails?.high ?? item.thumbnails?.medium ?? item.thumbnails?.`default` ?? "https://i.ytimg.com/vi/\(id)/hqdefault.jpg"
+            var video = Video(
+                id: UUID(),
+                title: item.title,
+                description: item.description,
+                thumbnailURL: thumb.hasPrefix("http://") ? thumb.replacingOccurrences(of: "http://", with: "https://") : thumb,
+                videoURL: id, // wir speichern nur die reine Video-ID
+                category: "YouTube"
+            )
+            if favorites.contains(where: { $0.videoURL == id }) {
+                video.isFavorite = true
+            }
+            return video
+        }
+    }
+
     /// Lädt Videos aus der YouTube-Playlist und aktualisiert die Liste der Videos.
     /// Behandelt Fehler und zeigt gegebenenfalls Favoriten im Offline-Modus an.
     func loadVideos(forceReload: Bool = false) async {
@@ -152,12 +173,31 @@ class VideoViewModel: ObservableObject {
             return
         }
         do {
+            // 1) Schnellweg: Remote-JSON aus /data (GitHub Actions)
+            do {
+                let remote = try await RemoteCacheService.loadVideos(playlistId: playlistId)
+                let mapped = mapFromRemote(remote)
+                if !mapped.isEmpty {
+                    self.videos = mapped
+                    // Remote enthält bereits die komplette Liste -> keine Pagination
+                    self.nextPageToken = nil
+                    self.hasMore = false
+                    updatePlaylistMetaFromVideosIfNeeded()
+                    Self.loadedOnce.insert(self.playlistId)
+                    applySearch()
+                    print("✅ Remote JSON ok · items:\(mapped.count)")
+                    return
+                }
+            } catch {
+                print("ℹ️ Remote JSON nicht verfügbar → Fallback API: \(error.localizedDescription)")
+            }
+
+            // 2) Fallback: bisheriger Pfad über YouTube API
             let response = try await apiService.fetchVideos(from: playlistId, apiKey: apiKey, pageToken: nil)
             let items = response.items
             self.nextPageToken = response.nextPageToken
             self.hasMore = (response.nextPageToken != nil) && !items.isEmpty
             print("✅ API ok · items:\(items.count) · nextToken:\(self.nextPageToken ?? "nil")")
-            // nextPageToken kommt von der ersten Seite
             let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
             self.videos = items.compactMap { item -> Video? in
                 guard
@@ -168,12 +208,9 @@ class VideoViewModel: ObservableObject {
                 else {
                     return nil
                 }
-                // Video-ID Normalisierung: Nur reine Video-ID speichern
                 let cleanID = Video.extractVideoID(from: videoId)
                 let url = cleanID
-
                 let thumbnailURL = makeThumbnailURL(from: snippet.thumbnails, videoID: cleanID)
-
                 var video = Video(
                     id: UUID(),
                     title: title,
@@ -187,9 +224,7 @@ class VideoViewModel: ObservableObject {
                 }
                 return video
             }
-            // Metadaten der Playlist (heuristisch aus erstem Video)
             updatePlaylistMetaFromVideosIfNeeded()
-            // Merken: Diese Playlist wurde in dieser Session bereits einmal geladen
             Self.loadedOnce.insert(self.playlistId)
             applySearch()
         } catch let error as AppError {
@@ -197,20 +232,15 @@ class VideoViewModel: ObservableObject {
             case .invalidURL:
                 errorMessage = "Ungültige URL. Bitte überprüfe die API-Einstellungen."
             case .networkError:
-                // Underlying Error (falls vorhanden) in die Konsole schreiben
                 if let underlying = error.errorDescription {
                     print("Network error occurred:", underlying)
                 }
-
                 let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
-
                 if favorites.isEmpty {
-                    // Präzisere, aber freundliche Nutzer-Message. Falls zuvor bereits eine konkrete Message gesetzt wurde, nicht überschreiben.
                     if errorMessage == nil || errorMessage?.isEmpty == true {
                         errorMessage = "Daten konnten nicht geladen werden. Bitte Verbindung prüfen und später erneut versuchen."
                     }
                 } else {
-                    // Offline-Modus: Zeige gespeicherte Favoriten ohne störenden Alert
                     errorMessage = nil
                     offlineMessage = "Offline-Modus: Zeige gespeicherte Favoriten"
                     self.videos = favorites.map { fav in
@@ -225,12 +255,10 @@ class VideoViewModel: ObservableObject {
                         )
                     }
                     applySearch()
-                    // Bei Offline-Ansicht keine weitere Pagination
                     self.hasMore = false
                     self.nextPageToken = nil
                 }
             case .decodingError:
-                // Underlying Error (falls vorhanden) in die Konsole schreiben
                 if let underlyingError = (error as LocalizedError).errorDescription {
                     print("Decoding error occurred: \(underlyingError)")
                 }
@@ -257,7 +285,6 @@ class VideoViewModel: ObservableObject {
                         errorMessage = "Netzwerkfehler. Bitte versuche es erneut."
                     }
                 } else {
-                    // Offline-Modus: zeige gespeicherte Favoriten statt Alert
                     errorMessage = nil
                     offlineMessage = "Offline-Modus: Zeige gespeicherte Favoriten"
                     self.videos = favorites.map { fav in
@@ -272,7 +299,6 @@ class VideoViewModel: ObservableObject {
                         )
                     }
                     applySearch()
-                    // Bei Offline-Ansicht keine weitere Pagination
                     self.hasMore = false
                     self.nextPageToken = nil
                 }

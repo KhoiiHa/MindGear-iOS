@@ -11,6 +11,7 @@ import SwiftData
 struct PlaylistView: View {
     @StateObject private var viewModel: VideoViewModel
     @StateObject private var favoritesViewModel: PlaylistFavoritesViewModel
+    @State private var firstLoad: Bool = true
     @Environment(\.colorScheme) private var colorScheme
     
     private let playlistId: String
@@ -90,7 +91,11 @@ struct PlaylistView: View {
         .background(AppTheme.listBackground(for: colorScheme))
         .listRowSeparatorTint(AppTheme.Colors.separator)
         .overlay(alignment: .center) {
-            if viewModel.filteredVideos.isEmpty {
+            if firstLoad && viewModel.filteredVideos.isEmpty {
+                ProgressView("Lade Videos…")
+                    .progressViewStyle(CircularProgressViewStyle())
+                    .padding()
+            } else if viewModel.filteredVideos.isEmpty {
                 ContentUnavailableView(
                     "Keine Videos",
                     systemImage: "video.slash",
@@ -102,6 +107,7 @@ struct PlaylistView: View {
         .task {
             await viewModel.loadVideos()
             favoritesViewModel.reload()
+            firstLoad = false
         }
         .safeAreaInset(edge: .top) {
             headerSearch

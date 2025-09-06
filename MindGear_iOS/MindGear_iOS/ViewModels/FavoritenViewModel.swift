@@ -12,6 +12,7 @@ import SwiftUI
 @MainActor
 class FavoritenViewModel: ObservableObject {
 
+    // MARK: - Types
     enum FavoriteType {
         case video
         case mentor
@@ -26,12 +27,14 @@ class FavoritenViewModel: ObservableObject {
         let dateAdded: Date
     }
 
+    // MARK: - State
     @Published var allFavorites: [FavoriteItem] = []
     // ⚠️ UI-Test IDs: favoritesSearchField, favoritesList, favoritesDeleteButton
 
     let context: ModelContext
     private var favoritesObserver: NSObjectProtocol?
 
+    // MARK: - Init / Deinit
     init(context: ModelContext) {
         self.context = context
         // Initial laden
@@ -45,6 +48,7 @@ class FavoritenViewModel: ObservableObject {
     }
 
     // Lädt alle Favoriten aus Video, Mentor und Playlist, sortiert nach Datum – wichtig für UI-Tests (Liste → favoritesList).
+    // MARK: - Loading
     func loadFavorites() {
         let videoFavorites = FavoritesManager.shared.getAllVideoFavorites(context: context).map {
             FavoriteItem(
@@ -78,6 +82,7 @@ class FavoritenViewModel: ObservableObject {
     }
 
     // UI-Test: Favorit-Status eines Videos ändern (Button-ID: favoriteButton).
+    // MARK: - Mutations (toggle)
     func toggleFavorite(video: Video) async {
         await FavoritesManager.shared.toggleVideoFavorite(video: video, context: context)
         loadFavorites()
@@ -103,25 +108,20 @@ class FavoritenViewModel: ObservableObject {
     }
 
     // Prüfen ob Video als Favorit markiert ist.
+    // MARK: - Queries (read-only)
     func isFavorite(video: Video) -> Bool {
-        let result = FavoritesManager.shared.isVideoFavorite(video: video, context: context)
-        loadFavorites()
-        return result
+        FavoritesManager.shared.isVideoFavorite(video: video, context: context)
     }
 
     // Prüfen ob Mentor als Favorit markiert ist.
     func isFavorite(mentor: Mentor) -> Bool {
-        let result = FavoritesManager.shared.isMentorFavorite(mentor: mentor, context: context)
-        loadFavorites()
-        return result
+        FavoritesManager.shared.isMentorFavorite(mentor: mentor, context: context)
     }
 
     // Prüfen ob Playlist als Favorit markiert ist.
     /// Prüft, ob eine Playlist bereits favorisiert ist.
     func isPlaylistFavorite(id playlistId: String) -> Bool {
-        let result = FavoritesManager.shared.isPlaylistFavorite(id: playlistId, context: context)
-        loadFavorites()
-        return result
+        FavoritesManager.shared.isPlaylistFavorite(id: playlistId, context: context)
     }
 
     deinit {
