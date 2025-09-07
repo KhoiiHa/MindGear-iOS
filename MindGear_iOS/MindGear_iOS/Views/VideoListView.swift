@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 
+// Liste aller Videos einer Playlist mit Suche und Favoritenfilter
 struct VideoListView: View {
     let playlistID: String // Playlist-ID für Debugging speichern
     private let context: ModelContext
@@ -77,6 +78,7 @@ struct VideoListView: View {
         }
     }
 
+    // MARK: - UI
     // Ausgelagerte Liste zur Entlastung der Typinferenz
     @ViewBuilder private var videosList: some View {
         Group {
@@ -119,6 +121,7 @@ struct VideoListView: View {
         }
     }
 
+    // MARK: - UI
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {

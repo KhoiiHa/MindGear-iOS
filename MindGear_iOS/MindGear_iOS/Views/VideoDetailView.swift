@@ -2,6 +2,7 @@ import SwiftUI
 import WebKit
 import SwiftData
 
+// Detailansicht für ein Video mit eingebettetem Player
 struct VideoDetailView: View {
     let video: Video
     @State private var isFavorite: Bool
@@ -51,6 +52,7 @@ struct VideoDetailView: View {
         return URL(string: "https://www.youtube-nocookie.com/embed/\(id)?playsinline=1&rel=0&modestbranding=1")
     }
 
+    // MARK: - UI
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.m) {

@@ -9,11 +9,13 @@
 
 import SwiftUI
 
+// Zeigt Video in Listenform mit Favoritenbutton
 struct VideoRow: View {
     let video: Video
     @Environment(\.modelContext) private var context
     @State private var isFavorite: Bool = false
 
+    // MARK: - UI
     var body: some View {
         HStack(alignment: .top, spacing: AppTheme.Spacing.m) {
             ThumbnailView(

@@ -1,9 +1,11 @@
 import SwiftUI
 
+// Einfache Einführungssequenz beim ersten Start
 struct OnboardingView: View {
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
     @State private var page: Int = 0
 
+    // MARK: - UI
     var body: some View {
         NavigationStack {
             ZStack(alignment: .topTrailing) {

@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+// Zeigt Videos einer Playlist inklusive Suche und Favoritenbutton
 struct PlaylistView: View {
     @StateObject private var viewModel: VideoViewModel
     @StateObject private var favoritesViewModel: PlaylistFavoritesViewModel
@@ -53,6 +54,7 @@ struct PlaylistView: View {
         return Array(merged.prefix(6))
     }
 
+    // MARK: - UI
     // Schlankes Suchfeld – Debounce steckt im ViewModel
     private var headerSearch: some View {
         SearchField(
@@ -73,6 +75,7 @@ struct PlaylistView: View {
         .accessibilityAddTraits(.isSearchField)
     }
 
+    // MARK: - UI
     var body: some View {
         List(viewModel.filteredVideos) { video in
             NavigationLink(destination: VideoDetailView(video: video, context: context)) {

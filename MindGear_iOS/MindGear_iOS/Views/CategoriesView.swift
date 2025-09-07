@@ -8,6 +8,7 @@
 import SwiftUI
 import UIKit
 
+// Übersicht aller Kategorien
 struct CategoriesView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
@@ -22,6 +23,7 @@ struct CategoriesView: View {
         }
     }
 
+    // MARK: - UI
     var body: some View {
         NavigationStack {
             ScrollView {

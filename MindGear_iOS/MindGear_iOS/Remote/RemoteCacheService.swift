@@ -7,6 +7,7 @@
 
 import Foundation
 
+// Lädt vorab gespeicherte JSON-Caches von GitHub
 struct RemotePlaylistsCache: Codable {
     let fetchedAt: String
     let playlists: [PlaylistMeta]
@@ -48,6 +49,7 @@ enum RemoteCacheService {
     static func playlistsURL() -> URL { URL(string: "\(base())/playlists.json")! }
     static func videosURL(playlistId: String) -> URL { URL(string: "\(base())/videos_\(playlistId).json")! }
 
+    // MARK: - Loading
     static func loadPlaylists() async throws -> RemotePlaylistsCache {
         let (d,r) = try await URLSession.shared.data(from: playlistsURL())
         guard let h = r as? HTTPURLResponse, (200..<300).contains(h.statusCode) else { throw AppError.networkError }

@@ -3,8 +3,8 @@
 //  MindGear_iOS
 //
 //  Created by Vu Minh Khoi Ha on 12.08.25.
-//
 
+// Überwacht die Verbindung und lädt Mentoren aus der YouTube-API
 import Foundation
 import Network
 import Combine
@@ -33,7 +33,7 @@ final class NetworkMonitor: ObservableObject {
     // Singleton-Instanz – ein Monitor für die gesamte App
     static let shared = NetworkMonitor()
 
-    // Veröffentlicht: Online-/Offline-Status
+    // MARK: - State
     @Published private(set) var isOnline: Bool = true
     @Published private(set) var isExpensive: Bool = false      // z. B. Hotspot
     @Published private(set) var isConstrained: Bool = false    // Low Data Mode
@@ -42,6 +42,7 @@ final class NetworkMonitor: ObservableObject {
     private let monitor: NWPathMonitor
     private let queue = DispatchQueue(label: "NetworkMonitor.queue")
 
+    // MARK: - Init
     private init() {
         monitor = NWPathMonitor()
         monitor.pathUpdateHandler = { [weak self] path in
@@ -96,7 +97,8 @@ final class NetworkManager {
 
     private var monitor: NetworkMonitor { NetworkMonitor.shared }
 
-    /// Lädt einen Mentor per YouTube-Handle (z. B. "ShiHengYiOnline") und mappt ihn auf dein `Mentor`-Model.
+    // MARK: - Mentor Loading
+    /// Lädt einen Mentor per YouTube-Handle
     @MainActor
     func loadMentor(byHandle handle: String, apiKey: String) async throws -> Mentor {
         dlog("fetch by handle=\(handle), key=\(maskKey(apiKey))")
@@ -114,7 +116,7 @@ final class NetworkManager {
         return mapChannelItemToMentor(item)
     }
 
-    /// Lädt einen Mentor per YouTube-Channel-ID (z. B. "UCRRtZjnxd5N6Vvq-jU9uoOw") und mappt ihn auf dein `Mentor`-Model.
+    /// Lädt einen Mentor per YouTube-Channel-ID
     @MainActor
     func loadMentor(byChannelId id: String, apiKey: String) async throws -> Mentor {
         dlog("fetch by channelId=\(id), key=\(maskKey(apiKey))")

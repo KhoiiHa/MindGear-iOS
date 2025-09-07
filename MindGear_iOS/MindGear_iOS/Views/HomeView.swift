@@ -9,6 +9,7 @@
 import SwiftUI
 import SwiftData
 
+// Startseite mit empfohlenen Playlists (Remote-Cache via GitHub)
 // Lightweight VM for remote playlists (GitHub Actions cache)
 @MainActor
 private final class HomeRemoteViewModel: ObservableObject {
@@ -42,6 +43,7 @@ struct HomeView: View {
     @Environment(\.modelContext) private var context
     @StateObject private var rvm = HomeRemoteViewModel()
 
+    // MARK: - UI
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {

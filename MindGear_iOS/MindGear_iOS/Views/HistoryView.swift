@@ -15,6 +15,7 @@ struct HistoryView: View {
         return f
     }()
 
+    // MARK: - UI
     var body: some View {
         List {
             ForEach(viewModel.history, id: \.videoId) { entry in

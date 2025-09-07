@@ -9,12 +9,15 @@
 
 import Foundation
 
+// Liest Werte aus Config.plist und normalisiert URLs
 struct ConfigManager {
+    // MARK: - API Keys
     /// Primärer API-Key für YouTube – nur aus Config.plist
     static var youtubeAPIKey: String {
         getValue(for: "YOUTUBE_API_KEY")
     }
 
+    // MARK: - Basis-URL
     /// Basis-URL für API-Aufrufe, aus der Config gelesen (normalisiert & validiert)
     static func apiBaseURL() -> URL {
         var raw = getValue(for: "API_BASE_URL").trimmingCharacters(in: .whitespacesAndNewlines)
@@ -49,7 +52,7 @@ struct ConfigManager {
         return cleanURL
     }
 
-    /// Einheitlicher Resolver (portfolio-clean): nutzt ausschließlich `YOUTUBE_API_KEY` aus Config.plist
+    /// Einheitlicher Resolver (portfolio-clean): nutzt ausschließlich `YOUTUBE_API_KEY`
     static var resolvedYouTubeAPIKey: String {
         getValue(for: "YOUTUBE_API_KEY")
     }
@@ -59,6 +62,7 @@ struct ConfigManager {
         getValue(for: "YOUTUBE_API_KEY")
     }
 
+    // MARK: - Mentor IDs
     static var chrisWillxChannelId: String {
         return getValue(for: "CHRISWILLX_CHANNEL_ID")
     }
@@ -123,7 +127,8 @@ struct ConfigManager {
         return getValue(for: "SHIHENGYI_PLAYLIST")
     }
 
-    /// Gibt alle Playlist-IDs zurück, die einem Mentor-Channel zugeordnet sind (MENTOR_PLAYLISTS in Config.plist).
+    // MARK: - Mentor Playlists
+    /// Gibt alle Playlist-IDs zurück, die einem Mentor-Channel zugeordnet sind
     static func playlists(for mentorId: String) -> [String] {
         guard let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
               let dict = NSDictionary(contentsOfFile: path),
@@ -134,7 +139,8 @@ struct ConfigManager {
         return arr
     }
 
-    /// Liefert den Wert aus Config.plist, falls vorhanden; sonst `nil`.
+    // MARK: - Helpers
+    /// Liefert den Wert aus Config.plist, falls vorhanden; sonst `nil`
     private static func getOptionalValue(for key: String) -> String? {
         guard let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
               let dict = NSDictionary(contentsOfFile: path),
