@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 
+/// ViewModel für Einzelmentor und Mentorenliste
 @MainActor
 class MentorViewModel: ObservableObject {
     // MARK: - State

@@ -6,16 +6,17 @@ extension Notification.Name {
 import Foundation
 import SwiftData
 
-// Diese Datei verwaltet Favoriten für Videos und Mentoren.
-// Sie ermöglicht das Speichern, Abrufen und Verwalten von Favoriten, um Nutzern eine personalisierte Erfahrung zu bieten.
-
+// Verwalten aller Favoritenarten für personalisierte Inhalte
 final class FavoritesManager {
     static let shared = FavoritesManager()
+
+    // MARK: - State
     private let defaultsKey = "simpleFavorites"
     private let defaults = UserDefaults.standard
 
     init() {}
 
+    // MARK: - Video
     @MainActor
     // Prüft, ob ein Video als Favorit markiert ist ✅
     func isVideoFavorite(video: Video, context: ModelContext) -> Bool {
@@ -47,7 +48,7 @@ final class FavoritesManager {
     }
 
     @MainActor
-    // Schaltet den Favoritenstatus eines Videos um (hinzufügen oder entfernen)
+    // Schaltet den Favoritenstatus eines Videos um
     func toggleVideoFavorite(video: Video, context: ModelContext) async {
         do {
             let vid = video.id
@@ -135,6 +136,7 @@ final class FavoritesManager {
         }
     }
 
+    // MARK: - Playlist
     @MainActor
     // Prüft, ob eine Playlist als Favorit gespeichert ist
     func isPlaylistFavorite(id: String, context: ModelContext) -> Bool {
@@ -189,7 +191,7 @@ final class FavoritesManager {
 
     // MARK: - Einfache Favoriten nach ID
 
-    /// Schaltet den Favoritenstatus für eine beliebige ID um.
+    /// Schaltet den Favoritenstatus für eine beliebige ID um
     func toggle(_ id: String) {
         var items = Set(all())
         if items.contains(id) {
@@ -200,17 +202,17 @@ final class FavoritesManager {
         defaults.set(Array(items), forKey: defaultsKey)
     }
 
-    /// Prüft, ob eine ID als Favorit hinterlegt ist.
+    /// Prüft, ob eine ID als Favorit hinterlegt ist
     func isFavorite(_ id: String) -> Bool {
         return all().contains(id)
     }
 
-    /// Liefert alle gespeicherten Favoriten-IDs.
+    /// Liefert alle gespeicherten Favoriten-IDs
     func all() -> [String] {
         return defaults.stringArray(forKey: defaultsKey) ?? []
     }
 
-    /// Entfernt eine ID aus den Favoriten.
+    /// Entfernt eine ID aus den Favoriten
     func remove(_ id: String) {
         var items = all()
         items.removeAll { $0 == id }

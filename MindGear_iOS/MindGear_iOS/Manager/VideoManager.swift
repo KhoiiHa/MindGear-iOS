@@ -2,11 +2,13 @@
 /// Diese Klasse vereinfacht den Zugriff auf YouTube-Playlist-Videos und stellt Beispielvideos bereit.
 import Foundation
 
+// Liefert Beispielvideos und kapselt API-Aufrufe
 final class VideoManager {
     static let shared = VideoManager()
 
     private init() {}
 
+    // MARK: - Sample Data
     func getSampleVideos() -> [Video] {
         return [
             Video(
@@ -28,7 +30,8 @@ final class VideoManager {
         ]
     }
 
-    /// Lädt die erste Seite einer Playlist.
+    // MARK: - API
+    /// Lädt die erste Seite einer Playlist
     func fetchFirstPage(
         playlistId: String,
         apiKey: String,
@@ -37,7 +40,7 @@ final class VideoManager {
         try await api.fetchVideos(from: playlistId, apiKey: apiKey, pageToken: nil)
     }
 
-    /// Lädt die erste Seite einer YouTube-Suche.
+    /// Lädt die erste Seite einer YouTube-Suche
     func fetchFirstSearchPage(
         query: String,
         apiKey: String,
@@ -46,7 +49,7 @@ final class VideoManager {
         try await api.searchVideos(query: query, apiKey: apiKey, pageToken: nil)
     }
 
-    /// Lädt eine Vorschau-Liste für eine Playlist.
+    /// Lädt eine Vorschau-Liste für eine Playlist
     func fetchPlaylistPreview(
         playlistId: String,
         category: String,
@@ -57,12 +60,13 @@ final class VideoManager {
         return response.items.prefix(limit).compactMap { $0.toVideo(category: category) }
     }
 
-    /// Resolve a single video by UUID from a provided list (e.g., cached or currently loaded videos)
+    // MARK: - Helpers
+    /// Sucht Video per UUID in einer Liste
     func getVideo(by id: UUID, in list: [Video]) -> Video? {
         list.first { $0.id == id }
     }
 
-    /// Convenience: resolve by String id (e.g., when favorites store ids as String)
+    /// Variante für String-ID (z. B. Favoriten)
     func getVideo(by idString: String, in list: [Video]) -> Video? {
         guard let uuid = UUID(uuidString: idString) else { return nil }
         return getVideo(by: uuid, in: list)

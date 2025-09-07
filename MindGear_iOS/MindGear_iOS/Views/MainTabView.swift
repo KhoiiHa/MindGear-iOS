@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import UIKit
 
+// Tab-Bar der App mit Hauptbereichen
 struct MainTabView: View {
     enum Tab: Hashable { case home, mentors, videos, favorites, settings }
     @State private var selection: Tab
@@ -49,6 +50,7 @@ struct MainTabView: View {
         }.resizableImage(withCapInsets: UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10))
     }
 
+    // MARK: - UI
     var body: some View {
         TabView(selection: $selection) {
             // 1) Home – sichtbar

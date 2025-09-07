@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+// Detailseite einer Kategorie mit Playlists und Suche
 struct CategoryDetailView: View {
     let category: Category
     let modelContext: ModelContext
@@ -30,6 +31,7 @@ struct CategoryDetailView: View {
         .accessibilityHint("Eingeben, um Inhalte in dieser Kategorie zu filtern.")
     }
 
+    // MARK: - UI
     var body: some View {
         ScrollView {
             VStack(spacing: AppTheme.Spacing.l) {

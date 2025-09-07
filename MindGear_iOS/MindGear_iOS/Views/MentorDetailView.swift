@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+// Detailansicht eines Mentors mit API-Refresh
 @MainActor
 struct MentorDetailView: View {
     private var modelContext: ModelContext
@@ -31,6 +32,7 @@ struct MentorDetailView: View {
         _viewModel = StateObject(wrappedValue: MentorViewModel(mentor: mentor, context: context))
     }
 
+    // MARK: - UI
     var body: some View {
         ScrollView {
             VStack(alignment: .center, spacing: AppTheme.Spacing.l) {

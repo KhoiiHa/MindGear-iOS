@@ -1,8 +1,10 @@
 import Foundation
 import SwiftData
 
+// Steuert Videos einer Playlist inkl. Suche, Paging und Offline-Fallback
 @MainActor
 class VideoViewModel: ObservableObject {
+    // MARK: - State
     // Merker: Welche Playlists wurden in dieser App-Session bereits einmal initial geladen?
     private static var loadedOnce = Set<String>()
     @Published var videos: [Video] = []

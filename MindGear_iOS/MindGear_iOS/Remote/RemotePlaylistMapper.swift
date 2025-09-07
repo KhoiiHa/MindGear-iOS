@@ -7,6 +7,7 @@
 
 import Foundation
 
+// Hilfsfunktionen zum Abbilden von Playlist-Caches
 extension RemotePlaylistsCache.PlaylistMeta {
     var bestThumb: String? {
         thumbnails?.high ?? thumbnails?.medium ?? thumbnails?.`default`

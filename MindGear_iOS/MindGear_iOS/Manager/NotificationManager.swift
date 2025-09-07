@@ -2,28 +2,31 @@ import Foundation
 import UserNotifications
 import UIKit
 
-/// Handles notification scheduling. Currently contains stubs for upcoming features.
+// Verwalten lokaler Benachrichtigungen der App
 final class NotificationManager {
     static let shared = NotificationManager()
     private init() {}
 
+    // MARK: - State
     private let center = UNUserNotificationCenter.current()
 
-    /// Requests notification authorization from the user.
+    // MARK: - Authorization
+    /// Fragt die Berechtigung beim Nutzer an
     func requestAuthorization(completion: @escaping (Bool) -> Void) {
         center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
             DispatchQueue.main.async { completion(granted) }
         }
     }
 
-    /// Retrieves the current notification authorization status.
+    /// Liefert aktuellen Berechtigungsstatus
     func getAuthorizationStatus(completion: @escaping (UNAuthorizationStatus) -> Void) {
         center.getNotificationSettings { settings in
             DispatchQueue.main.async { completion(settings.authorizationStatus) }
         }
     }
 
-    /// Opens the system settings for the app so the user can manage notification permissions.
+    // MARK: - Navigation
+    /// Öffnet Systemeinstellungen für Rechte
     func openSystemSettings() {
         guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
         if UIApplication.shared.canOpenURL(url) {
@@ -31,8 +34,8 @@ final class NotificationManager {
         }
     }
 
-    /// Once permissions have been granted, this will schedule a daily local notification reminder.
-    /// - Note: Implementation will be added in a later ticket.
+    // MARK: - Scheduling
+    /// Platzhalter für tägliche Erinnerung
     func scheduleDailyReminder() {
         // TODO: Request authorization and schedule notification
     }

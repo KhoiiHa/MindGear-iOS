@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 
+// Zeigt alle Favoriten mit Filter- und Suchfunktion
 // Zugriff auf den im ViewModel definierten Item-Typ
 private typealias FavoriteItem = FavoritenViewModel.FavoriteItem
 
@@ -37,6 +38,7 @@ struct FavoritenView: View {
         _viewModel = StateObject(wrappedValue: FavoritenViewModel(context: context))
     }
 
+    // MARK: - Computed State
     // Vereinheitlichte Quelle: gemischte Favoriten aus dem ViewModel
     private var combinedFavorites: [FavoriteItem] {
         let items = viewModel.allFavorites
@@ -79,6 +81,7 @@ struct FavoritenView: View {
         return Array(merged.prefix(6))
     }
 
+    // MARK: - UI
     // Schlankes Suchfeld über der Liste – Filter passiert lokal via searchText
     private var headerSearch: some View {
         VStack(spacing: AppTheme.Spacing.s) {
@@ -138,6 +141,7 @@ struct FavoritenView: View {
         .accessibilityAddTraits(.isHeader)
     }
 
+    // MARK: - UI
     var body: some View {
         List {
             if filteredFavorites.isEmpty {

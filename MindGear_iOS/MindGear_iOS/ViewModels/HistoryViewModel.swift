@@ -8,8 +8,8 @@
 import Foundation
 import SwiftData
 
-/// ViewModel für den Video‑Verlauf ("Zuletzt gesehen").
-/// Nutzt SwiftData mit FetchDescriptor/SortDescriptor (ohne async/await).
+/// ViewModel für den Video‑Verlauf ("Zuletzt gesehen")
+/// Nutzt SwiftData mit FetchDescriptor/SortDescriptor (ohne async/await)
 @MainActor
 final class HistoryViewModel: ObservableObject {
     // MARK: - State

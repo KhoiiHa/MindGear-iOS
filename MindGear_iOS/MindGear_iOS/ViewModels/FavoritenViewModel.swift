@@ -9,6 +9,7 @@ import Foundation
 import SwiftData
 import SwiftUI
 
+/// Bündelt Video-, Mentor- und Playlist-Favoriten für die UI
 @MainActor
 class FavoritenViewModel: ObservableObject {
 

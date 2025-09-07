@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+// Kompakte Karte zum Navigieren in eine Playlist
 struct PlaylistCard: View {
     let title: String
     let subtitle: String
@@ -17,6 +18,7 @@ struct PlaylistCard: View {
 
     @Environment(\.colorScheme) private var colorScheme
 
+    // MARK: - UI
     var body: some View {
         NavigationLink {
             VideoListView(playlistID: playlistID, context: context)

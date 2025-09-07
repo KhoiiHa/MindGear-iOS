@@ -7,6 +7,7 @@
 
 import Foundation
 
+// Wandelt Remote-JSON in lokale Video-Modelle um
 extension RemoteVideosCache.VideoItem {
     /// Wählt die beste Thumbnail-URL (high > medium > default)
     var bestThumb: String? {

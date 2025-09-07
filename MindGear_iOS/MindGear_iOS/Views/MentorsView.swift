@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+// Listet Mentoren mit Suche und Favoritenstatus
 struct MentorsView: View {
     @StateObject private var viewModel = MentorViewModel()
     @State private var searchText = ""
@@ -119,6 +120,7 @@ struct MentorsView: View {
         .clipShape(Circle())
     }
 
+    // MARK: - UI
     var body: some View {
         // Liste der gefilterten Mentoren
         List(displayedMentors, id: \.id) { mentor in

@@ -11,6 +11,7 @@ import SwiftData
 
 /// ViewModel für das Verwalten von favorisierten **Playlists**.
 /// Nutzt `FavoritePlaylistEntity` (SwiftData) und den `FavoritesManager`.
+/// Zeigt Favoritenliste für Playlists im Tab "Favoriten".
 @MainActor
 final class PlaylistFavoritesViewModel: ObservableObject {
     // MARK: - State

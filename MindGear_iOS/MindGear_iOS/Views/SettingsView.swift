@@ -1,11 +1,13 @@
 import SwiftUI
 
+// Einstellungen für Profil, Benachrichtigungen und Onboarding
 struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
     @State private var showResetAlert = false
 
+    // MARK: - UI
     var body: some View {
         NavigationStack {
             Form {
