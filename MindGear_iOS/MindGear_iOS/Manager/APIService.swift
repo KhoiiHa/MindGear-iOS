@@ -1,4 +1,15 @@
-// Zentrale YouTube-API-Schicht mit Retry und Caching
+//
+//  APIService.swift
+//  MindGear_iOS
+//
+//  Zweck: Zentrale YouTube-API-Schicht mit Retry, Fallback-Hosts und In‑Memory‑Cache.
+//  Architekturrolle: Service/Manager (Networking-Fassade über URLSession).
+//  Verantwortung: Resiliente Fetches (Playlist, Suche, Channels, PlaylistInfo), Pagination & Koaleszierung.
+//  Warum? Entkoppelt Views/ViewModels von HTTP, bündelt Fehlerbehandlung & Diagnose.
+//  Testbarkeit: Über `APIServiceProtocol` mockbar; deterministische Response-Pfade pro Endpunkt.
+//  Status: stabil.
+//
+// Kurzzusammenfassung: Einheitliche API-Aufrufe, Backoff-Retries, Host-Fallbacks, HTML-Erkennung, JSON-Decoding mit Diagnose.
 import Foundation
 
 // YouTube-Fehlerhülle zum Dekodieren von Fehlerantworten
@@ -7,20 +18,32 @@ struct YouTubeAPIErrorEnvelope: Decodable, Error {
     let error: Inner
 }
 
+// MARK: - Protokoll(e)
 protocol APIServiceProtocol {
-    /// Lädt YouTube-PlaylistItems. Optionaler pageToken ermöglicht Pagination.
+    /// Lädt YouTube-PlaylistItems.
+    /// Warum: Bietet Pagination via `pageToken` und nutzt Session-Cache + Request-Koaleszierung.
+    /// - Parameters:
+    ///   - playlistId: ID der YouTube-Playlist
+    ///   - apiKey: gültiger YouTube API Key
+    ///   - pageToken: optionaler Token für Folgeseiten
     func fetchVideos(from playlistId: String, apiKey: String, pageToken: String?) async throws -> YouTubeResponse
 
-    /// Sucht YouTube-Videos. Optionaler pageToken ermöglicht Pagination.
+    /// Sucht YouTube-Videos.
+    /// Warum: Bewusst ohne Session-Cache, um frische Ergebnisse zu liefern.
+    /// - Parameters:
+    ///   - query: Suchbegriff(e)
+    ///   - apiKey: gültiger YouTube API Key
+    ///   - pageToken: optionaler Token für Folgeseiten
     func searchVideos(query: String, apiKey: String, pageToken: String?) async throws -> YouTubeSearchResponse
 }
 
-// MARK: - Einfache In-Memory-Response-Cache + Request-Bündelung (pro App-Session)
+// MARK: - Response Cache (In‑Memory + Koaleszierung pro App-Session)
 private struct CacheKey: Hashable {
     let playlistId: String
     let pageToken: String?
 }
 
+// Warum: Vermeidet Doppel-Requests bei schneller UI-Interaktion und reduziert Latenz durch einfache Memory-Hits.
 private actor ResponseCache {
     private var store: [CacheKey: YouTubeResponse] = [:]
     private var inflight: [CacheKey: Task<YouTubeResponse, Error>] = [:]
@@ -34,10 +57,13 @@ private actor ResponseCache {
     func clear() { store.removeAll(); inflight.removeAll() }
 }
 
+// MARK: - Implementierung: APIService
 final class APIService: APIServiceProtocol {
     static let shared = APIService()
     private static let cache = ResponseCache()
-
+    
+    // MARK: - Configuration (URLSession)
+    // Warum: `ephemeral` vermeidet persistente Reste; Timeouts & Header sind zentral definiert für konsistentes Verhalten.
     private static let session: URLSession = {
         let cfg = URLSessionConfiguration.ephemeral
         var headers: [AnyHashable: Any] = [
@@ -58,12 +84,14 @@ final class APIService: APIServiceProtocol {
     private init() {}
 
     // MARK: - Helpers
+    // Warum: Minimale Guardrails (API-Key-Validierung) nahe am Aufrufer für frühe Fehler.
     private func isValidApiKey(_ key: String) -> Bool {
         let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
         return !trimmed.isEmpty && trimmed != "REPLACE_ME"
     }
 
-    // Führt den tatsächlichen Netzwerkabruf aus (ohne Cache/Koaleszierung)
+    /// Low-Level-Fetch für PlaylistItems.
+    /// Warum: Enthält die robuste Pfadlogik (Host-Fallbacks, Backoff-Retry, HTML-Erkennung, Diagnose) ohne Cache/Koaleszierung.
     private func performNetworkFetch(playlistId: String, apiKey: String, pageToken: String?) async throws -> YouTubeResponse {
         // Versuche beide bekannten Hosts, um Probleme mit Edge-Netzwerken zu umgehen
         let hosts = [
@@ -169,7 +197,8 @@ final class APIService: APIServiceProtocol {
         throw lastError
     }
 
-    // Führt den tatsächlichen Netzwerkabruf für die YouTube-Suche aus (ohne Cache/Koaleszierung)
+    /// Low-Level-Fetch für die YouTube-Suche.
+    /// Warum: Gleiche Resilienz wie bei PlaylistItems; bewusst ohne Session-Cache, um Suchergebnisse aktuell zu halten.
     private func performSearchFetch(query: String, apiKey: String, pageToken: String?) async throws -> YouTubeSearchResponse {
         let hosts = [
             "https://www.googleapis.com/youtube/v3/search",
@@ -302,7 +331,7 @@ final class APIService: APIServiceProtocol {
         }
     }
 
-    // MARK: - Suche (ohne Session-Cache, bewusst einfach gehalten)
+    // MARK: - Suche (bewusst ohne Session-Cache)
     func searchVideos(query: String, apiKey: String, pageToken: String?) async throws -> YouTubeSearchResponse {
         guard isValidApiKey(apiKey) else {
             print("⚠️ [APIService] Kein gültiger YouTube API Key – überspringe Request und nutze Seed/Cache (searchVideos).")
@@ -311,8 +340,9 @@ final class APIService: APIServiceProtocol {
         return try await performSearchFetch(query: query, apiKey: apiKey, pageToken: pageToken)
     }
 
-    // MARK: - Channels (YouTube Channel Lookup without cache)
-    // Low-level fetch that mirrors the retry/diagnostic style of the other endpoints.
+    // MARK: - Channels (Lookup ohne Cache)
+    /// Low-Level-Fetch für Channels-Endpunkt.
+    /// Warum: Teilt sich die Retries/Fallbacks; QueryItems erlauben flexible Aufrufer (byId/byHandle).
     private func performChannelFetch(queryItems: [URLQueryItem]) async throws -> YouTubeChannelListResponse {
         let hosts = [
             "https://www.googleapis.com/youtube/v3/channels",
@@ -435,7 +465,8 @@ final class APIService: APIServiceProtocol {
         ])
     }
 
-    /// Convenience: Versucht zuerst per Channel-ID, fällt bei Bedarf auf Handle zurück und gibt das erste Item
+    /// Convenience: Bevorzugt Channel-ID, fällt bei Bedarf auf Handle zurück.
+    /// Warum: Flexible Aufrufer in ViewModels; liefert deterministisch das erste Item.
     func fetchChannel(preferId channelId: String?, handle: String?, apiKey: String) async throws -> YouTubeChannelItem {
         guard isValidApiKey(apiKey) else {
             print("⚠️ [APIService] Kein gültiger YouTube API Key – überspringe Request (fetchChannel preferId/handle).")
@@ -453,6 +484,8 @@ final class APIService: APIServiceProtocol {
     }
 
     // MARK: - Playlist Info (YouTube Playlist Lookup)
+    /// Playlist-Metadaten laden (Titel, Beschreibung, Thumbnail) für UI-Listen.
+    /// Warum: Trimmt Antwort auf minimal benötigte Felder; vereinfacht Mapping ins UI-Modell `PlaylistInfo`.
     func fetchPlaylistInfo(playlistId: String, apiKey: String = ConfigManager.youtubeAPIKey) async throws -> PlaylistInfo {
         guard isValidApiKey(apiKey) else {
             print("⚠️ [APIService] Kein gültiger YouTube API Key – überspringe Request (fetchPlaylistInfo).")
@@ -537,7 +570,7 @@ final class APIService: APIServiceProtocol {
     }
 }
 
-// MARK: - Channels Response Models
+// MARK: - Response Models (Channels & Thumbnails)
 struct YouTubeChannelListResponse: Decodable {
     let items: [YouTubeChannelItem]
 }

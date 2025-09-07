@@ -2,13 +2,20 @@
 //  CategoryDetailView.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 06.08.25.
+//  Zweck: Detailseite einer Kategorie mit Playlist‑Vorschauen & lokalem Suchfeld.
+//  Architekturrolle: SwiftUI View (präsentationsnah).
+//  Verantwortung: Header‑Suche, Vorschau‑Sektionen, Navigation zu Video/Playlist.
+//  Warum? Schlanke UI; Datenbeschaffung & Logik liegen in ViewModels/Services.
+//  Testbarkeit: Previews & klare Accessibility‑Labels/IDs.
+//  Status: stabil.
 //
 
 import SwiftUI
 import SwiftData
+// Kurzzusammenfassung: Oben Suchfeld, darunter 1–2 Playlist‑Previews (Empfohlen/Neu) mit Navigation.
 
-// Detailseite einer Kategorie mit Playlists und Suche
+// MARK: - CategoryDetailView
+// Warum: Präsentiert kuratierten Inhalt pro Kategorie; bindet Playlist‑Previews ein.
 struct CategoryDetailView: View {
     let category: Category
     let modelContext: ModelContext
@@ -17,7 +24,8 @@ struct CategoryDetailView: View {
     @State private var searchText: String = ""
     @Environment(\.colorScheme) private var colorScheme
 
-    // Schlankes Suchfeld als Header – Filter passiert in den Vorschau‑Sektionen
+    // MARK: - Subviews (Header)
+    // Schlankes Suchfeld (lokal) – Filter greift in den Preview‑Sektionen
     private var headerSearch: some View {
         SearchField(
             text: $searchText,
@@ -31,7 +39,7 @@ struct CategoryDetailView: View {
         .accessibilityHint("Eingeben, um Inhalte in dieser Kategorie zu filtern.")
     }
 
-    // MARK: - UI
+    // MARK: - Body
     var body: some View {
         ScrollView {
             VStack(spacing: AppTheme.Spacing.l) {
@@ -90,6 +98,7 @@ struct CategoryDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.visible, for: .navigationBar)
         .safeAreaInset(edge: .top) {
+            // Warum: Suchfeld bleibt visuell an die Navigation gekoppelt
             headerSearch
                 .background(AppTheme.listBackground(for: colorScheme))
         }
@@ -98,8 +107,10 @@ struct CategoryDetailView: View {
         }
     }
 
-    // Liefert die empfohlenen und neuen Playlist-IDs für die aktuelle Kategorie
+    // MARK: - Helpers
+    // Liefert die empfohlenen und neuen Playlist‑IDs für die aktuelle Kategorie
     private var playlistIDs: (recommended: String?, recent: String?) {
+        // Hinweis: Mapping ist bewusst simpel; kann später über Config/Remote ersetzt werden
         switch category.name {
         case "Mindset":
             return (ConfigManager.recommendedPlaylistId, ConfigManager.recommendedPlaylistId)
@@ -124,7 +135,8 @@ struct CategoryDetailView: View {
 }
 
 
-// PlaylistPreviewSection: Zeigt einen horizontalen Bereich mit Video-Thumbnails einer Playlist und "Alle anzeigen"-Button
+// MARK: - PlaylistPreviewSection
+// Warum: Wiederverwendbare, horizontale Vorschau einer Playlist (5er‑Teaser)
 struct PlaylistPreviewSection: View {
     let title: String
     let playlistId: String
@@ -149,6 +161,7 @@ struct PlaylistPreviewSection: View {
         }
     }
 
+    // MARK: - Body
     var body: some View {
         Group {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
@@ -255,7 +268,8 @@ struct PlaylistPreviewSection: View {
         }
     }
 
-    // Lädt die ersten Videos einer Playlist über den APIService und mappt sie auf `Video`
+    /// Lädt eine kleine Vorschau (bis zu `limit` Items) für die Playlist und mappt auf `Video`.
+    /// Warum: Schneller Teaser in der Kategorie; vollständige Liste steckt in `PlaylistView`.
     @MainActor
     func loadPreview(limit: Int = 5) async {
         if hasLoaded { return }
@@ -267,6 +281,7 @@ struct PlaylistPreviewSection: View {
             return
         }
         do {
+            // Datenquelle: Direkter API‑Call (hier keine Remote‑Cache‑Nutzung, da nur Teaser)
             // API-Aufruf: nutzt den stabilisierten APIService
             let response = try await APIService.shared.fetchVideos(from: playlistId, apiKey: ConfigManager.youtubeAPIKey, pageToken: nil)
             // Map auf Domain-Model (robuster Mapper mit Fallbacks)
@@ -282,3 +297,4 @@ struct PlaylistPreviewSection: View {
         }
     }
 }
+

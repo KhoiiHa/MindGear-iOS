@@ -2,26 +2,37 @@
 //  HomeView.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 04.07.25.
+//  Zweck: Startseite mit empfohlenen Playlists (Remote‑Cache) und kuratierten Mentoren.
+//  Architekturrolle: SwiftUI View (präsentationsnah) + leichtes Remote‑ViewModel.
+//  Verantwortung: Header, Sektionen, Remote‑Teaser, Navigation zu Playlists.
+//  Warum? Schlanke UI; Datenbeschaffung & Caching liegen in Services (RemoteCacheService).
+//  Testbarkeit: Previews + klare Accessibility‑IDs.
+//  Status: stabil.
 //
-
 
 import SwiftUI
 import SwiftData
 
-// Startseite mit empfohlenen Playlists (Remote-Cache via GitHub)
-// Lightweight VM for remote playlists (GitHub Actions cache)
+// Kurzzusammenfassung: Oben Titel/Unterzeile, darunter Remote‑Playlists (GitHub Cache) oder lokale Kuratierung.
+
+// MARK: - HomeRemoteViewModel (leichtgewichtig)
+// Warum: Lädt einmalig einen Remote‑Teaser; UI bleibt responsiv ohne harte Abhängigkeit.
 @MainActor
 private final class HomeRemoteViewModel: ObservableObject {
+    // MARK: - State
     @Published var remotePlaylists: [PlaylistInfo] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
 
+    /// Lädt einmalig Remote‑Playlists aus dem GitHub‑Cache.
+    /// Warum: Schneller perceived Load ohne direkte API‑Kosten; UI fällt bei Fehlern auf lokale Kuratierung zurück.
     func load() async {
         guard remotePlaylists.isEmpty else { return } // only once per appearance
         isLoading = true; defer { isLoading = false }
         do {
+            // Datenquelle: Remote‑Cache (GitHub Actions) – robust & günstig
             let remote = try await RemoteCacheService.loadPlaylists()
+            // Mapping: Remote‑Schema → App‑Modell (PlaylistInfo)
             let mapped: [PlaylistInfo] = remote.playlists.map { m in
                 let thumb = m.thumbnails?.high ?? m.thumbnails?.medium ?? m.thumbnails?.`default`
                 return PlaylistInfo(
@@ -34,7 +45,8 @@ private final class HomeRemoteViewModel: ObservableObject {
             }
             self.remotePlaylists = mapped
         } catch {
-            print("ℹ️ HomeView Remote playlists failed → fallback: \(error.localizedDescription)")
+            // Fallback: Keine harten Fehler in der UI – lokale Kuratierung verwenden
+            print("ℹ️ [Home] Remote‑Playlists fehlgeschlagen → Fallback: \(error.localizedDescription)")
         }
     }
 }
@@ -43,7 +55,7 @@ struct HomeView: View {
     @Environment(\.modelContext) private var context
     @StateObject private var rvm = HomeRemoteViewModel()
 
-    // MARK: - UI
+    // MARK: - Body
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
@@ -51,7 +63,7 @@ struct HomeView: View {
                 AppTheme.backgroundGradient
                     .ignoresSafeArea()
 
-                // Header tint: subtle and short, faded to transparent
+                // Warum: Oberer Verlauf gibt Tiefe/Lesbarkeit, ohne Inhalte zu überdecken
                 AppTheme.headerGradient
                     .mask(
                         LinearGradient(
@@ -70,6 +82,7 @@ struct HomeView: View {
 
                         // Modernized header
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
+                            // Seitenkopf: klare Hierarchie (H1 + Subheadline)
                             Text("Startseite")
                                 .font(AppTheme.Typography.title)
                                 .foregroundStyle(AppTheme.Colors.textPrimary)
@@ -118,6 +131,7 @@ struct HomeView: View {
                                 }
                                 .padding(.vertical, AppTheme.Spacing.s)
                             } else if !rvm.remotePlaylists.isEmpty {
+                                // Karten: Navigations‑Teaser zu PlaylistView
                                 ForEach(rvm.remotePlaylists) { playlist in
                                     PlaylistCard(
                                         title: playlist.title,
@@ -130,6 +144,7 @@ struct HomeView: View {
                                     .accessibilityIdentifier("homePlaylistCard_\(playlist.playlistID)")
                                 }
                             } else {
+                                // Karten: Navigations‑Teaser zu PlaylistView
                                 ForEach(playlists) { playlist in
                                     PlaylistCard(
                                         title: playlist.title,
@@ -160,4 +175,5 @@ struct HomeView: View {
 
 #Preview {
     HomeView()
+    HomeView().preferredColorScheme(.dark)
 }

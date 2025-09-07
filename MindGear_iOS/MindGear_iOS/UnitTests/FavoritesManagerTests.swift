@@ -2,12 +2,20 @@
 //  FavoritesManagerTests.swift
 //  MindGear_iOSTests
 //
-//  Created by Vu Minh Khoi Ha on 04.09.25.
+//  Zweck: UnitTests für FavoritesManager (Hinzufügen, Entfernen, Persistenz).
+//  Architekturrolle: XCTestCase (UnitTest‑Layer).
+//  Verantwortung: Prüft Toggle‑Logik, all()‑Rückgabe & Persistenz zwischen Instanzen.
+//  Warum? Fehlerhafte Favoritenlogik würde zentrale App‑Funktionalität brechen.
+//  Testbarkeit: Deterministisch, da sut mit leerem State initialisiert wird.
+//  Status: stabil.
 //
 
 import XCTest
 @testable import MindGear_iOS
+// Kurzzusammenfassung: Testet Toggle‑Verhalten, all()‑IDs & Persistenz zwischen Instanzen.
 
+// MARK: - FavoritesManagerTests
+/// UnitTests für die Favoritenlogik (Toggle, all, Persistenz).
 final class FavoritesManagerTests: XCTestCase {
 
     private var sut: FavoritesManager! // System Under Test

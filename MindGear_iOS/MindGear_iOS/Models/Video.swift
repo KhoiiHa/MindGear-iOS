@@ -2,15 +2,19 @@
 //  Video.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 04.07.25.
+//  Zweck: Datenmodell für Videos inkl. Titel, Beschreibung, Thumbnail & YouTube‑ID.
+//  Architekturrolle: Model (Codable, Hashable, Identifiable).
+//  Verantwortung: Einheitliche Struktur für API/Seeds; Referenz in Favoriten, History & Views.
+//  Warum? Klare Entkopplung von API‑Schemas; zentrale Definition.
+//  Testbarkeit: Codable + Equatable → leicht in UnitTests prüfbar.
+//  Status: stabil.
 //
 
-
 import Foundation
+// Kurzzusammenfassung: Video mit ID, Titel, Beschreibung, Thumbnail‑URL, YouTube‑URL & Kategorie.
 
-/// Diese Struktur repräsentiert ein Video mit allen relevanten Eigenschaften.
-/// Sie ist Identifiable für eindeutige Identifikation, Hashable für die Verwendung in Sets oder als Dictionary-Schlüssel,
-/// und Codable, um einfache Kodierung und Dekodierung für Speicherung oder Netzwerkübertragungen zu ermöglichen.
+// MARK: - Video
+/// Repräsentiert ein Video mit Metadaten & Favoriten‑Flag.
 struct Video: Identifiable, Hashable, Codable {
     let id: UUID
     let title: String
@@ -24,10 +28,12 @@ struct Video: Identifiable, Hashable, Codable {
     var isFavorite: Bool = false
 }
 
+// MARK: - Helpers
 extension Video {
-    /// Extrahiert die YouTube-Video-ID aus verschiedenen URL-Formaten.
-    /// - Akzeptiert: Voll-URL (https://www.youtube.com/watch?v=ID), Kurz-URL (https://youtu.be/ID) oder bereits nackte ID.
-    /// - Gibt: Die erkannte Video-ID zurück; bei Nicht-Erkennung den Original-String.
+    /// Extrahiert eine YouTube‑Video‑ID aus verschiedenen Eingabeformaten.
+    /// - Unterstützt: watch?v=ID, youtu.be/ID, nackte ID.
+    /// - Fallback: Gibt den Original‑String zurück.
+    /// Warum: Vereinheitlicht die Speicherung & Weiterverarbeitung.
     static func extractVideoID(from raw: String) -> String {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return trimmed }
@@ -48,6 +54,8 @@ extension Video {
     }
 }
 
+// MARK: - Sample Data
+/// Beispielvideos für Previews & Tests.
 let sampleVideos: [Video] = [
     Video(
         id: UUID(),

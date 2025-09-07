@@ -2,14 +2,21 @@
 //  FavoritenViewModel.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 07.07.25.
+//  Zweck: UI‑Zustand & Logik für die Favoriten‑Übersicht (Videos, Mentoren, Playlists).
+//  Architekturrolle: ViewModel (MVVM).
+//  Verantwortung: Laden/Sortieren, Toggle‑Intents, Live‑Updates via Notification.
+//  Warum? Entkoppelt Views von Persistenz‑/Service‑Details; deterministisches UI‑Binding.
+//  Testbarkeit: SwiftData‑Context injizierbar; Notifications und State leicht zu verifizieren.
+//  Status: stabil.
 //
 
 import Foundation
 import SwiftData
 import SwiftUI
+// Kurzzusammenfassung: Aggregiert Favoriten aus SwiftData, hört auf Änderungen und bietet Toggle/Queries für die UI.
 
-/// Bündelt Video-, Mentor- und Playlist-Favoriten für die UI
+// MARK: - Implementierung: FavoritenViewModel
+// Warum: Zentralisiert Favoriten‑State; erleichtert UI‑Tests & Wiederverwendung.
 @MainActor
 class FavoritenViewModel: ObservableObject {
 
@@ -29,18 +36,19 @@ class FavoritenViewModel: ObservableObject {
     }
 
     // MARK: - State
+    // ⚠️ UI-Test IDs: favoritesSearchField, favoritesList, favoritesDeleteButton (siehe Tests)
     @Published var allFavorites: [FavoriteItem] = []
-    // ⚠️ UI-Test IDs: favoritesSearchField, favoritesList, favoritesDeleteButton
-
+    // Injektionspunkt für SwiftData – erleichtert Tests & Previews
     let context: ModelContext
+    // Hält Notification-Token für Live-Updates (Thread-sicher via @MainActor)
     private var favoritesObserver: NSObjectProtocol?
 
-    // MARK: - Init / Deinit
+    // MARK: - Init
     init(context: ModelContext) {
         self.context = context
-        // Initial laden
+        // Initial-Ladung für sofortige UI (deterministische Startliste)
         loadFavorites()
-        // Live-Updates beobachten (Thread-sicher via MainActor)
+        // Live-Updates: reagiert auf .favoritesDidChange und lädt sortiert neu
         favoritesObserver = NotificationCenter.default.addObserver(forName: .favoritesDidChange, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
                 self?.loadFavorites()
@@ -48,8 +56,8 @@ class FavoritenViewModel: ObservableObject {
         }
     }
 
-    // Lädt alle Favoriten aus Video, Mentor und Playlist, sortiert nach Datum – wichtig für UI-Tests (Liste → favoritesList).
-    // MARK: - Loading
+    /// Lädt alle Favoriten (Video, Mentor, Playlist) und sortiert absteigend nach Datum.
+    /// Warum: Konsistente Anzeige & deterministische UI‑Tests (Liste → `favoritesList`).
     func loadFavorites() {
         let videoFavorites = FavoritesManager.shared.getAllVideoFavorites(context: context).map {
             FavoriteItem(
@@ -79,24 +87,28 @@ class FavoritenViewModel: ObservableObject {
             )
         }
         let combined = videoFavorites + mentorFavorites + playlistFavorites
+        // Neueste zuerst – erleichtert Wahrnehmung & Teststabilität
         allFavorites = combined.sorted(by: { $0.dateAdded > $1.dateAdded })
     }
 
-    // UI-Test: Favorit-Status eines Videos ändern (Button-ID: favoriteButton).
-    // MARK: - Mutations (toggle)
+    // MARK: - Actions (Toggle)
+
+    /// Schaltet den Favoritenstatus eines Videos um.
+    /// Warum: Delegiert Persistenz an FavoritesManager und hält UI state‑aktuell.
     func toggleFavorite(video: Video) async {
         await FavoritesManager.shared.toggleVideoFavorite(video: video, context: context)
         loadFavorites()
     }
 
-    // UI-Test: Favorit-Status eines Mentors ändern.
+    /// Schaltet den Favoritenstatus eines Mentors um.
+    /// Warum: Delegiert Persistenz an FavoritesManager und hält UI state‑aktuell.
     func toggleFavorite(mentor: Mentor) async {
         await FavoritesManager.shared.toggleMentorFavorite(mentor: mentor, context: context)
         loadFavorites()
     }
 
-    // UI-Test: Favorit-Status einer Playlist ändern.
     /// Schaltet den Favoritenstatus einer Playlist um.
+    /// Warum: Delegiert Persistenz an FavoritesManager; UI erhält aktualisierte Liste.
     /// Verwende `playlistId`, `title` und `thumbnailURL` aus deiner View / deinem ViewModel.
     func togglePlaylistFavorite(id playlistId: String, title: String, thumbnailURL: String) async {
         await FavoritesManager.shared.togglePlaylistFavorite(
@@ -108,23 +120,25 @@ class FavoritenViewModel: ObservableObject {
         loadFavorites()
     }
 
-    // Prüfen ob Video als Favorit markiert ist.
-    // MARK: - Queries (read-only)
+    // MARK: - Queries (Read‑Only)
+
+    /// Warum: Schneller Lookup für Bindings/Buttons in der UI.
     func isFavorite(video: Video) -> Bool {
         FavoritesManager.shared.isVideoFavorite(video: video, context: context)
     }
 
-    // Prüfen ob Mentor als Favorit markiert ist.
+    /// Warum: Schneller Lookup für Bindings/Buttons in der UI.
     func isFavorite(mentor: Mentor) -> Bool {
         FavoritesManager.shared.isMentorFavorite(mentor: mentor, context: context)
     }
 
-    // Prüfen ob Playlist als Favorit markiert ist.
+    /// Warum: Schneller Lookup für Bindings/Buttons in der UI.
     /// Prüft, ob eine Playlist bereits favorisiert ist.
     func isPlaylistFavorite(id playlistId: String) -> Bool {
         FavoritesManager.shared.isPlaylistFavorite(id: playlistId, context: context)
     }
 
+    // MARK: - Deinit
     deinit {
         if let observer = favoritesObserver {
             NotificationCenter.default.removeObserver(observer)

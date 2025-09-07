@@ -2,13 +2,20 @@
 //  PlaylistView.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 29.07.25.
+//  Zweck: Anzeige einer Playlist mit Suche, Favoriten‑Toggle & Pull‑to‑Refresh.
+//  Architekturrolle: SwiftUI View (präsentationsnah).
+//  Verantwortung: Listendarstellung, Suchfeld (lokal, debounced via ViewModel), Navigation, Toolbar‑Action.
+//  Warum? Schlanke UI; Datenbeschaffung/Paging/Filter liegen im VideoViewModel.
+//  Testbarkeit: Klare Accessibility‑IDs; Preview mit In‑Memory ModelContext.
+//  Status: stabil.
 //
 
 import SwiftUI
 import SwiftData
+// Kurzzusammenfassung: Filterbare Liste (debounced), Toolbar‑Herz für Playlist‑Favorit, Refresh triggert API‑Reload.
 
-// Zeigt Videos einer Playlist inklusive Suche und Favoritenbutton
+// MARK: - PlaylistView
+// Warum: Präsentiert Playlist‑Videos; ViewModel kapselt Laden/Suche/Paging.
 struct PlaylistView: View {
     @StateObject private var viewModel: VideoViewModel
     @StateObject private var favoritesViewModel: PlaylistFavoritesViewModel
@@ -38,7 +45,7 @@ struct PlaylistView: View {
         )
     }
     
-    // Autovervollständigung: lokale Vorschläge aus den aktuell sichtbaren Videos
+    // Vorschläge lokal aus sichtbaren Titeln (Prefix zuerst), max. 6 – kein API‑Call nötig
     private var suggestionItems: [String] {
         let q = viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         let query = q.lowercased()
@@ -54,8 +61,8 @@ struct PlaylistView: View {
         return Array(merged.prefix(6))
     }
 
-    // MARK: - UI
-    // Schlankes Suchfeld – Debounce steckt im ViewModel
+    // MARK: - Subviews (Header)
+    // Schlankes Suchfeld – Debounce steckt im ViewModel (Warum: schnelle UX ohne API‑Kosten)
     private var headerSearch: some View {
         SearchField(
             text: searchTextBinding,
@@ -75,7 +82,7 @@ struct PlaylistView: View {
         .accessibilityAddTraits(.isSearchField)
     }
 
-    // MARK: - UI
+    // MARK: - Body
     var body: some View {
         List(viewModel.filteredVideos) { video in
             NavigationLink(destination: VideoDetailView(video: video, context: context)) {
@@ -85,6 +92,7 @@ struct PlaylistView: View {
         }
         .accessibilityIdentifier("playlistList")
         .refreshable {
+            // Force‑Reload → überspringt Session‑Guard und lädt frische Daten
             await viewModel.loadVideos(forceReload: true)
         }
         .tint(AppTheme.Colors.accent)
@@ -95,10 +103,12 @@ struct PlaylistView: View {
         .listRowSeparatorTint(AppTheme.Colors.separator)
         .overlay(alignment: .center) {
             if firstLoad && viewModel.filteredVideos.isEmpty {
+                // Erstes Laden – zeige Spinner, bis erste Seite da ist
                 ProgressView("Lade Videos…")
                     .progressViewStyle(CircularProgressViewStyle())
                     .padding()
             } else if viewModel.filteredVideos.isEmpty {
+                // Leerzustand nach erstem Load – Hinweis auf Suche/Refresh
                 ContentUnavailableView(
                     "Keine Videos",
                     systemImage: "video.slash",
@@ -108,11 +118,13 @@ struct PlaylistView: View {
             }
         }
         .task {
+            // Initial‑Load: Remote‑Cache → API‑Fallback; Favoritenstatus laden
             await viewModel.loadVideos()
             favoritesViewModel.reload()
             firstLoad = false
         }
         .safeAreaInset(edge: .top) {
+            // Warum: Suchfeld bleibt an die Navigation „angedockt“ (klare Hierarchie)
             headerSearch
                 .padding(.bottom, 8)
                 .background(AppTheme.listBackground(for: colorScheme))
@@ -123,6 +135,7 @@ struct PlaylistView: View {
         .tint(AppTheme.Colors.accent)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbar {
+            // Favoriten‑Toggle der Playlist in der Toolbar (gut auffindbar)
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     Task { @MainActor in
@@ -145,5 +158,15 @@ struct PlaylistView: View {
 }
 
 #Preview {
-    EmptyView()
+    // In‑Memory Container für eine isolierte Preview
+    let container = try! ModelContainer(
+        for: WatchHistoryEntity.self,
+            FavoritePlaylistEntity.self,
+            FavoriteVideoEntity.self,
+            FavoriteMentorEntity.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
+    return NavigationStack {
+        PlaylistView(playlistId: "PL_PREVIEW_123", context: container.mainContext)
+    }
 }

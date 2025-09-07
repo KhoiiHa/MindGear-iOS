@@ -2,37 +2,48 @@
 //  HistoryViewModel.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 11.08.25.
+//  Zweck: UI‑Zustand & Logik für den Video‑Verlauf („Zuletzt gesehen“).
+//  Architekturrolle: ViewModel (MVVM).
+//  Verantwortung: Laden, Hinzufügen, Aktualisieren, Löschen von Verlaufseinträgen.
+//  Warum? Entkoppelt Views von Persistenz‑Details; konsistente Anzeige und deterministische Tests.
+//  Testbarkeit: SwiftData‑Context injizierbar; State‑Updates klar prüfbar.
+//  Status: stabil.
 //
 
 import Foundation
 import SwiftData
 
-/// ViewModel für den Video‑Verlauf ("Zuletzt gesehen")
-/// Nutzt SwiftData mit FetchDescriptor/SortDescriptor (ohne async/await)
+// Kurzzusammenfassung: Nutzt SwiftData (FetchDescriptor/SortDescriptor) für deterministisches Laden, hält State via @Published.
+
+// MARK: - Implementierung: HistoryViewModel
+// Warum: Zentralisiert Verlauf‑State; erleichtert UI‑Tests und Wiederverwendung.
 @MainActor
 final class HistoryViewModel: ObservableObject {
     // MARK: - State
+    // Enthält WatchHistoryEntities, sortiert nach watchedAt (neueste zuerst).
     @Published var history: [WatchHistoryEntity] = []
 
     // MARK: - Loading
-    /// Lädt den Verlauf, sortiert nach `watchedAt` (neueste zuerst).
+    /// Lädt den Verlauf (WatchHistoryEntity), sortiert nach `watchedAt` absteigend.
+    /// Warum: UI braucht deterministische Reihenfolge für Anzeige & Tests.
     func loadHistory(context: ModelContext) {
         let descriptor = FetchDescriptor<WatchHistoryEntity>(
             sortBy: [SortDescriptor(\.watchedAt, order: .reverse)]
         )
         do {
+            // Neueste zuerst → UI bleibt konsistent & testbar
             history = try context.fetch(descriptor)
         } catch {
             print("Failed to load history:", error)
         }
     }
 
-    // MARK: - Mutations
+    // MARK: - Actions (Mutations)
     /// Fügt einen Verlaufseintrag hinzu oder aktualisiert den Zeitstempel, falls bereits vorhanden.
+    /// Warum: Dedupliziert nach videoId; aktualisiert statt dupliziert – verhindert aufgeblähte History.
     func addToHistory(videoId: String, title: String, thumbnailURL: String, context: ModelContext) {
         do {
-            // Dedup nach videoId
+            // Dedup nach videoId – bestehender Eintrag wird aktualisiert statt dupliziert.
             let predicate = #Predicate<WatchHistoryEntity> { $0.videoId == videoId }
             let existingDescriptor = FetchDescriptor<WatchHistoryEntity>(predicate: predicate)
             if let existing = try context.fetch(existingDescriptor).first {
@@ -57,6 +68,7 @@ final class HistoryViewModel: ObservableObject {
 
     // MARK: - Deletion
     /// Entfernt einen Verlaufseintrag.
+    /// Warum: UI soll verlässlich konsistent bleiben; State wird nach Save neu geladen.
     func deleteFromHistory(entry: WatchHistoryEntity, context: ModelContext) {
         context.delete(entry)
         do {

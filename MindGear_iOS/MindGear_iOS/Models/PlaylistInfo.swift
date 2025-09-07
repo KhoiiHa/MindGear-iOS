@@ -2,15 +2,20 @@
 //  PlaylistInfo.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 04.08.25.
+//  Zweck: Kompaktes Modell für Playlists (Titel, Untertitel, Icon, ID, optionales Thumbnail).
+//  Architekturrolle: Model (Codable, Hashable, Identifiable).
+//  Verantwortung: Einheitliche Struktur für UI & Remote‑Daten.
+//  Warum? Views & ViewModels greifen auf dieselben Properties zu; klare Entkopplung von API.
+//  Testbarkeit: Codable + Equatable → leicht in UnitTests prüfbar.
+//  Status: stabil.
 //
 
 import Foundation
 
-/// Diese Struktur repräsentiert die grundlegenden Informationen einer Playlist,
-/// einschließlich Titel, Untertitel, Icon und einer eindeutigen ID.
-/// Sie ist identifizierbar, hashbar und codierbar, um Vergleiche, Speicherung in Sets
-/// sowie Kodierung und Dekodierung für Persistenz oder Netzwerkoperationen zu ermöglichen.
+// Kurzzusammenfassung: Playlist mit Titel/Untertitel/Icon/ID + optionalem Thumbnail.
+
+// MARK: - PlaylistInfo
+/// Kompaktes Playlist‑Modell; nutzbar für UI‑Listen, Favoriten & Remote‑Mappers.
 struct PlaylistInfo: Identifiable, Hashable, Codable {
     var id: String { playlistID } // Für ForEach
     let title: String

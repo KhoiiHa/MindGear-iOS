@@ -1,10 +1,23 @@
+//
+//  FavoritenView.swift
+//  MindGear_iOS
+//
+//  Zweck: Übersicht & Verwaltung aller Favoriten (Videos, Mentoren, Playlists) mit Suche & Filter.
+//  Architekturrolle: SwiftUI View (präsentationsnah).
+//  Verantwortung: Segment-Filter, Suchfeld, Liste, Swipe-to-Delete, Navigation.
+//  Warum? Schlanke UI; Persistenz/Logik liegt in ViewModels/Services.
+//  Testbarkeit: Accessibility-IDs + Previews ermöglichen stabile UI-Tests.
+//  Status: stabil.
+//
 import SwiftUI
 import SwiftData
 
-// Zeigt alle Favoriten mit Filter- und Suchfunktion
-// Zugriff auf den im ViewModel definierten Item-Typ
+// Kurzzusammenfassung: Segmentierter Filter, lokaler Such-Overlay, gemischte Liste mit Navigation & Delete.
+
+// MARK: - Types
 private typealias FavoriteItem = FavoritenViewModel.FavoriteItem
 
+// UI-Filter (Alle/Videos/Mentoren/Playlists) – wirkt nur lokal auf die kombinierte Liste
 private enum FavoriteFilter: String, CaseIterable, Identifiable {
     case all = "Alle"
     case videos = "Videos"
@@ -21,6 +34,7 @@ private enum FavoriteFilter: String, CaseIterable, Identifiable {
     }
 }
 
+// MARK: - Routing
 private enum Route: Hashable {
     case mentor(String)    // channelId oder Name
     case playlist(String)  // playlistId
@@ -38,7 +52,7 @@ struct FavoritenView: View {
         _viewModel = StateObject(wrappedValue: FavoritenViewModel(context: context))
     }
 
-    // MARK: - Computed State
+    // MARK: - State (Computed)
     // Vereinheitlichte Quelle: gemischte Favoriten aus dem ViewModel
     private var combinedFavorites: [FavoriteItem] {
         let items = viewModel.allFavorites
@@ -69,7 +83,7 @@ struct FavoritenView: View {
         }
     }
 
-    // Vorschläge aus allen Titeln, ohne Duplikate
+    // Vorschläge aus allen Titeln (Prefix bevorzugt), ohne Duplikate
     private var suggestionItems: [String] {
         let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard q.count >= 2 else { return [] }
@@ -81,8 +95,8 @@ struct FavoritenView: View {
         return Array(merged.prefix(6))
     }
 
-    // MARK: - UI
-    // Schlankes Suchfeld über der Liste – Filter passiert lokal via searchText
+    // MARK: - Subviews (Header)
+    // Schlankes Suchfeld über der Liste – Filter passiert lokal via searchText (Warum: schnelle UX ohne API-Kosten)
     private var headerSearch: some View {
         VStack(spacing: AppTheme.Spacing.s) {
             Picker("Filter", selection: $selectedFilter) {
@@ -141,7 +155,7 @@ struct FavoritenView: View {
         .accessibilityAddTraits(.isHeader)
     }
 
-    // MARK: - UI
+    // MARK: - Body
     var body: some View {
         List {
             if filteredFavorites.isEmpty {
@@ -156,6 +170,7 @@ struct FavoritenView: View {
                         Section {
                             ForEach(videoFavorites, id: \._id) { item in
                                 row(for: item)
+                                // Warum: Swipe-to-Delete statt versteckter Menüs → klare, erwartbare Interaktion
                                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                         Button(role: .destructive) { delete(item: item) } label: {
                                             Label("Löschen", systemImage: "trash")
@@ -175,6 +190,7 @@ struct FavoritenView: View {
                         Section {
                             ForEach(mentorFavorites, id: \._id) { item in
                                 row(for: item)
+                                // Warum: Swipe-to-Delete statt versteckter Menüs → klare, erwartbare Interaktion
                                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                         Button(role: .destructive) { delete(item: item) } label: {
                                             Label("Löschen", systemImage: "trash")
@@ -194,6 +210,7 @@ struct FavoritenView: View {
                         Section {
                             ForEach(playlistFavorites, id: \._id) { item in
                                 row(for: item)
+                                // Warum: Swipe-to-Delete statt versteckter Menüs → klare, erwartbare Interaktion
                                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                         Button(role: .destructive) { delete(item: item) } label: {
                                             Label("Löschen", systemImage: "trash")
@@ -212,6 +229,7 @@ struct FavoritenView: View {
                 } else {
                     ForEach(filteredFavorites, id: \._id) { item in
                         row(for: item)
+                        // Warum: Swipe-to-Delete statt versteckter Menüs → klare, erwartbare Interaktion
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button(role: .destructive) { delete(item: item) } label: {
                                     Label("Löschen", systemImage: "trash")
@@ -239,9 +257,11 @@ struct FavoritenView: View {
         .toolbarBackground(.visible, for: .navigationBar)
         .scrollDismissesKeyboard(.immediately)
         .safeAreaInset(edge: .top) {
+            // Warum: Suchfeld bleibt visuell an die Navigation gekoppelt (klare Hierarchie)
             headerSearch
                 .background(AppTheme.listBackground(for: colorScheme))
         }
+        // MARK: - Navigation
         .navigationDestination(for: Route.self) { route in
             switch route {
             case .mentor(let id):
@@ -262,6 +282,7 @@ struct FavoritenView: View {
         }
     }
 
+    // MARK: - Row
     @ViewBuilder
     private func row(for item: FavoriteItem) -> some View {
         switch item.type {
@@ -401,10 +422,12 @@ struct FavoritenView: View {
     }
 
 
+    // MARK: - Resolvers
     private func resolveVideo(for id: String) -> Video? {
-        // Favoriten enthalten alle nötigen Felder, daher können wir das Video aus SwiftData rekonstruieren
+        // Rekonstruktion aus Favoriten-Entity (enthält alle nötigen Felder)
+        // Hinweis: In Favoriten ist `item.id` oft die Entity-UUID; Fallback über `videoURL` erlaubt Navigation
+        // (Warum: robust gegen ältere gespeicherte Einträge)
         let all: [FavoriteVideoEntity] = (try? context.fetch(FetchDescriptor<FavoriteVideoEntity>())) ?? []
-        // In den Favoriten ist `item.id` in der Regel die Entity-UUID als String; fallback: match über videoURL
         if let fav = all.first(where: { String(describing: $0.id) == id || $0.videoURL == id }) {
             return Video(
                 id: fav.id,
@@ -451,6 +474,8 @@ struct FavoritenView: View {
         )
     }
 
+    // MARK: - Actions (Deletion)
+    // Warum: Löschen zentral kapseln; UI-Listen reagieren via .favoritesDidChange
     private func deleteFavorite(at offsets: IndexSet) {
         var toDelete: [any PersistentModel] = []
         for index in offsets {
@@ -475,11 +500,12 @@ struct FavoritenView: View {
         }
         toDelete.forEach { context.delete($0) }
         do { try context.save() } catch { print("Save failed (favorite delete):", error) }
+        // UI informieren: Listen & Badges aktualisieren
         NotificationCenter.default.post(name: .favoritesDidChange, object: nil)
     }
 
     private func deleteFrom(list: [FavoriteItem], at offsets: IndexSet) {
-        // Map section-local indices to combinedFavorites indices
+        // Mappt Abschnitts-Indizes korrekt auf die kombinierte Liste
         let ids = offsets.compactMap { list[$0].id }
         let indexes = combinedFavorites.enumerated().compactMap { idx, el in ids.contains(el.id) ? idx : nil }
         deleteFavorite(at: IndexSet(indexes))
@@ -504,11 +530,27 @@ struct FavoritenView: View {
             }
         }
         do { try context.save() } catch { print("Save failed (favorite delete single):", error) }
+        // UI informieren (Single-Delete): Konsistentes Refresh der Favoriten-Views
         NotificationCenter.default.post(name: .favoritesDidChange, object: nil)
     }
 }
 
+// MARK: - Internal Helpers
+// Warum: Stabiles `id`-Binding für List/ForEach via `_id`
 extension FavoriteItem {
     fileprivate var _id: String { self.id }
 }
 
+
+// MARK: - Preview
+#Preview {
+    let container = try! ModelContainer(
+        for: FavoriteVideoEntity.self,
+             FavoriteMentorEntity.self,
+             FavoritePlaylistEntity.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
+    return NavigationStack {
+        FavoritenView(context: container.mainContext)
+    }
+}

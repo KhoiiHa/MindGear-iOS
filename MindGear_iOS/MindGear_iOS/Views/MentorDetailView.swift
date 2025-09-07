@@ -2,13 +2,21 @@
 //  MentorDetailView.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 05.08.25.
+//  Zweck: Detailseite für Mentoren mit API‑Refresh & Favoriten‑Toggle.
+//  Architekturrolle: SwiftUI View (präsentationsnah).
+//  Verantwortung: Profilkopf, Bio, Social‑Links, verknüpfte Playlists, Favoriten‑Action.
+//  Warum? Schlanke UI; Datenbeschaffung & Logik liegen in ViewModels/Services.
+//  Testbarkeit: Klare Accessibility‑IDs; Previews optional mit In‑Memory ModelContext.
+//  Status: stabil.
 //
 
 import SwiftUI
 import SwiftData
 
-// Detailansicht eines Mentors mit API-Refresh
+// Kurzzusammenfassung: Zeigt Mentor‑Profil, Bio & Playlists; aktualisiert aus API; Favoriten‑Button in der Toolbar.
+
+// MARK: - MentorDetailView
+// Warum: Präsentiert Mentor‑Profil; ViewModel kapselt Laden/Favoriten/Observer.
 @MainActor
 struct MentorDetailView: View {
     private var modelContext: ModelContext
@@ -16,11 +24,15 @@ struct MentorDetailView: View {
     @State private var lastUpdated: Date? = nil
     @State private var configPlaylists: [PlaylistInfo] = []
 
-    // Entfernt optionales "[Seed]"-Prefix aus dem Namen
+    // MARK: - Helpers
+    /// Entfernt ein optionales "[Seed]"‑Präfix für saubere UI‑Titel.
+    /// Warum: Seeds sind Datenquelle, aber nicht Teil der Nutzeroberfläche.
     private func cleanSeed(_ s: String) -> String {
         s.replacingOccurrences(of: #"^\[Seed\]\s*"#, with: "", options: [.regularExpression])
     }
 
+    /// Gibt eine relative Zeitangabe zurück (z. B. „vor 2 Std.“).
+    /// Warum: Nutzerfreundlicher als starre Datumsstrings.
     private func relative(_ date: Date) -> String {
         let f = RelativeDateTimeFormatter()
         f.unitsStyle = .short
@@ -32,7 +44,7 @@ struct MentorDetailView: View {
         _viewModel = StateObject(wrappedValue: MentorViewModel(mentor: mentor, context: context))
     }
 
-    // MARK: - UI
+    // MARK: - Body
     var body: some View {
         ScrollView {
             VStack(alignment: .center, spacing: AppTheme.Spacing.l) {
@@ -69,6 +81,7 @@ struct MentorDetailView: View {
                                 ProgressView()
                             case .success(let image):
                                 image.resizable().aspectRatio(contentMode: .fill)
+                                .accessibilityHidden(true)
                             case .failure:
                                 Image(systemName: "person.crop.circle.fill")
                                     .resizable()
@@ -93,6 +106,7 @@ struct MentorDetailView: View {
                             .foregroundStyle(AppTheme.Colors.iconSecondary)
                             .shadow(color: AppTheme.Colors.shadowCard.opacity(0.6), radius: 12, x: 0, y: 6)
                             .accessibilityIdentifier("mentorProfileImage")
+                            .accessibilityHidden(true)
                     }
 
                     // Name des Mentors anzeigen
@@ -207,7 +221,7 @@ struct MentorDetailView: View {
         .navigationTitle("Mentor-Profil")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            // Herz-Button zum Favorisieren
+            // Warum: Favorisieren direkt sichtbar – vermeidet versteckte Menüs
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     Task {
@@ -221,7 +235,7 @@ struct MentorDetailView: View {
                 .animation(.easeInOut, value: viewModel.isFavorite)
             }
         }
-        // Synchronisieren des Favoritenstatus beim Anzeigen der Ansicht
+        // Lifecycle: Favoriten‑Observer aktivieren & Daten laden
         .onAppear {
             viewModel.startObservingFavorites()
         }
@@ -231,16 +245,21 @@ struct MentorDetailView: View {
         }
         .onChange(of: viewModel.mentor?.name, initial: false) { _, newValue in
             if let new = newValue, !new.isEmpty, !new.hasPrefix("[Seed]") {
+                // Hinweis: Nur setzen, wenn echter Name (ohne Seed‑Präfix) ankommt
                 lastUpdated = Date()
             }
         }
         .onChange(of: viewModel.mentor?.profileImageURL, initial: false) { _, _ in
+            // Profilbild geändert → Zeitstempel aktualisieren (UI‑Hinweis „Aktualisiert …“)
             lastUpdated = Date()
         }
     }
 
+    /// Lädt verknüpfte Playlists aus der Config (App‑Kuratierung) und ergänzt sie zur API‑Liste.
+    /// Warum: Robust gegen fehlende API‑Daten; konsistente Anzeige der Playlists.
     private func loadConfigPlaylists() async {
         guard let mentor = viewModel.mentor else { return }
+        // Quelle: Config.plist (Single Source of Truth für kuratierte Playlists)
         let ids = ConfigManager.playlists(for: mentor.id)
         var results: [PlaylistInfo] = []
         for pid in ids {
@@ -248,6 +267,7 @@ struct MentorDetailView: View {
                 results.append(info)
             }
         }
+        // UI‑Update auf dem Main‑Thread (State‑Änderung)
         await MainActor.run { self.configPlaylists = results }
     }
 }

@@ -1,14 +1,28 @@
+//
+//  AppTheme.swift
+//  MindGear_iOS
+//
+//  Zweck: Zentrale Design‑Tokens (Farben, Typografie, Abstände, Radien, Gradients) für konsistentes UI.
+//  Architekturrolle: Utility (präsentationsnah, keine Geschäftslogik).
+//  Verantwortung: Benannte Tokens & Gradients, Backwards‑Compat‑Aliases, dynamische Helper pro ColorScheme.
+//  Warum? Einheitlicher Look & Feel; vermeidet „Magic Numbers“ & Streuung von Hex‑Strings in Views.
+//  Testbarkeit: Deterministische Konstanten; Previews/UITests profitieren von stabilen Werten.
+//  Status: stabil.
+//
+
 import SwiftUI
 
-/// Central design tokens used across the app (colors, spacing, radii, fonts, gradients).
-/// Lean and readable, geared for the new calm/modern moodboard (blue/violet + glass look).
+// Kurzzusammenfassung: Calm/modern Look (blue/violet + glass) mit klaren Tokens & Backwards‑Compat‑Namespaces.
+
+/// Zentrale Design‑Tokens (Farben, Spacing, Radien, Fonts, Gradients)
+/// Schlank & lesbar; Moodboard: blau/violett + „glass look“
 struct AppTheme {
-    /// Back-compat: allow `AppTheme.Color` (alias to SwiftUI.Color)
-    typealias Color = SwiftUI.Color
+    // Warum: Einfache, benannte Farben statt verstreuter Hex‑Strings; Dark‑optimiert
     // MARK: - Colors
     static let backgroundPrimary   = Color(hex: "#070A15")
     static let backgroundSecondary = Color(hex: "#0B1225")
     static let background = backgroundPrimary
+    // Subtile Glass‑Surface (Dark) – erhöht Lesbarkeit ohne starke Kontraste
     static let surfaceElevated = Color.white.opacity(0.06)
     /// Base surface color (alias to elevated for now; keeps API simple in views)
     static let surface = surfaceElevated
@@ -20,11 +34,13 @@ struct AppTheme {
     static let cardBackground = surfaceElevated
     static let accent = Color(hex: "#4B3F9E")
     static let accentDeep = Color(hex: "#3A2D7A")
+    // Brand‑Verlauf für CTAs (Primary)
     static let accentGradient = LinearGradient(
         colors: [Color(hex: "#4B3F9E"), Color(hex: "#3A2D7A")],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
+    // Alias: „Pill“ nutzt denselben Verlauf wie Capsule (Button‑Style)
     static var pillGradient: LinearGradient { capsuleGradient }
     static let textPrimary = Color.white
     static let textSecondary = Color.white.opacity(0.7)
@@ -35,20 +51,23 @@ struct AppTheme {
     static let highlight = Color(hex: "#C084FC")
 
     // Legacy tokens used in older views (kept for back-compat)
+    // Legacy/Alert‑Farbe – bewusst sparsam einsetzen
     static let danger = Color(hex: "#EF4444")
     static let shadowCard = Color.black.opacity(0.25)
 
-    /// Dynamic plain card background color (compat with old call-sites calling a function)
+    /// Dynamischer Karten‑Hintergrund (Glass in Dark, leichte Tönung in Light).
+    /// Warum: Verhindert harte Blöcke; bleibt lesbar.
     static func cardBackground(for scheme: ColorScheme) -> Color {
         scheme == .dark ? surfaceElevated : Color.black.opacity(0.05)
     }
 
-    /// Subtle card stroke for glass look
+    /// Subtiler Rand für „Glass Look“.
+    /// Warum: Bessere Abgrenzung ohne sichtbares „Rahmen‑Gefühl“.
     static func cardStroke(for scheme: ColorScheme) -> Color {
         scheme == .dark ? Color.white.opacity(0.14) : Color.black.opacity(0.08)
     }
 
-    /// Stable, opaque TabBar background to avoid UIKit translucency/white bleed
+    /// Stabile TabBar‑Fläche (gegen UIKit‑Transluzenz/White‑Bleed).
     static func tabBarBackground(for scheme: ColorScheme) -> Color {
         scheme == .dark ? backgroundPrimary : Color.white
     }
@@ -57,6 +76,7 @@ struct AppTheme {
     }
 
     // MARK: - Color namespace (backwards-compat for AppTheme.Colors.*)
+    // Warum: Backwards‑Compat für ältere Call‑Sites (AppTheme.Colors.*)
     struct Colors {
         // Backgrounds & surfaces
         static let backgroundPrimary   = AppTheme.backgroundPrimary
@@ -104,10 +124,10 @@ struct AppTheme {
     }
 
     // MARK: - Gradients
-    /// Pills, primary CTA
+    /// Pills / Primary CTA
     static var capsuleGradient: LinearGradient { accentGradient }
 
-    /// Large headers / hero areas
+    // Große Header/Hero‑Flächen – tiefer Verlauf mit leichtem Cyan‑Akzent
     static var headerGradient: LinearGradient {
         LinearGradient(
             gradient: Gradient(colors: [Color(hex: "#0B1220"), Color(hex: "#1B2A4A"), Color(hex: "#2EC5CE")]),
@@ -116,7 +136,7 @@ struct AppTheme {
         )
     }
 
-    /// Background gradient for screens (deeper than header)
+    // Screen‑Hintergrund (ruhig, dunkel)
     static var backgroundGradient: LinearGradient {
         LinearGradient(
             gradient: Gradient(colors: [backgroundPrimary, backgroundSecondary]),
@@ -125,7 +145,8 @@ struct AppTheme {
         )
     }
 
-    /// Soft top overlay placed behind large titles to increase readability on images/gradients.
+    /// Lesbarkeits‑Overlay hinter großen Titeln auf Bildern/Verläufen.
+    /// Warum: Erhöht Kontrast ohne Box zu zeichnen.
     static var headerReadableOverlay: LinearGradient {
         LinearGradient(
             gradient: Gradient(colors: [Color.white.opacity(0.16), Color.white.opacity(0.0)]),
@@ -134,7 +155,8 @@ struct AppTheme {
         )
     }
 
-    /// Subtle lift near the bottom safe area so TabBar items stay visible while scrolling.
+    /// Sanfte Aufhellung am unteren Rand.
+    /// Warum: TabBar‑Items bleiben sichtbar beim Scrollen.
     static var tabBarLiftOverlay: LinearGradient {
         LinearGradient(
             gradient: Gradient(colors: [Color.white.opacity(0.0), Color.white.opacity(0.02)]),
@@ -143,7 +165,8 @@ struct AppTheme {
         )
     }
 
-    /// Glass card background (choose by scheme in the view)
+    /// Glass‑Card Gradient je Scheme.
+    /// Warum: Dark = transparent; Light = opak genug für Kontrast.
     static func cardGradient(for scheme: ColorScheme) -> LinearGradient {
         let colors: [Color] = (scheme == .dark)
             ? [Color.white.opacity(0.10), Color.white.opacity(0.02)]
@@ -151,7 +174,7 @@ struct AppTheme {
         return LinearGradient(gradient: Gradient(colors: colors), startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
-    // MARK: - Simple access aliases (for older call-sites)
+    // Ergonomischer Zugriff (Instanz‑Style) für Views
     struct SpacingValues {
         let xs: CGFloat = 4
         let s:  CGFloat = 8
@@ -164,7 +187,7 @@ struct AppTheme {
     /// Common single radius used by cards
     static let cornerRadius: CGFloat = Radius.l
 
-    // Token sets (static). Prefer `AppTheme.spacing` for ergonomic reads in views.
+    // Token‑Set (statisch) – bevorzugt `AppTheme.spacing` im View‑Code
     struct Spacing {
         static let xs: CGFloat = 4
         static let s:  CGFloat = 8
@@ -173,6 +196,7 @@ struct AppTheme {
         static let xl: CGFloat = 24
     }
 
+    // Radien für Cards/Controls (calm look → runder)
     struct Radius {
         static let s: CGFloat = 12
         static let m: CGFloat = 16
@@ -180,7 +204,7 @@ struct AppTheme {
         static let xl: CGFloat = 28
     }
 
-    // Convenience metrics wrapper to group spacing & radius (compat: AppTheme.Metrics.*)
+    // Kompatibilitäts‑Wrapper für ältere Call‑Sites
     struct Metrics {
         struct Spacing {
             static let xs = AppTheme.Spacing.xs
@@ -198,7 +222,7 @@ struct AppTheme {
         static let cornerRadius: CGFloat = AppTheme.cornerRadius
     }
 
-    // MARK: - Shadows (kept subtle for the calm look)
+    // Dezente Schatten – vermeiden visuelles Rauschen
     struct Shadows {
         static var soft: (Color, CGFloat, CGFloat, CGFloat) {
             (Color.black.opacity(0.25), 20, 0, 10)
@@ -208,7 +232,7 @@ struct AppTheme {
         }
     }
 
-    // MARK: - Fonts
+    // Abgestimmte System‑Schriften (Rounded) für modernen, freundlichen Charakter
     struct Fonts {
         static let display   = Font.system(size: 34, weight: .bold, design: .rounded)
         static let largeTitle = Font.system(.largeTitle, design: .rounded).weight(.bold)
@@ -225,7 +249,7 @@ struct AppTheme {
     // Backwards-compat alias used in some files
     static let titleFont = Fonts.title
 
-    // Backwards-compat namespace for typography (AppTheme.Typography.*)
+    // Backwards‑Compat Namespace für Typografie
     struct Typography {
         static let display     = Fonts.display
         static let largeTitle  = Fonts.largeTitle
@@ -240,7 +264,7 @@ struct AppTheme {
         static let caption     = Fonts.caption
     }
 
-    // MARK: - Icons
+    // Häufig genutzte SF Symbols als zentrale Referenzen
     struct Icons {
         static let chevronRight = Image(systemName: "chevron.right")
         static let chevronLeft  = Image(systemName: "chevron.left")
@@ -248,9 +272,13 @@ struct AppTheme {
         static let pause        = Image(systemName: "pause.fill")
     }
     static let chevron = Icons.chevronRight
+    // MARK: - Legacy Namespace
+    /// Backwards‑compat: `AppTheme.Color` verweist direkt auf `SwiftUI.Color` (voll kompatibel: .white/.black/Init)
+    typealias Color = SwiftUI.Color
 }
 
 // MARK: - Back-compat shim for legacy `AppTheme.Color.*` tokens
+// Warum: Alte Aufrufe weiter unterstützen, ohne Breaking Changes
 extension AppTheme.Color {
     @available(*, deprecated, message: "Use AppTheme.Colors.iconPrimary instead")
     static var iconPrimary: Color { AppTheme.Colors.iconPrimary }
@@ -263,6 +291,8 @@ extension AppTheme.Color {
 }
 
 // MARK: - Helper Extension for Hex Colors
+/// Erlaubt `Color(hex: "#RRGGBB"/"#AARRGGBB") mit robustem Fallback.
+/// Warum: Verhindert fehleranfällige, verstreute Scanner‑Snippets.
 extension Color {
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)

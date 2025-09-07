@@ -1,7 +1,22 @@
+//
+//  VideoListView.swift
+//  MindGear_iOS
+//
+//  Zweck: Liste aller Videos einer Playlist mit Suche, Favoriten‑Filter & Pull‑to‑Refresh.
+//  Architekturrolle: SwiftUI View (präsentationsnah).
+//  Verantwortung: Suchfeld (lokal, Debounce im ViewModel), Listendarstellung, Toolbar‑Filter, Navigation.
+//  Warum? Schlanke UI; Datenbeschaffung/Paging/Filter liegen im VideoViewModel/Services.
+//  Testbarkeit: Klare Accessibility‑IDs; Previews mit In‑Memory ModelContainer.
+//  Status: stabil.
+//
+
 import SwiftUI
 import SwiftData
 
-// Liste aller Videos einer Playlist mit Suche und Favoritenfilter
+// Kurzzusammenfassung: Remote‑Cache → API, debouncte Suche, Favoriten‑Filter, Offline‑Hinweis oben.
+
+// MARK: - VideoListView
+// Warum: Präsentiert Playlist‑Videos; ViewModel kapselt Laden/Suche/Paging.
 struct VideoListView: View {
     let playlistID: String // Playlist-ID für Debugging speichern
     private let context: ModelContext
@@ -44,7 +59,7 @@ struct VideoListView: View {
     // Entkoppelte Referenz auf das StateObject (verhindert Wrapper-Inferenz in Subviews)
     private var vmRef: VideoViewModel { viewModel }
 
-    // Schlankes, wiederverwendbares Suchfeld – Debounce steckt im ViewModel
+    // Schlankes Suchfeld – Debounce steckt im ViewModel (Warum: schnelle UX ohne API‑Kosten)
     private var headerSearch: some View {
         TextField(
             "In Playlist suchen",
@@ -78,13 +93,13 @@ struct VideoListView: View {
         }
     }
 
-    // MARK: - UI
-    // Ausgelagerte Liste zur Entlastung der Typinferenz
+    // MARK: - Subviews (Liste)
     @ViewBuilder private var videosList: some View {
         Group {
             let isEmpty = vmRef.filteredVideos.isEmpty
             if firstLoad && isEmpty {
                 VStack(spacing: 12) {
+                    // Erstes Laden – zeige Spinner, bis erste Seite da ist
                     ProgressView()
                         .accessibilityIdentifier("loadingSpinner")
                     Text("Lade Videos…")
@@ -115,13 +130,14 @@ struct VideoListView: View {
                 .scrollContentBackground(.hidden)
                 .listRowSeparator(.hidden)
                 .listRowSeparatorTint(AppTheme.Colors.separator)
+                // Einheitliches Listen‑Styling gemäß AppTheme (auch im Dark Mode)
                 .background(AppTheme.listBackground(for: colorScheme))
                 .accessibilityIdentifier("videosList")
             }
         }
     }
 
-    // MARK: - UI
+    // MARK: - Body
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -153,11 +169,15 @@ struct VideoListView: View {
                 }
             }
             // Pull-to-Refresh: manuelles Neuladen der aktuellen Playlist
-            .refreshable { await viewModel.loadVideos(forceReload: true) }
+            .refreshable {
+                // Force‑Reload → überspringt Session‑Guard und lädt frische Daten
+                await viewModel.loadVideos(forceReload: true)
+            }
             .tint(AppTheme.Colors.accent)
             .scrollDismissesKeyboard(.immediately)
             // Lädt initial und nur erneut, wenn sich die Playlist-ID ändert
             .task(id: playlistID) {
+                // Initial‑Load: Remote‑Cache → API‑Fallback; Favoritenstatus laden
                 isPlaylistFavorite = FavoritesManager.shared.isPlaylistFavorite(id: playlistID, context: context)
                 await viewModel.loadVideos()
                 firstLoad = false
@@ -173,6 +193,7 @@ struct VideoListView: View {
                 )
             }
             .overlay {
+                // Leerzustand bei aktiver Suche – Hinweis, Begriff anzupassen
                 if !viewModel.searchText.isEmpty && viewModel.filteredVideos.isEmpty {
                     ContentUnavailableView(
                         "Keine Treffer",
@@ -182,6 +203,7 @@ struct VideoListView: View {
                 }
             }
             .overlay {
+                // Leerzustand bei aktivem Favoriten‑Filter – erklärt den nächsten Schritt
                 if viewModel.showFavoritesOnly && viewModel.filteredVideos.isEmpty {
                     ContentUnavailableView(
                         "Keine Video-Favoriten",
@@ -191,6 +213,7 @@ struct VideoListView: View {
                 }
             }
             .overlay(alignment: .top) {
+                // Offline/Fehler‑Hinweis fixiert oben – unaufdringlich, aber sichtbar
                 if let offline = viewModel.offlineMessage, !offline.isEmpty {
                     Text(offline)
                         .font(AppTheme.Typography.caption)
@@ -238,8 +261,26 @@ private struct ChipView: View {
 struct VideoListView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack {
-            let container = try! ModelContainer(for: FavoriteVideoEntity.self, FavoriteMentorEntity.self)
-            VideoListView(playlistID: ConfigManager.recommendedPlaylistId, context: container.mainContext)
+            let container = try! ModelContainer(
+                for: FavoriteVideoEntity.self,
+                    FavoriteMentorEntity.self,
+                    FavoritePlaylistEntity.self,
+                    WatchHistoryEntity.self,
+                configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+            )
+            VideoListView(playlistID: "PL_PREVIEW_123", context: container.mainContext)
         }
+
+        NavigationStack {
+            let container = try! ModelContainer(
+                for: FavoriteVideoEntity.self,
+                    FavoriteMentorEntity.self,
+                    FavoritePlaylistEntity.self,
+                    WatchHistoryEntity.self,
+                configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+            )
+            VideoListView(playlistID: "PL_PREVIEW_123", context: container.mainContext)
+        }
+        .preferredColorScheme(.dark)
     }
 }

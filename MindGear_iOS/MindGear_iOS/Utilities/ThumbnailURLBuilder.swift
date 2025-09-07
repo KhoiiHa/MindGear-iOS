@@ -2,23 +2,35 @@
 //  ThumbnailURLBuilder.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 12.08.25.
+//  Zweck: Robuste Konstruktion von YouTube‑Thumbnail‑URLs (verschiedene Qualitäten).
+//  Architekturrolle: Utility (Business‑nah, aber UI‑unabhängig).
+//  Verantwortung: IDs extrahieren, URL säubern, Fallback‑Kette aufbauen.
+//  Warum? Saubere Trennung; Views verwenden nur fertige Strings → leicht testbar.
+//  Testbarkeit: Pure Functions, deterministisch prüfbar.
+//  Status: stabil.
 //
 
 import Foundation
+// Kurzzusammenfassung: Normalisiert Input (ID/URL/Bildlink) → liefert saubere i.ytimg.com‑URL in bestmöglicher Qualität.
 
+// MARK: - ThumbnailQuality
+/// Unterstützte Qualitätsstufen – nicht jede ist für jedes Video vorhanden.
 enum ThumbnailQuality: String, CaseIterable {
-    case max = "maxresdefault"   // höchstes, aber nicht immer vorhanden
+    case max = "maxresdefault"
+        // höchstes Thumbnail – nicht immer verfügbar
     case high = "hqdefault"
     case medium = "mqdefault"
     case low = "sddefault"
 }
 
+// MARK: - ThumbnailURLBuilder
 enum ThumbnailURLBuilder {
 
-    /// Baut eine robuste Thumbnail-URL.
-    /// - Parameter raw: YouTube-URL, Kurzlink, ID oder bereits ein Bildlink.
-    /// - Parameter prefer: gewünschte Startqualität (wir fallen automatisch ab).
+    /// Baut eine robuste Thumbnail‑URL.
+    /// - Parameter raw: YouTube‑Video‑ID, Kurzlink, vollständige URL oder bereits Bildlink.
+    /// - Parameter quality: gewünschte Startqualität (fällt automatisch ab).
+    /// - Returns: Erste Kandidaten‑URL; AsyncImage/View übernimmt Fallback bei 404.
+    /// Warum: Kapselt Normalisierung & Fallback → Views bleiben schlank.
     static func build(from raw: String, prefer quality: ThumbnailQuality = .high) -> String {
         // Bereits ein vollständiger Bild/HTTP-Link? -> säubern & zurückgeben
         if raw.lowercased().hasPrefix("http") {
@@ -42,12 +54,14 @@ enum ThumbnailURLBuilder {
         return makeYTThumbURL(id: id, quality: q)
     }
 
-    /// Erzeugt eine i.ytimg.com-URL für eine bestimmte Qualität.
+    /// Erzeugt eine i.ytimg.com‑URL für die gewünschte Qualität.
+    /// Warum: Einheitliches Muster → leicht erweiterbar.
     private static func makeYTThumbURL(id: String, quality: ThumbnailQuality) -> String {
         "https://i.ytimg.com/vi/\(id)/\(quality.rawValue).jpg"
     }
 
-    /// Entfernt volatile Query-Parameter (z. B. `t`) und normalisiert harmlose Abweichungen.
+    /// Entfernt volatile Query‑Parameter (t, utm_…) und normalisiert Hosts.
+    /// Warum: Verhindert instabile URLs & unnötige Cache‑Miss.
     static func sanitize(_ urlString: String) -> String {
         guard var comps = URLComponents(string: urlString) else { return urlString }
 

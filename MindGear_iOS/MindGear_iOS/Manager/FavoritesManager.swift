@@ -1,24 +1,43 @@
-// Notification.Name-Erweiterung für Favoriten-Änderungen
+//
+//  FavoritesManager.swift
+//  MindGear_iOS
+//
+//  Zweck: Zentrale Verwaltung aller Favoriten (Videos, Mentoren, Playlists) mit SwiftData + Fallback über UserDefaults.
+//  Architekturrolle: Service/Manager (State-Fassade für persistente Favoriten inkl. UI-Notifikationen).
+//  Verantwortung: Lesen/Schreiben, Deduplikation, Benachrichtigung, Vorschaubild-Download.
+//  Warum? Entkoppelt Views/ViewModels von Persistenzdetails; konsistente API & leichte Testbarkeit.
+//  Testbarkeit: @MainActor-Grenzen klar, SwiftData über `ModelContext` mock-/injektionsfähig; UserDefaults-Teil deterministisch.
+//  Status: stabil.
+//
+
+// MARK: - Notifications
+// Warum: UI kann auf Änderungen reagieren (Listen refreshen, Badges updaten)
+
 extension Notification.Name {
+    /// Wird gesendet, wenn sich ein Favoriten-Eintrag ändert (Video/Mentor/Playlist)
     static let favoritesDidChange = Notification.Name("favoritesDidChange")
 }
 
 import Foundation
 import SwiftData
 
+// Verwaltet Favoriten (SwiftData-Entities) plus einfachen ID-Fallback über UserDefaults
+
 // Verwalten aller Favoritenarten für personalisierte Inhalte
 final class FavoritesManager {
     static let shared = FavoritesManager()
+
+    // MARK: - Init
+    init() {}
 
     // MARK: - State
     private let defaultsKey = "simpleFavorites"
     private let defaults = UserDefaults.standard
 
-    init() {}
-
     // MARK: - Video
     @MainActor
-    // Prüft, ob ein Video als Favorit markiert ist ✅
+    /// Prüft, ob ein Video als Favorit markiert ist.
+    /// Warum: Schneller Lookup über SwiftData (id‑basiert) für deterministisches UI‑Binding.
     func isVideoFavorite(video: Video, context: ModelContext) -> Bool {
         do {
             let vid = video.id
@@ -33,7 +52,8 @@ final class FavoritesManager {
     }
 
     @MainActor
-    // Prüft, ob der Mentor als Favorit gespeichert ist
+    /// Prüft, ob ein Mentor als Favorit gespeichert ist.
+    /// Warum: Einheitliche Abfrage für Badge/Toggle‑Zustände.
     func isMentorFavorite(mentor: Mentor, context: ModelContext) -> Bool {
         do {
             let mid = mentor.id
@@ -48,7 +68,8 @@ final class FavoritesManager {
     }
 
     @MainActor
-    // Schaltet den Favoritenstatus eines Videos um
+    /// Schaltet den Favoritenstatus eines Videos um.
+    /// Warum: Kapselt Insert/Delete + optionalen Thumbnail‑Download; sendet Änderung via Notification.
     func toggleVideoFavorite(video: Video, context: ModelContext) async {
         do {
             let vid = video.id
@@ -75,6 +96,7 @@ final class FavoritesManager {
                 context.insert(favorite)
             }
             do { try context.save() } catch { print("Save failed (video favorite):", error) }
+            // UI informieren: Listen/Badges können unmittelbar neu laden.
             NotificationCenter.default.post(name: .favoritesDidChange, object: nil)
         } catch {
             print("Error toggling video favorite:", error)
@@ -82,7 +104,8 @@ final class FavoritesManager {
     }
 
     @MainActor
-    // Schaltet den Favoritenstatus eines Mentors um
+    /// Schaltet den Favoritenstatus eines Mentors um.
+    /// Warum: Kapselt Insert/Delete und benachrichtigt die UI zentral.
     func toggleMentorFavorite(mentor: Mentor, context: ModelContext) async {
         do {
             let mid = mentor.id
@@ -100,19 +123,23 @@ final class FavoritesManager {
                 context.insert(favorite)
             }
             do { try context.save() } catch { print("Save failed (mentor favorite):", error) }
+            // UI informieren: State konsistent halten (z. B. Favoritenliste aktualisieren).
             NotificationCenter.default.post(name: .favoritesDidChange, object: nil)
         } catch {
             print("Error toggling mentor favorite:", error)
         }
     }
 
+    /// Lädt das Thumbnail für Offline‑/Sofortdarstellung lokal.
+    /// Warum: Schnellere Favoriten‑Listen; vermeidet „springende“ Layouts bei erneutem Laden.
     private func downloadThumbnail(from url: URL) async throws -> Data {
         let (data, _) = try await URLSession.shared.data(from: url)
         return data
     }
 
     @MainActor
-    /// Liefert alle gespeicherten Video-Favoriten zurück 📂
+    /// Liefert alle gespeicherten Video‑Favoriten (neueste zuerst).
+    /// Warum: Einheitliche Sortierung für UI‑Listen.
     func getAllVideoFavorites(context: ModelContext) -> [FavoriteVideoEntity] {
         do {
             let descriptor = FetchDescriptor<FavoriteVideoEntity>(
@@ -126,7 +153,8 @@ final class FavoritesManager {
     }
 
     @MainActor
-    /// Gibt alle gespeicherten Mentor-Favoriten zurück 📋
+    /// Gibt alle gespeicherten Mentor‑Favoriten zurück.
+    /// Warum: Vereinheitlichte Datenquelle für Favoriten‑Screens.
     func getAllMentorFavorites(context: ModelContext) -> [FavoriteMentorEntity] {
         do {
             return try context.fetch(FetchDescriptor<FavoriteMentorEntity>())
@@ -138,7 +166,8 @@ final class FavoritesManager {
 
     // MARK: - Playlist
     @MainActor
-    // Prüft, ob eine Playlist als Favorit gespeichert ist
+    /// Prüft, ob eine Playlist als Favorit gespeichert ist.
+    /// Warum: Id‑basierter Lookup; deterministisches Binding für Toggle/Buttons.
     func isPlaylistFavorite(id: String, context: ModelContext) -> Bool {
         do {
             let descriptor = FetchDescriptor<FavoritePlaylistEntity>(
@@ -152,7 +181,8 @@ final class FavoritesManager {
     }
 
     @MainActor
-    // Schaltet den Favoritenstatus einer Playlist um
+    /// Schaltet den Favoritenstatus einer Playlist um.
+    /// Warum: Kapselt Insert/Delete und benachrichtigt die UI zentral.
     func togglePlaylistFavorite(id: String, title: String, thumbnailURL: String, context: ModelContext) async {
         do {
             let descriptor = FetchDescriptor<FavoritePlaylistEntity>(
@@ -169,6 +199,7 @@ final class FavoritesManager {
                 context.insert(favorite)
             }
             do { try context.save() } catch { print("Save failed (playlist favorite):", error) }
+            // UI informieren: Konsistentes Refresh der Favoriten‑Views.
             NotificationCenter.default.post(name: .favoritesDidChange, object: nil)
         } catch {
             print("Error toggling playlist favorite:", error)
@@ -189,9 +220,11 @@ final class FavoritesManager {
         }
     }
 
-    // MARK: - Einfache Favoriten nach ID
+    // MARK: - Einfache Favoriten nach ID (UserDefaults)
+    // Warum: Leichter Fallback für einfache Fälle ohne SwiftData‑Entity.
 
-    /// Schaltet den Favoritenstatus für eine beliebige ID um
+    /// Schaltet den Favoritenstatus für eine beliebige ID um (UserDefaults‑basiert).
+    /// Warum: Minimaler Persistenz‑Overhead, kein Schema erforderlich.
     func toggle(_ id: String) {
         var items = Set(all())
         if items.contains(id) {
@@ -202,17 +235,17 @@ final class FavoritesManager {
         defaults.set(Array(items), forKey: defaultsKey)
     }
 
-    /// Prüft, ob eine ID als Favorit hinterlegt ist
+    /// Prüft, ob eine ID als Favorit hinterlegt ist (UserDefaults‑Fallback).
     func isFavorite(_ id: String) -> Bool {
         return all().contains(id)
     }
 
-    /// Liefert alle gespeicherten Favoriten-IDs
+    /// Liefert alle gespeicherten Favoriten‑IDs (UserDefaults).
     func all() -> [String] {
         return defaults.stringArray(forKey: defaultsKey) ?? []
     }
 
-    /// Entfernt eine ID aus den Favoriten
+    /// Entfernt eine ID aus den Favoriten (UserDefaults).
     func remove(_ id: String) {
         var items = all()
         items.removeAll { $0 == id }

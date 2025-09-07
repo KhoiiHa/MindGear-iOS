@@ -1,25 +1,36 @@
+//
+//  SearchField.swift
+//  MindGear_iOS
+//
+//  Zweck: Wiederverwendbares Suchfeld mit optionalen Vorschlägen.
+//  Architekturrolle: SwiftUI View (präsentationsnah).
+//  Verantwortung: Textbindung, Löschen‑Button, Vorschläge horizontal, Accessibility.
+//  Warum? Schlanke, einheitliche UX; Debounce & Logik bleiben im ViewModel.
+//  Testbarkeit: Klare Accessibility‑IDs & deterministisches Verhalten.
+//  Status: stabil.
+//
 import SwiftUI
 
-/// Schlankes, wiederverwendbares Suchfeld für Listenansichten.
-/// - MVVM‑freundlich: Der Text wird gebunden; Debounce passiert im ViewModel.
-/// - Optional: horizontale Vorschläge (z. B. Verlauf oder Auto‑Suggest).
+// Kurzzusammenfassung: Eingabefeld mit Lupe, Clear‑Button & optionalen horizontalen Vorschlägen.
+
+// MARK: - SearchField
+// Warum: Präsentiert Suchfeld kompakt; Vorschläge & Debounce laufen klar getrennt im ViewModel.
 struct SearchField: View {
-    // Gebundener Suchtext (Debounce im ViewModel über updateSearch(text:))
+    // Gebundener Suchtext (Debounce im ViewModel via updateSearch(text:))
     @Binding var text: String
     var placeholder: String = "Suche"
-
-    // Optional angezeigte Vorschläge (z. B. Verlauf)
+    // Optionale Vorschläge (z. B. Verlauf oder Auto‑Suggest)
     var suggestions: [String] = []
-
     // Aktionen
     var onSubmit: () -> Void = {}
     var onTapSuggestion: (String) -> Void = { _ in }
+    // Stabiler Zugriff in UI‑Tests
     var accessibilityIdentifier: String? = nil
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
-            // Eingabefeld
+            // Eingabefeld inkl. Lupe, Text, Clear‑Button
             HStack(spacing: AppTheme.Spacing.s) {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(AppTheme.Colors.textSecondary)
@@ -36,6 +47,7 @@ struct SearchField: View {
                     .accessibilityAddTraits(.isSearchField)
                     .onSubmit { onSubmit() }
 
+                // Clear‑Button erscheint nur, wenn Text vorhanden
                 if !text.isEmpty {
                     Button {
                         text = ""
@@ -57,7 +69,7 @@ struct SearchField: View {
             )
             .shadow(color: AppTheme.Colors.shadowCard.opacity(0.5), radius: 6, y: 3)
 
-            // Vorschläge (optional)
+            // Horizontale Vorschläge (optional)
             if !suggestions.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: AppTheme.Spacing.s) {
@@ -77,10 +89,11 @@ struct SearchField: View {
 }
 
 
-// MARK: - Preview (nur für Entwicklung)
+// MARK: - Preview
 #Preview("SearchField") {
     @Previewable @State var query: String = ""
     return VStack {
+        // Beispiel: mit Vorschlägen & Submit‑Print
         SearchField(
             text: $query,
             placeholder: "Suche Videos",

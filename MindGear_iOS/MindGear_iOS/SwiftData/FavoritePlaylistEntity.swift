@@ -2,46 +2,36 @@
 //  FavoritePlaylistEntity.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 11.08.25.
+//  Zweck: SwiftData‑Entity für gespeicherte Playlist‑Favoriten.
+//  Architekturrolle: Persistence‑Model (SwiftData).
+//  Verantwortung: Speichert Playlist‑ID, Titel, Thumbnail, optionale Beschreibung & Zeitstempel.
+//  Warum? Einheitliche Persistenz; klare Trennung zwischen Remote/API und lokaler Speicherung.
+//  Testbarkeit: Deterministisch; leicht mit In‑Memory ModelContainer prüfbar.
+//  Status: stabil.
 //
 
 import Foundation
 import SwiftData
 
-/// SwiftData‑Modell: Favorisierte YouTube‑Playlist
-///
-/// Eigenschaften:
-///  - `id`: YouTube‑Playlist‑ID (eindeutig; für Navigation genutzt)
-///  - `title`: Anzeigename
-///  - `thumbnailURL`: Vorschaubild‑URL (String)
-///  - `playlistDescription`: Optionale Beschreibung
-///  - `createdAt`: Zeitpunkt des Hinzufügens (für Sortierung)
-///
-/// **Beispiel:**
-/// ```swift
-/// let playlist = FavoritePlaylistEntity(
-///     id: "PL12345", // YouTube-Playlist-ID
-///     title: "Motivation Mix",
-///     thumbnailURL: "https://img.youtube.com/vi/xyz/default.jpg"
-/// )
-/// modelContext.insert(playlist)
-/// try? modelContext.save()
-/// ```
+// Kurzzusammenfassung: Speichert Playlist‑Favoriten mit ID, Titel, Thumbnail, optionaler Beschreibung & CreatedAt.
+
+// MARK: - FavoritePlaylistEntity
+/// SwiftData‑Entity für Playlist‑Favoriten (Playlist‑ID als Primary Key).
 @Model
 final class FavoritePlaylistEntity {
-    /// Gespeicherte YouTube‑Playlist-ID (wird für Navigation genutzt)
+    // Primärschlüssel: YouTube‑Playlist‑ID (eindeutig)
     @Attribute(.unique) var id: String
 
-    /// Titel der Playlist (zum Zeitpunkt des Favorisierens gespeichert)
+    // Titel der Playlist (zum Zeitpunkt des Favorisierens gespeichert)
     var title: String
 
-    /// Optionale Beschreibung der Playlist (um Konflikte mit 'description' zu vermeiden)
+    // Optionale Beschreibung (falls vorhanden)
     var playlistDescription: String?
 
-    /// Thumbnail‑URL (HTTPS bevorzugt)
+    // Thumbnail‑URL (HTTPS bevorzugt)
     var thumbnailURL: String
 
-    /// Zeitpunkt, wann diese Playlist als Favorit gespeichert wurde
+    // Zeitpunkt des Favorisierens → erlaubt Sortierung/History
     var createdAt: Date
 
     init(

@@ -2,10 +2,13 @@
 //  ConfigManager.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 21.07.25.
+//  Zweck: Zentrale, schreibgeschützte Konfiguration aus `Config.plist` (Single Source of Truth).
+//  Architekturrolle: Service/Manager (Key- und URL-Resolver, ohne App-Logik).
+//  Verantwortung: API-Keys, Basis-URL-Normalisierung, Mentor-IDs & -Playlists.
+//  Warum? Entkoppelt Code von Rohwerten/Strings und verhindert Streuung von Secrets.
+//  Testbarkeit: Überladbare Bundle‑Quelle / Test‑Plist möglich; pure Functions erleichtern Mocks.
+//  Status: stabil.
 //
-
-
 
 import Foundation
 
@@ -18,7 +21,8 @@ struct ConfigManager {
     }
 
     // MARK: - Basis-URL
-    /// Basis-URL für API-Aufrufe, aus der Config gelesen (normalisiert & validiert)
+    /// Liefert die normalisierte Basis‑URL (erzwingt HTTPS, entfernt Slashes/Query/Fragment).
+    /// Warum: Einheitliche, sichere Basis für API‑Clients; vermeidet subtile Pfadfehler.
     static func apiBaseURL() -> URL {
         var raw = getValue(for: "API_BASE_URL").trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -38,6 +42,7 @@ struct ConfigManager {
               parsed.query == nil,
               parsed.fragment == nil
         else {
+            // Fail‑fast im Dev: Falsche Plist‑Konfiguration sofort sichtbar machen.
             fatalError("❌ API_BASE_URL ungültig – erwarte eine HTTPS-URL mit Host und ohne Pfad/Query/Fragment, z. B. https://api.example.com")
         }
 
@@ -47,17 +52,19 @@ struct ConfigManager {
         comps.host = parsed.host
         comps.port = parsed.port
         guard let cleanURL = comps.url else {
+            // Defensive: Sollte bei gültigen Komponenten nie auftreten – bewusst hart abbrechen.
             fatalError("❌ API_BASE_URL konnte nicht aufgebaut werden")
         }
         return cleanURL
     }
 
-    /// Einheitlicher Resolver (portfolio-clean): nutzt ausschließlich `YOUTUBE_API_KEY`
+    /// Einheitlicher Resolver für den YouTube‑API‑Key.
+    /// Warum: Verhindert alternative Quellen; `Config.plist` bleibt einzige Wahrheit.
     static var resolvedYouTubeAPIKey: String {
         getValue(for: "YOUTUBE_API_KEY")
     }
 
-    @available(*, deprecated, message: "Use youtubeAPIKey instead")
+    @available(*, deprecated, message: "Nutze `youtubeAPIKey` – Config.plist ist die alleinige Quelle")
     static var apiKey: String {
         getValue(for: "YOUTUBE_API_KEY")
     }
@@ -79,8 +86,8 @@ struct ConfigManager {
     static var simonSinekChannelId: String? { getOptionalValue(for: "SIMONSINEK_CHANNEL_ID") }
     static var theoVonChannelId: String? { getOptionalValue(for: "THEOVON_CHANNEL_ID") }
 
-    /// Liste aller bekannten Mentor-Channel-IDs/Handles aus der Config.
-    /// Nur vorhandene Keys werden zurückgegeben (kein Crash bei fehlenden Einträgen).
+    /// Konsolidierte Liste aller vorhandenen Channel‑Tokens (IDs oder Handles) aus der Config.
+    /// Warum: UI/ViewModels können dynamisch über vorhandene Einträge iterieren; keine Hard‑Codierung.
     static var mentorChannelTokens: [String] {
         var tokens: [String] = []
         tokens.append(chrisWillxChannelId)
@@ -128,7 +135,8 @@ struct ConfigManager {
     }
 
     // MARK: - Mentor Playlists
-    /// Gibt alle Playlist-IDs zurück, die einem Mentor-Channel zugeordnet sind
+    /// Gibt alle Playlist‑IDs zu einem Mentor‑Token zurück.
+    /// Warum: Defensive Rückgabe – fehlende Keys liefern `[]` statt Crash; robuste UI‑Anbindung.
     static func playlists(for mentorId: String) -> [String] {
         guard let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
               let dict = NSDictionary(contentsOfFile: path),
@@ -140,7 +148,8 @@ struct ConfigManager {
     }
 
     // MARK: - Helpers
-    /// Liefert den Wert aus Config.plist, falls vorhanden; sonst `nil`
+    /// Liefert den Wert aus Config.plist, falls vorhanden; sonst `nil`.
+    /// Warum: Für optionale Konfigurationswerte (nicht kritisch für den App‑Start).
     private static func getOptionalValue(for key: String) -> String? {
         guard let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
               let dict = NSDictionary(contentsOfFile: path),
@@ -150,11 +159,13 @@ struct ConfigManager {
         return value
     }
 
-
+    /// Liefert einen verpflichtenden Wert aus Config.plist.
+    /// Warum: Fail‑fast bei Fehlkonfiguration – vermeidet stille, schwer auffindbare Fehler.
     private static func getValue(for key: String) -> String {
         guard let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
               let dict = NSDictionary(contentsOfFile: path),
               let value = dict[key] as? String else {
+              // Fail‑fast: Fehlender Pflicht‑Key – Crash im Dev, um Integrationsfehler früh zu sehen.
             fatalError("❌ Config Key '\(key)' not found in Config.plist")
         }
         return value

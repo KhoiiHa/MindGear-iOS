@@ -1,13 +1,21 @@
 //
 //  MentorSearchTests.swift
-//  MindGear_iOS
+//  MindGear_iOSTests
 //
-//  Created by Vu Minh Khoi Ha on 04.09.25.
+//  Zweck: UnitTests für die Filterlogik von Mentoren.
+//  Architekturrolle: XCTestCase (UnitTest‑Layer).
+//  Verantwortung: Prüft Trimmen, Case‑Insensitivity & Substring‑Matching.
+//  Warum? Sichert korrekte Suchergebnisse unabhängig von Groß-/Kleinschreibung & Leerzeichen.
+//  Testbarkeit: Deterministisch mit Dummy‑Mentoren.
+//  Status: stabil.
 //
 
 import XCTest
 @testable import MindGear_iOS
+// Kurzzusammenfassung: Testet, dass filterMentors korrekt trimmt, case‑insensitive arbeitet und Substrings findet.
 
+// MARK: - MentorSearchTests
+/// UnitTests für die Mentor‑Suchlogik.
 final class MentorSearchTests: XCTestCase {
 
     // Hilfs-Fabrik, damit wir die echten, vollständigen Initializer der App treffen.

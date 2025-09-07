@@ -2,25 +2,32 @@
 //  FavoriteMentorEntity.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 10.08.25.
+//  Zweck: SwiftData‑Entity für gespeicherte Mentor‑Favoriten.
+//  Architekturrolle: Persistence‑Model (SwiftData).
+//  Verantwortung: Speichert Channel‑ID, Name, Profilbild & Zeitstempel.
+//  Warum? Einheitliche Persistenz; klare Trennung zwischen Remote/API und lokaler Speicherung.
+//  Testbarkeit: Deterministisch; leicht mit In‑Memory ModelContainer prüfbar.
+//  Status: stabil.
 //
 
 import Foundation
 import SwiftData
 
-/// SwiftData-Modell für Mentor-Favoriten
-/// Hinweis: `id` entspricht der **YouTube-Channel-ID** und ist eindeutig.
+// Kurzzusammenfassung: Speichert Mentor‑Favoriten mit ID, Name, optionalem Bild & CreatedAt.
+
+// MARK: - FavoriteMentorEntity
+/// SwiftData‑Entity für Mentor‑Favoriten (Channel‑ID als Primary Key).
 @Model
 final class FavoriteMentorEntity {
-    /// Eindeutiger Schlüssel (YouTube-Channel-ID)
+    // Primärschlüssel: YouTube‑Channel‑ID (eindeutig)
     @Attribute(.unique) var id: String
-    /// Anzeigename des Mentors (für die Liste)
+    // Anzeigename (für Favoriten‑Liste)
     var name: String
-    /// Optionales Profilbild (URL-String)
+    // Optionales Profilbild (Thumbnail‑URL)
     var profileImageURL: String?
-    /// Zeitpunkt, wann der Mentor als Favorit gespeichert wurde
+    // Zeitpunkt des Speicherns → erlaubt Sortierung/History
     var createdAt: Date
-    /// Typ zur Unterscheidung zwischen Video- und Mentor-Favoriten
+    // Typdifferenzierung (z. B. gegen Video/Playlist‑Favoriten)
     var type: String = "mentor"
 
     init(id: String, name: String, profileImageURL: String? = nil, createdAt: Date = Date()) {

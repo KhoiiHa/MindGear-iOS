@@ -1,8 +1,23 @@
+//
+//  VideoDetailView.swift
+//  MindGear_iOS
+//
+//  Zweck: Detailseite für ein Video mit eingebettetem YouTube‑Player, Beschreibung & Favoriten‑Action.
+//  Architekturrolle: SwiftUI View (präsentationsnah) + Wrapper für WKWebView.
+//  Verantwortung: Player‑Einbettung (privacy‑freundlich), Titel/Beschreibung, „Im Browser öffnen“, Favoriten‑Toggle.
+//  Warum? Schlanke UI; Persistenz/History/Favoriten liegen in ViewModels/Services.
+//  Testbarkeit: Klare Accessibility‑IDs, deterministisches URL‑Handling.
+//  Status: stabil.
+//
+
 import SwiftUI
 import WebKit
 import SwiftData
 
-// Detailansicht für ein Video mit eingebettetem Player
+// Kurzzusammenfassung: Normalisiert YouTube‑IDs → nutzt youtube‑nocookie Embed; zeigt Titel/Beschreibung; Toolbar‑Herz.
+
+// MARK: - VideoDetailView
+// Warum: Präsentiert Video‑Details; WebView‑Einbettung ist gekapselt.
 struct VideoDetailView: View {
     let video: Video
     @State private var isFavorite: Bool
@@ -18,7 +33,8 @@ struct VideoDetailView: View {
         _favoritesViewModel = StateObject(wrappedValue: FavoritenViewModel(context: context))
     }
 
-    // Baut eine stabile YouTube-Embed-URL aus beliebigen Eingaben (ID, watch-URL, youtu.be)
+    /// Normalisiert unterschiedliche Eingaben (ID, watch‑URL, youtu.be, /embed) zu einer privacy‑freundlichen Embed‑URL.
+    /// Warum: youtube‑nocookie.com verringert Tracking; `playsinline` & `modestbranding` verbessern UX.
     private func makeYouTubeEmbedURL(from raw: String) -> URL? {
         // 1. Versuche, die Video-ID mit der bestehenden Methode zu extrahieren
         var id = Video.extractVideoID(from: raw)
@@ -52,7 +68,7 @@ struct VideoDetailView: View {
         return URL(string: "https://www.youtube-nocookie.com/embed/\(id)?playsinline=1&rel=0&modestbranding=1")
     }
 
-    // MARK: - UI
+    // MARK: - Body
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.m) {
@@ -131,7 +147,7 @@ struct VideoDetailView: View {
                 if let embedURL = makeYouTubeEmbedURL(from: video.videoURL) {
                     loadError = false
                     // Trigger reload of the WebView
-                    NotificationCenter.default.post(name: .init("ReloadVideoWebView"), object: embedURL)
+                    NotificationCenter.default.post(name: .reloadVideoWebView, object: embedURL)
                 }
             }
             Button("Abbrechen", role: .cancel) { }
@@ -153,6 +169,7 @@ struct VideoDetailView: View {
     }
 }
 
+// MARK: - Preview (legacy Provider)
 struct VideoDetailView_Previews: PreviewProvider {
     static var previews: some View {
         let container = try! ModelContainer(for: FavoriteVideoEntity.self, FavoriteMentorEntity.self, WatchHistoryEntity.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
@@ -170,19 +187,42 @@ struct VideoDetailView_Previews: PreviewProvider {
     }
 }
 
-// SwiftUI Wrapper für WKWebView zur Einbettung von YouTube-Videos
+#Preview("Dark Mode") {
+    let container = try! ModelContainer(
+        for: FavoriteVideoEntity.self, FavoriteMentorEntity.self, WatchHistoryEntity.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
+    return NavigationStack {
+        VideoDetailView(
+            video: Video(
+                id: UUID(),
+                title: "Preview: Privacy‑Embed",
+                description: "Kurzer Beschreibungstext für die Preview.",
+                thumbnailURL: "https://placehold.co/600x400",
+                videoURL: "https://youtu.be/dQw4w9WgXcQ",
+                category: "Preview"
+            ),
+            context: container.mainContext
+        )
+    }.preferredColorScheme(.dark)
+}
+
+// MARK: - VideoWebView (WKWebView Wrapper)
+/// Betten YouTube‑Videos ein; steuert Reload via Notification.
 struct VideoWebView: UIViewRepresentable {
+    /// Ziel‑URL (privacy‑freundlich, z. B. youtube‑nocookie)
     let url: URL
+    /// Fehlerflag für UI‑Alert bei Ladefehlern
     @Binding var loadFailed: Bool
 
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
-        // Erlaubt die Inline-Wiedergabe, damit der Player im View eingebettet bleibt
+        // Warum: Inline‑Wiedergabe → Player bleibt im Kontext der Seite (kein Fullscreen‑Zwang)
         config.allowsInlineMediaPlayback = true
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
         webView.scrollView.isScrollEnabled = false
-        NotificationCenter.default.addObserver(forName: .init("ReloadVideoWebView"), object: nil, queue: .main) { note in
+        NotificationCenter.default.addObserver(forName: .reloadVideoWebView, object: nil, queue: .main) { note in
             if let url = note.object as? URL {
                 webView.load(URLRequest(url: url))
             }
@@ -190,16 +230,20 @@ struct VideoWebView: UIViewRepresentable {
         return webView
     }
 
+    /// Läd nach, wenn sich die Ziel‑URL ändert.
+    /// Warum: Verhindert unnötige Loads; hält State synchron.
     func updateUIView(_ uiView: WKWebView, context: Context) {
         if uiView.url != url {
             uiView.load(URLRequest(url: url))
         }
     }
 
+    /// Erstellt den Coordinator (Navigation‑Delegate für Fehlerbehandlung).
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
 
+    // MARK: - Coordinator
     class Coordinator: NSObject, WKNavigationDelegate {
         var parent: VideoWebView
 
@@ -207,14 +251,21 @@ struct VideoWebView: UIViewRepresentable {
             self.parent = parent
         }
 
+        /// Mappt Ladefehler nach `loadFailed` → UI zeigt Alert
         func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
             print("❌ WKWebView Fehler:", error.localizedDescription)
             parent.loadFailed = true
         }
 
+        /// Mappt Ladefehler nach `loadFailed` → UI zeigt Alert
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
             print("❌ WKWebView Fehler:", error.localizedDescription)
             parent.loadFailed = true
         }
     }
+}
+
+extension Notification.Name {
+    /// Reload‑Signal für die Video‑WebView (z. B. nach „Erneut versuchen“)
+    static let reloadVideoWebView = Notification.Name("ReloadVideoWebView")
 }

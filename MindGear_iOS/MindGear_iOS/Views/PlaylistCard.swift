@@ -2,13 +2,21 @@
 //  PlaylistCard.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 04.08.25.
+//  Zweck: Kompakte Karte zur Navigation in eine Playlist.
+//  Architekturrolle: SwiftUI View (präsentationsnah).
+//  Verantwortung: Titel/Untertitel/Icon anzeigen, als tappbare Karte mit Navigation agieren.
+//  Warum? Schlanke UI; Daten/Logik liegen in ViewModels/Services.
+//  Testbarkeit: Klare Accessibility-Labels/IDs; Preview möglich mit In‑Memory ModelContext.
+//  Status: stabil.
 //
 
 import SwiftUI
 import SwiftData
 
-// Kompakte Karte zum Navigieren in eine Playlist
+// Kurzzusammenfassung: Tappable Karte (NavigationLink) mit konsistentem AppTheme‑Styling.
+
+// MARK: - PlaylistCard
+// Warum: Ganzer Kartenbereich tappbar; klare Hierarchie über AppTheme.
 struct PlaylistCard: View {
     let title: String
     let subtitle: String
@@ -18,17 +26,19 @@ struct PlaylistCard: View {
 
     @Environment(\.colorScheme) private var colorScheme
 
-    // MARK: - UI
+    // MARK: - Body
     var body: some View {
         NavigationLink {
             VideoListView(playlistID: playlistID, context: context)
         } label: {
             HStack(spacing: AppTheme.Spacing.m) {
+                // Dekoratives Icon – Inhalt steckt in Texten; Screenreader bekommt Label unten
                 Image(systemName: iconName)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 30, height: 30)
                     .foregroundStyle(AppTheme.Colors.accent)
+                    .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
@@ -59,10 +69,29 @@ struct PlaylistCard: View {
             .shadow(color: AppTheme.Colors.shadowCard, radius: 4, x: 0, y: 2)
             .padding(.horizontal)
             .contentShape(Rectangle())
+            // Warum: Ganze Karte tappbar, ohne den Standard‑Buttonstil zu erben
             .buttonStyle(.plain)
             .accessibilityElement(children: .combine)
             .accessibilityLabel("\(title), \(subtitle)")
             .accessibilityHint("Öffnet Playlist.")
         }
+    }
+}
+
+// MARK: - Preview
+#Preview {
+    let container = try! ModelContainer(
+        for: WatchHistoryEntity.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
+    return NavigationStack {
+        PlaylistCard(
+            title: "Mindset Essentials",
+            subtitle: "5 Videos · 45 Min",
+            iconName: "brain.head.profile",
+            playlistID: "PL123456789",
+            context: container.mainContext
+        )
+        .padding()
     }
 }

@@ -2,13 +2,21 @@
 //  MentorViewModel.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 05.08.25.
+//  Zweck: UI‑Zustand & Logik für Mentoren (Einzelansicht + Liste).
+//  Architekturrolle: ViewModel (MVVM).
+//  Verantwortung: Laden/Mergen von API‑Daten, Favoriten‑Sync, Suche & Vorschläge.
+//  Warum? Entkoppelt Views von Nebenwirkungen; deterministischer UI‑State für Tests.
+//  Testbarkeit: Services injizierbar (Network/Config), SwiftData‑Context optional; Observer klar gekapselt.
+//  Status: stabil.
 //
 
 import Foundation
 import SwiftData
 
-/// ViewModel für Einzelmentor und Mentorenliste
+// Kurzzusammenfassung: Lädt/merged Mentor‑Daten aus API & Seeds, hält Favoriten‑Status aktuell, bietet Suche & Suggestions.
+
+// MARK: - Implementierung: MentorViewModel
+// Warum: Zentralisiert Mentor‑State (Einzel + Liste) und entlastet Views.
 @MainActor
 class MentorViewModel: ObservableObject {
     // MARK: - State
@@ -19,9 +27,12 @@ class MentorViewModel: ObservableObject {
     @Published var isFavorite: Bool = false
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
+    // Injektionspunkt für Persistenz (optional) – erleichtert Tests & Previews
     let context: ModelContext?
     
+    // Services
     private let favoritesManager = FavoritesManager.shared
+    // Hält Notification‑Token für Live‑Updates (Favoriten)
     private var favoritesObserver: NSObjectProtocol?
 
     // MARK: - Init
@@ -31,12 +42,13 @@ class MentorViewModel: ObservableObject {
     }
 
     // MARK: - Favorites
-    /// Startet einen Listener auf Favoriten-Änderungen und hält den Status synchron.
+    /// Startet einen Listener auf Favoriten‑Änderungen und hält den Status synchron.
+    /// Warum: UI‑Badges/Toggles bleiben korrekt, ohne manuelle Refresh‑Logik in Views.
     func startObservingFavorites() {
         guard mentor != nil, context != nil else { return }
-        // Erstes Sync beim Start
+        // Initial‑Sync: Status einmalig aus Persistenz holen
         syncFavorite()
-        // Notification-Listener (auf dem Main-Thread)
+        // Listener: .favoritesDidChange → Favoritenstatus neu berechnen (Main‑Thread)
         favoritesObserver = NotificationCenter.default.addObserver(forName: .favoritesDidChange, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
                 guard self?.mentor != nil, self?.context != nil else { return }
@@ -45,13 +57,15 @@ class MentorViewModel: ObservableObject {
         }
     }
 
-    /// Gibt an, ob der Mentor als Favorit markiert ist.
+    /// Synchronisiert den Favoritenstatus mit der Persistenz.
+    /// Warum: Quelle der Wahrheit liegt im FavoritesManager/SwiftData.
     func syncFavorite() {
         guard let mentor = mentor, let context = context else { return }
         isFavorite = favoritesManager.isMentorFavorite(mentor: mentor, context: context)
     }
 
     /// Wechselt den Favoritenstatus und speichert ihn persistent.
+    /// Warum: Kapselt Insert/Delete + anschließendes Re‑Read für konsistenten UI‑State.
     func toggleFavorite() async {
         guard let mentor = mentor, let context = context else { return }
         await favoritesManager.toggleMentorFavorite(mentor: mentor, context: context)
@@ -59,10 +73,13 @@ class MentorViewModel: ObservableObject {
     }
     
     // MARK: - Helpers
-    /// Normalisiert Strings für vergleichende Suche (ä/ö/ü = a/o/u, Case-insensitive)
+    /// Normalisiert Strings für vergleichende Suche (Diakritika + Case‑Folding).
+    /// Warum: Einheitliche Treffer auch bei ä/ö/ü oder Groß/Kleinschreibung.
     private func norm(_ s: String) -> String {
         s.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
     }
+    /// Extrahiert YouTube‑Handle aus den Social‑Links des Mentors (falls vorhanden).
+    /// Warum: Erlaubt API‑Abfragen auch ohne Channel‑ID (Fallback).
     private func handleFromSocials(for m: Mentor) -> String? {
         guard let socials = m.socials else { return nil }
         for s in socials where s.platform.lowercased() == "youtube" {
@@ -74,10 +91,12 @@ class MentorViewModel: ObservableObject {
         return nil
     }
 
+    // Bequeme Variante für den aktuell gesetzten Mentor
     private func handleFromSocials() -> String? { guard let mentor = mentor else { return nil }; return handleFromSocials(for: mentor) }
 
     // MARK: - Loading Single Mentor
-    /// Lädt echte Mentor-Daten aus der YouTube API (falls verfügbar)
+    /// Lädt echte Mentor‑Daten aus der YouTube‑API (falls verfügbar) und merged defensiv.
+    /// Warum: Seeds bleiben Basis; API‑Daten ergänzen nur nicht‑leere/„bessere“ Felder (idempotent).
     func loadFromAPIIfPossible() async {
         isLoading = true
         errorMessage = nil
@@ -86,6 +105,7 @@ class MentorViewModel: ObservableObject {
         guard var base = mentor else { return }
 
         let key = ConfigManager.resolvedYouTubeAPIKey
+        // Ohne API‑Key: Seeds verwenden und still fortfahren (kein UI‑Fehler)
         guard !key.isEmpty else {
             #if DEBUG
             print("⚠️ Kein API-Key gefunden – Seeds bleiben aktiv.")
@@ -94,13 +114,14 @@ class MentorViewModel: ObservableObject {
         }
 
         do {
+            // API‑Abruf: bevorzugt Channel‑ID, fällt bei Bedarf auf Handle zurück
             let updated = try await NetworkManager.shared.loadMentor(
                 preferId: base.id.isEmpty ? nil : base.id,
                 handle: handleFromSocials(),
                 apiKey: key
             )
 
-            // Felder idempotent & defensiv mergen (Seeds nur ergänzen, keine leeren Werte übernehmen)
+            // Merge: Nur sinnvolle/„bessere“ Werte übernehmen (keine leeren Strings)
             if !updated.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 base.name = updated.name
             }
@@ -127,7 +148,8 @@ class MentorViewModel: ObservableObject {
     }
 
     // MARK: - Loading All Mentors
-    /// Lädt alle Mentoren (API-first, Seeds als Fallback)
+    /// Lädt alle Mentoren (API‑first, Seeds als Fallback) und baut eine konsistente Liste.
+    /// Warum: Robuste UX auch ohne Schlüssel/bei Fehlern; Reihenfolge entspricht Seeds.
     func loadAllMentors(seeds: [Mentor]) async {
         isLoading = true
         errorMessage = nil
@@ -137,6 +159,7 @@ class MentorViewModel: ObservableObject {
         for seed in seeds {
             if Task.isCancelled { break }
             do {
+                // Falls Key vorhanden: API‑Pfad; sonst Seeds übernehmen
                 if !key.isEmpty {
                     let handle = handleFromSocials(for: seed)
                     let m = try await NetworkManager.shared.loadMentor(
@@ -149,6 +172,7 @@ class MentorViewModel: ObservableObject {
                     loaded.append(seed)
                 }
             } catch {
+                // Fallback: Seed behalten, damit UI vollständig bleibt
                 loaded.append(seed)
             }
         }
@@ -159,7 +183,8 @@ class MentorViewModel: ObservableObject {
     }
 
     // MARK: - Search
-    /// Filtert die Mentorenliste nach einem Suchstring in Name, Bio
+    /// Filtert die Mentorenliste nach einem Suchstring in Name & Bio.
+    /// Warum: Einfache, performante Client‑Suche ohne zusätzliche API‑Kosten.
     func filteredMentors(query: String) -> [Mentor] {
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !q.isEmpty else { return mentors }
@@ -171,7 +196,8 @@ class MentorViewModel: ObservableObject {
     }
 
     // MARK: - Suggestions
-    /// Liefert Auto-Vervollständigungs-Vorschläge aus Name, Bio
+    /// Liefert Auto‑Vervollständigungs‑Vorschläge aus Name & Bio.
+    /// Warum: Nutzerfreundliche Suche; dedupliziert über normalisierte Keys.
     func suggestions(for query: String, limit: Int = 10) -> [String] {
         let q = norm(query.trimmingCharacters(in: .whitespacesAndNewlines))
         guard !q.isEmpty else { return [] }

@@ -2,14 +2,26 @@
 //  YouTubeVideoItem+Mapper.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 02.08.25.
+//  Zweck: Mapper von YouTubeVideoItem (API‑Schema) → Video (App‑Domain‑Modell).
+//  Architekturrolle: Extension (Adapter‑Pattern).
+//  Verantwortung: Defensive Validierung, Thumbnail‑Fallback, Privacy‑Filter.
+//  Warum? Trennung von API‑Schema & App‑Modell; Views arbeiten nur mit Video.
+//  Testbarkeit: Deterministisch; leicht mit Fixture‑JSON prüfbar.
+//  Status: stabil.
 //
 
 import Foundation
 
+// Kurzzusammenfassung: Nimmt API‑Response, prüft Pflichtfelder, mappt auf Video mit Thumbnail‑Fallback & Privacy‑Filter.
+
+// MARK: - Mapper
 extension YouTubeVideoItem {
+    /// Mappt ein `YouTubeVideoItem` in ein internes `Video`‑Modell.
+    /// - Parameter category: Kategorie, in die das Video einsortiert wird.
+    /// - Returns: Video oder `nil`, falls Pflichtfelder fehlen oder Video privat ist.
+    /// Warum: Defensive Logik kapseln; Views müssen nicht selbst prüfen.
     func toVideo(category: String) -> Video? {
-        // Defensive Unwrap: snippet + videoId sind Pflicht
+        // Pflicht: snippet + videoId → sonst nil
         guard let snippet = snippet, let videoId = snippet.resourceId?.videoId else {
             return nil
         }
@@ -35,6 +47,7 @@ extension YouTubeVideoItem {
             return nil
         }
         let t = snippet.thumbnails
+        // Thumbnail‑Priorität: maxres → standard → high → medium → default
         let candidateThumb = firstNonEmpty(
             t?.maxres?.url,
             t?.standard?.url,
@@ -43,9 +56,10 @@ extension YouTubeVideoItem {
             t?.defaultThumbnail?.url
         )
         let thumbnailURL = candidateThumb ?? "https://i.ytimg.com/vi/\(videoId)/hqdefault.jpg"
+        // HTTPS erzwingen (ATS‑Konformität)
         let secureThumb = thumbnailURL.replacingOccurrences(of: "http://", with: "https://")
 
-        // Build Video-Domain-Objekt (behalte deine aktuellen Felder/Typen bei)
+        // Endgültiges Video‑Domain‑Objekt bauen
         return Video(
             id: UUID(), // intern verwendete UUID; die eigentliche Video-Id steckt in videoURL
             title: rawTitle.isEmpty ? "Unbenannter Titel" : rawTitle,

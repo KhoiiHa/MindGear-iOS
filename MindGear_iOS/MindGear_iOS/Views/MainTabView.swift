@@ -1,21 +1,37 @@
+//
+//  MainTabView.swift
+//  MindGear_iOS
+//
+//  Zweck: Tab-Leiste der App mit den Hauptbereichen (Home, Mentoren, Videos, Favoriten, Einstellungen).
+//  Architekturrolle: SwiftUI View (präsentationsnah) mit UIKit-Brücke für TabBar-Aussehen.
+//  Verantwortung: Tab-Struktur, Styling der UITabBar, Default-Selektion (für UI-Tests), Navigation-Container je Tab.
+//  Warum? Klare Informationsarchitektur; UI-Tests finden stabile Einstiegspunkte über Accessibility-IDs.
+//  Testbarkeit: Accessibility-IDs pro Tab, Preview mit In‑Memory ModelContainer.
+//  Status: stabil.
+//
 import SwiftUI
 import SwiftData
 import UIKit
 
+// Kurzzusammenfassung: Einheitliche TabBar (Blur, Farben), stabile Accessibility-IDs, UI-Test-sichere Default-Selektion.
+
 // Tab-Bar der App mit Hauptbereichen
 struct MainTabView: View {
+    // MARK: - Types
     enum Tab: Hashable { case home, mentors, videos, favorites, settings }
     @State private var selection: Tab
     @Environment(\.modelContext) private var context
     @Environment(\.colorScheme) private var colorScheme
 
     init() {
+        // TabBar-Styling zentral setzen (Blur, Farben, Titel) – wirkt auf alle Tabs
         let appearance = UITabBarAppearance()
         appearance.configureWithDefaultBackground()                    // system blur underlay
         appearance.backgroundEffect = UIBlurEffect(style: .systemThinMaterialDark)
         appearance.backgroundColor = .clear
         appearance.shadowColor = UIColor(AppTheme.Colors.separator)
 
+        // Einheitliche Icon/Title-Farben für normal/selected (auch inline/compactInline)
         let normalTitle   = [NSAttributedString.Key.foregroundColor: UIColor(AppTheme.Colors.textSecondary)]
         let selectedTitle = [NSAttributedString.Key.foregroundColor: UIColor(AppTheme.Colors.accent)]
         appearance.stackedLayoutAppearance.normal.iconColor = UIColor(AppTheme.Colors.textSecondary)
@@ -25,6 +41,7 @@ struct MainTabView: View {
         appearance.inlineLayoutAppearance = appearance.stackedLayoutAppearance
         appearance.compactInlineLayoutAppearance = appearance.stackedLayoutAppearance
 
+        // Auf globale UITabBar anwenden (Standard/ScrollEdge), inkl. Tints
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
         UITabBar.appearance().unselectedItemTintColor = UIColor(AppTheme.Colors.textSecondary)
@@ -34,11 +51,13 @@ struct MainTabView: View {
         // Remove custom pill for now; we'll re-introduce later if desired
         UITabBar.appearance().selectionIndicatorImage = nil
 
-        // Default selected tab: switch to Mentors when running UI tests that expect it
+        // UI-Tests: Optionaler Start auf "Mentoren" via Launch-Argument
         let wantsMentorsDefault = ProcessInfo.processInfo.arguments.contains("UITEST_DEFAULT_TAB_MENTORS")
         _selection = State(initialValue: wantsMentorsDefault ? .mentors : .home)
     }
 
+    // MARK: - Helpers
+    // Warum: Optionale Pill-Markierung (aktuell deaktiviert) – kann später reaktiviert werden
     private static func makeSelectionIndicatorImage(fill: UIColor, stroke: UIColor, cornerRadius: CGFloat, lineWidth: CGFloat) -> UIImage {
         let size = CGSize(width: 56, height: 28) // slimmer pill; resizable via cap insets
         let renderer = UIGraphicsImageRenderer(size: size)
@@ -50,7 +69,7 @@ struct MainTabView: View {
         }.resizableImage(withCapInsets: UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10))
     }
 
-    // MARK: - UI
+    // MARK: - Body
     var body: some View {
         TabView(selection: $selection) {
             // 1) Home – sichtbar
@@ -121,10 +140,14 @@ struct MainTabView: View {
     }
 }
 
+// MARK: - Preview
 struct MainTabView_Previews: PreviewProvider {
     static var previews: some View {
         let container = try! ModelContainer(for: FavoriteVideoEntity.self, FavoriteMentorEntity.self, FavoritePlaylistEntity.self, WatchHistoryEntity.self)
         MainTabView()
             .modelContainer(container)
+        MainTabView()
+            .modelContainer(container)
+            .preferredColorScheme(.dark)
     }
 }

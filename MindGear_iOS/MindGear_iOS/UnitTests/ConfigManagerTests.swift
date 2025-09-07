@@ -2,12 +2,20 @@
 //  ConfigManagerTests.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 04.09.25.
+//  Zweck: UnitTests für ConfigManager (Config.plist Werte, Basis‑URL & PlaylistID).
+//  Architekturrolle: XCTestCase (UnitTest‑Layer).
+//  Verantwortung: Prüft Validität & Integrität zentraler Config‑Werte.
+//  Warum? Fehlerhafte Config‑Werte führen zu Ladefehlern; Tests sichern korrekte Defaults.
+//  Testbarkeit: Deterministisch via Config.plist.
+//  Status: stabil.
 //
 
 import XCTest
 @testable import MindGear_iOS
+// Kurzzusammenfassung: Testet apiBaseURL() (HTTPS, Host, Pfad) & recommendedPlaylistId (nicht leer).
 
+// MARK: - ConfigManagerTests
+/// UnitTests für die zentralen ConfigManager‑Werte.
 final class ConfigManagerTests: XCTestCase {
 
     func test_apiBaseURL_isValidHTTPS() throws {

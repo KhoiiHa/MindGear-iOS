@@ -1,6 +1,21 @@
+//
+//  ThumbnailView.swift
+//  MindGear_iOS
+//
+//  Zweck: Zuverlässige Anzeige von YouTube‑Thumbnails mit einfachen Fallbacks & Cache‑Nutzung.
+//  Architekturrolle: SwiftUI View (präsentationsnah) + leichter Cache‑Utility.
+//  Verantwortung: URL‑Normalisierung, Kandidaten‑Reihenfolge, schlanker Auto‑Retry, Memory/URLCache‑Nutzung.
+//  Warum? i.ytimg.com liefert nicht immer `maxresdefault`/`sddefault`; stabile Anzeige ohne Over‑Engineering.
+//  Testbarkeit: Deterministischer Ablauf; Preview möglich; keine externen Abhängigkeiten.
+//  Status: stabil.
+//
+
 import SwiftUI
 import UIKit
+// Kurzzusammenfassung: Kandidaten: Original → hqdefault → Alt‑Host → Alt‑Host+hq; 1 Retry (300ms); Memory+URLCache first.
 
+// MARK: - ImageMemoryCache (leichtgewichtig)
+/// Kleiner In‑Memory‑Cache für bereits geladene Thumbnails (reduziert Netz/Decoding‑Kosten).
 final class ImageMemoryCache {
     static let shared = ImageMemoryCache()
     private let cache = NSCache<NSURL, UIImage>()
@@ -9,21 +24,8 @@ final class ImageMemoryCache {
     func insert(_ image: UIImage, for url: URL) { cache.setObject(image, forKey: url as NSURL) }
 }
 
-/// MindGear ThumbnailView – robust & bewusst „lean“ gebaut
-///
-/// Warum diese View existiert (sichtbar für Reviewer/Bewerter):
-/// - YouTube-Thumbnails sind inkonsistent (Host/Resolution/CDN). Häufige Fälle: 404 bei
-///   `maxresdefault.jpg` oder Host-Hänger.
-/// - Ziel: **zuverlässige Anzeige** bei minimaler Komplexität – kein Over-Engineering.
-///
-/// Design-Entscheidungen (Safety-first, aber schlank):
-/// - HTTPS erzwingen (keine ATS-Reibung)
-/// - Kandidaten-Reihenfolge: **Original → hqdefault → Alt‑Host (img.youtube.com) → Alt‑Host+hqdefault**
-///   ↳ `hqdefault.jpg` ist fast immer vorhanden und stabiler als `maxresdefault`/`sddefault`.
-/// - Genau **ein** Auto‑Retry (0,3 s) – keine Schleifen, ruhige UI
-/// - Cache‑First: Wenn `URLCache` einen Treffer hat, sofort rendern (snappier UX)
-/// - Kein Fade‑In bei `AsyncImage` (fühlt sich schneller an)
-/// - Optional: Tap‑to‑Retry, ohne zusätzliche Infrastruktur
+// MARK: - ThumbnailView
+// Warum: Robuste Anzeige trotz inkonsistenter YouTube‑CDN‑Antworten; bewusst schlank gehalten.
 struct ThumbnailView: View {
     let urlString: String
     var width: CGFloat = 160
@@ -36,16 +38,15 @@ struct ThumbnailView: View {
     @State private var uiImage: UIImage? = nil
 
     // MARK: - Helpers
+    /// Erzwingt HTTPS & trimmt Whitespace.
+    /// Warum: Vermeidet ATS‑Probleme & instabile Vergleiche.
     private func sanitize(_ s: String) -> String {
         s.trimmingCharacters(in: .whitespacesAndNewlines)
          .replacingOccurrences(of: "http://", with: "https://")
     }
 
-    /// Kandidaten-Reihenfolge (in genau dieser Reihenfolge, ohne Set!):
-    /// 1) Original
-    /// 2) Kleinere Auflösung (hqdefault) – häufigster Fix
-    /// 3) Alt-Host (img.youtube.com)
-    /// 4) Alt-Host + Kleinere Auflösung
+    /// Erzeugt die Kandidaten‑Liste in fixer Reihenfolge.
+    /// Warum: `hqdefault` ist fast immer verfügbar; Alt‑Host hilft bei CDN‑Ausfällen.
     private var candidateURLs: [URL] {
         let primary = sanitize(urlString)
 
@@ -91,6 +92,7 @@ struct ThumbnailView: View {
         return ordered.compactMap { URL(string: $0) }
     }
 
+    /// Liefert die aktuelle Kandidaten‑URL basierend auf `attempt`.
     private var currentURL: URL? {
         guard !candidateURLs.isEmpty else { return nil }
         let idx = min(attempt, candidateURLs.count - 1)
@@ -124,6 +126,8 @@ struct ThumbnailView: View {
                 .scaledToFill()
                 .clipped()
         } else if let url = currentURL {
+            // Cache‑Policy: Zeige Cache sofort, lade im Hintergrund nach (snappier UX)
+            let request = URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)
             // 0) Memory cache first
             if let mem = ImageMemoryCache.shared.image(for: url) {
                 Image(uiImage: mem)
@@ -131,7 +135,6 @@ struct ThumbnailView: View {
                     .scaledToFill()
                     .clipped()
             } else {
-                let request = URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)
                 if let cachedResponse = URLCache.shared.cachedResponse(for: request),
                    let cachedImage = UIImage(data: cachedResponse.data) {
                     Image(uiImage: cachedImage)
@@ -149,6 +152,7 @@ struct ThumbnailView: View {
                                     ImageMemoryCache.shared.insert(loaded, for: url)
                                     await MainActor.run { self.uiImage = loaded }
                                 } else {
+                                    // Ruhiger Auto‑Retry nach 300ms (ein Schritt weiter in der Kandidatenliste)
                                     try? await Task.sleep(nanoseconds: 300_000_000)
                                     await MainActor.run {
                                         if attempt < max(0, candidateURLs.count - 1) {
@@ -157,6 +161,7 @@ struct ThumbnailView: View {
                                     }
                                 }
                             } catch {
+                                // Ruhiger Auto‑Retry nach 300ms (ein Schritt weiter in der Kandidatenliste)
                                 try? await Task.sleep(nanoseconds: 300_000_000)
                                 await MainActor.run {
                                     if attempt < max(0, candidateURLs.count - 1) {
@@ -183,6 +188,7 @@ struct ThumbnailView: View {
                 .font(.title2)
                 .foregroundStyle(.secondary)
                 .opacity(0.55)
+                .accessibilityHidden(true)
         }
         .overlay(
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
@@ -198,6 +204,7 @@ struct ThumbnailView: View {
                 .font(.title2)
                 .foregroundStyle(.secondary)
                 .opacity(0.75)
+                .accessibilityHidden(true)
         }
         .overlay(
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
@@ -206,7 +213,8 @@ struct ThumbnailView: View {
     }
 }
 
-/// Aktiviert einen Tap‑to‑Retry nur bei Bedarf (kein Extra‑API in der aufrufenden View nötig).
+// MARK: - Modifiers
+/// Aktiviert Tap‑to‑Retry nur, wenn gewünscht – ohne zusätzliche Zustände in aufrufenden Views.
 private struct TapToRetry: ViewModifier {
     let enabled: Bool
     let action: () -> Void
@@ -219,4 +227,13 @@ private struct TapToRetry: ViewModifier {
             content
         }
     }
+}
+
+// MARK: - Preview
+#Preview {
+    VStack(spacing: 16) {
+        ThumbnailView(urlString: "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg", width: 240, height: 135)
+        ThumbnailView(urlString: "https://i.ytimg.com/vi/invalid-id/maxresdefault.jpg", width: 240, height: 135, enableTapToRetry: true)
+    }
+    .padding()
 }

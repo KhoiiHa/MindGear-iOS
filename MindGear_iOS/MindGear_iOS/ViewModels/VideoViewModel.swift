@@ -1,12 +1,26 @@
+//
+//  VideoViewModel.swift
+//  MindGear_iOS
+//
+//  Zweck: UI‑Zustand & Logik für Playlist‑Videos inkl. Suche, Favorites & Paging.
+//  Architekturrolle: ViewModel (MVVM).
+//  Verantwortung: Initial‑Load (Remote‑Cache → API‑Fallback), Filter/Suche/Suggestions, Infinite Scroll.
+//  Warum? Entkoppelt Views von Nebenwirkungen; deterministisches UI‑Binding & robuste Offline‑Strategien.
+//  Testbarkeit: Services injizierbar (`APIServiceProtocol`), State via `@Published` prüfbar.
+//  Status: stabil.
+//
 import Foundation
 import SwiftData
+// Kurzzusammenfassung: Erst Remote‑Cache, dann API; Suche mit Debounce; Favorites‑Sync; Paging mit Duplikat‑Schutz.
 
-// Steuert Videos einer Playlist inkl. Suche, Paging und Offline-Fallback
+// MARK: - Implementierung: VideoViewModel
+// Warum: Zentralisiert Playlist‑Video‑State; entlastet Views und hält UI konsistent.
 @MainActor
 class VideoViewModel: ObservableObject {
     // MARK: - State
-    // Merker: Welche Playlists wurden in dieser App-Session bereits einmal initial geladen?
+    // Session‑Guard: Welche Playlists wurden in dieser App‑Session schon initial geladen?
     private static var loadedOnce = Set<String>()
+    // UI‑Daten & Fehlerstatus
     @Published var videos: [Video] = []
     @Published var errorMessage: String? = nil
     @Published var searchText: String = ""
@@ -20,12 +34,14 @@ class VideoViewModel: ObservableObject {
     @Published var playlistThumbnailURL: String = ""
     private var searchTask: Task<Void, Never>? = nil
 
-    /// Normalisiert Strings (diakritik-insensitiv, lowercase) für eine robuste Suche
+    /// Normalisiert Strings (diakritik‑insensitiv, case‑folded) für robuste Suche.
+    /// Warum: Einheitliche Treffer auch bei ä/ö/ü und unterschiedlicher Groß‑/Kleinschreibung.
     private func norm(_ s: String) -> String {
         s.folding(options: .diacriticInsensitive, locale: .current).lowercased()
     }
 
-    /// Wendet die Suche auf `videos` an und aktualisiert `filteredVideos`
+    /// Wendet die Suche auf `videos` an und aktualisiert `filteredVideos`.
+    /// Warum: Trennung von State‑Mutation und UI‑Events; optionaler Favorites‑Filter.
     private func applySearch() {
         let q = norm(searchText.trimmingCharacters(in: .whitespacesAndNewlines))
         let base = videos
@@ -47,8 +63,8 @@ class VideoViewModel: ObservableObject {
         }
     }
 
-    /// Leitet Playlist-Metadaten aus der ersten Videokarte ab (Fallback, bis echte Playlist-API genutzt wird).
-    /// Setzt nur dann Default-Werte, wenn gar keine Videos vorhanden sind.
+    /// Leitet Playlist‑Metadaten defensiv aus vorhandenen Videos ab.
+    /// Warum: UI‑Stabilität, bis echte Playlist‑Metadaten verfügbar sind.
     private func updatePlaylistMetaFromVideosIfNeeded() {
         if let first = videos.first {
             if playlistTitle.isEmpty { playlistTitle = first.title }
@@ -61,11 +77,10 @@ class VideoViewModel: ObservableObject {
         }
     }
 
-    
-    /// Debounce für die Suchanfrage (~250 ms), ohne Combine-Overhead.
-    /// Wird direkt aus der View via `.onChange(of:)` oder Button-Tap aufgerufen.
     private var searchWorkItem: DispatchWorkItem?
 
+    /// Debounce für die Suche (~250 ms), aus Views via `.onChange(of:)` oder Button‑Tap aufrufbar.
+    /// Warum: Verhindert teure Filterung bei schnellem Tippen; Suggestions werden konsistent aktualisiert.
     func updateSearch(text: String) {
         searchText = text.trimmingCharacters(in: .whitespacesAndNewlines)
         searchWorkItem?.cancel()
@@ -98,7 +113,8 @@ class VideoViewModel: ObservableObject {
         self.context = context
         self.loadSearchHistory()
     }
-    /// Erzeugt Vorschlagstitel (max 6), priorisiert Präfix-Treffer, diakritik-insensitiv.
+    /// Erzeugt Vorschlagstitel (max. `max`), priorisiert Präfix‑Treffer, diakritik‑insensitiv.
+    /// Warum: Bessere UX bei der Suche; dedupliziert stabil.
     static func makeSuggestions(from videos: [Video], query: String, max: Int = 6) -> [String] {
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
         let normalized = q.folding(options: .diacriticInsensitive, locale: .current).lowercased()
@@ -116,8 +132,8 @@ class VideoViewModel: ObservableObject {
         return Array(merged.prefix(max))
     }
 
-    /// Wählt eine robuste Thumbnail-URL und erzwingt HTTPS.
-    /// Reihenfolge: maxres → standard → high → medium → default; Fallback auf hqdefault.
+    /// Wählt eine robuste Thumbnail‑URL und erzwingt HTTPS, Fallback auf `hqdefault`.
+    /// Warum: Konsistente Bilddarstellung ohne Layout‑Sprünge.
     private func makeThumbnailURL(from thumbnails: Thumbnails?, videoID: String) -> String {
         // Kandidaten aus der API, in sinnvoller Reihenfolge
         let candidates: [String?] = [
@@ -138,7 +154,8 @@ class VideoViewModel: ObservableObject {
         return url
     }
 
-    // Mappt Remote-JSON (GitHub Actions Cache) -> bestehendes Video-Modell
+    /// Mappt Remote‑JSON (GitHub Actions Cache) auf das App‑Modell `Video`.
+    /// Warum: Schneller Erst‑Load; Favoriten werden gematcht und markiert.
     private func mapFromRemote(_ remote: RemoteVideosCache) -> [Video] {
         let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
         return remote.videos.compactMap { item in
@@ -159,8 +176,8 @@ class VideoViewModel: ObservableObject {
         }
     }
 
-    /// Lädt Videos aus der YouTube-Playlist und aktualisiert die Liste der Videos.
-    /// Behandelt Fehler und zeigt gegebenenfalls Favoriten im Offline-Modus an.
+    /// Lädt Videos für die Playlist (Remote‑Cache → API‑Fallback) und aktualisiert State.
+    /// Warum: Schneller perceived Load über Remote; robuste Fehlerpfade inkl. Offline‑Favoriten.
     func loadVideos(forceReload: Bool = false) async {
         offlineMessage = nil
         errorMessage = nil // vorherige Fehlermeldung zurücksetzen
@@ -169,7 +186,7 @@ class VideoViewModel: ObservableObject {
         hasMore = true
         loadMoreError = nil
         print("📡 loadVideos start for playlist", playlistId)
-        // Session-Guard: dieselbe Playlist nicht mehrfach initial laden (sofern nicht erzwungen)
+        // Session‑Guard: Initial‑Load pro Playlist nur einmal (sofern nicht erzwungen)
         if !forceReload, Self.loadedOnce.contains(playlistId), !videos.isEmpty {
             print("🧠 Session-Guard: Initial-Load für \(playlistId) übersprungen (bereits geladen in dieser Session)")
             return
@@ -194,7 +211,7 @@ class VideoViewModel: ObservableObject {
                 print("ℹ️ Remote JSON nicht verfügbar → Fallback API: \(error.localizedDescription)")
             }
 
-            // 2) Fallback: bisheriger Pfad über YouTube API
+            // Fallback: Direkter API‑Pfad (PlaylistItems)
             let response = try await apiService.fetchVideos(from: playlistId, apiKey: apiKey, pageToken: nil)
             let items = response.items
             self.nextPageToken = response.nextPageToken
@@ -231,12 +248,11 @@ class VideoViewModel: ObservableObject {
             applySearch()
         } catch let error as AppError {
             switch error {
-            case .invalidURL:
-                errorMessage = "Ungültige URL. Bitte überprüfe die API-Einstellungen."
-            case .networkError:
-                if let underlying = error.errorDescription {
-                    print("Network error occurred:", underlying)
-                }
+            case .invalidURL, .apiKeyMissing:
+                errorMessage = "Ungültige oder fehlende API‑Konfiguration. Bitte Einstellungen prüfen."
+
+            case .networkError, .timeout:
+                if let underlying = error.errorDescription { print("Network error:", underlying) }
                 let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
                 if favorites.isEmpty {
                     if errorMessage == nil || errorMessage?.isEmpty == true {
@@ -244,7 +260,7 @@ class VideoViewModel: ObservableObject {
                     }
                 } else {
                     errorMessage = nil
-                    offlineMessage = "Offline-Modus: Zeige gespeicherte Favoriten"
+                    offlineMessage = "Offline‑Modus: Zeige gespeicherte Favoriten"
                     self.videos = favorites.map { fav in
                         Video(
                             id: fav.id,
@@ -260,17 +276,40 @@ class VideoViewModel: ObservableObject {
                     self.hasMore = false
                     self.nextPageToken = nil
                 }
-            case .decodingError:
-                if let underlyingError = (error as LocalizedError).errorDescription {
-                    print("Decoding error occurred: \(underlyingError)")
+
+            case .httpStatus(let code):
+                if code == 401 || code == 403 || code == 404 { // Unauthorized/Not found
+                    errorMessage = "Zugriff nicht möglich (Status \(code)). Bitte später erneut versuchen."
+                } else if code == 500 { // Serverfehler
+                    errorMessage = "Serverfehler (500). Bitte später erneut versuchen."
+                } else {
+                    errorMessage = "Server‑Fehler (Status \(code))."
                 }
+
+            case .rateLimited(let retryAfter):
+                if let s = retryAfter {
+                    errorMessage = "Ratenlimit erreicht. Bitte in \(s) Sekunden erneut versuchen."
+                } else {
+                    errorMessage = "Ratenlimit erreicht. Bitte kurz warten und erneut versuchen."
+                }
+
+            case .decodingError, .invalidResponse, .noData:
+                if let desc = (error as LocalizedError).errorDescription { print("Decoding/Response error:", desc) }
                 if let apiErrorMessage = errorMessage, !apiErrorMessage.isEmpty {
                     errorMessage = apiErrorMessage
                 } else {
                     errorMessage = "Fehler beim Verarbeiten der Daten. Versuche es später erneut."
                 }
+
+            case .unauthorized:
+                errorMessage = "Zugriff nicht autorisiert. Bitte API‑Schlüssel/Anmeldung prüfen."
+
             case .unknown:
                 errorMessage = "Ein unbekannter Fehler ist aufgetreten."
+
+            case .underlying(let e):
+                print("Underlying:", e.localizedDescription)
+                errorMessage = e.localizedDescription
             }
         } catch {
             if let urlErr = error as? URLError {
@@ -311,7 +350,8 @@ class VideoViewModel: ObservableObject {
         }
     }
 
-    /// Lädt weitere Videos, falls ein nextPageToken vorhanden ist (Infinite Scroll)
+    /// Lädt weitere Videos (Infinite Scroll), wenn `nextPageToken` vorhanden ist.
+    /// Warum: Verhindert Doppel‑Loads, dedupliziert per URL‑Set, hält Metadaten aktuell.
     func loadMoreVideos() async {
         guard !isLoadingMore, hasMore, let token = nextPageToken, !token.isEmpty else { return }
         isLoadingMore = true
@@ -366,7 +406,8 @@ class VideoViewModel: ObservableObject {
         }
     }
 
-    /// Wechselt den Favoritenstatus eines Videos und aktualisiert die Ansicht entsprechend.
+    /// Wechselt den Favoritenstatus eines Videos und aktualisiert die Liste.
+    /// Warum: Delegiert Persistenz an FavoritesManager; hält Filter/Suche konsistent.
     func toggleFavorite(for video: Video) async {
         await FavoritesManager.shared.toggleVideoFavorite(video: video, context: context)
         if let index = videos.firstIndex(of: video) {
@@ -375,9 +416,11 @@ class VideoViewModel: ObservableObject {
         applySearch()
     }
 
+    // UI‑Filter: Nur Favoriten anzeigen; triggert Re‑Filterung
     @Published var showFavoritesOnly: Bool = false { didSet { applySearch() } }
 
-    /// Speichert den aktuellen Suchbegriff im Verlauf (max. 10 Einträge, neuestes zuerst, ohne Duplikate)
+    /// Persistiert den Suchbegriff im Verlauf (max. 10, neuestes zuerst, ohne Duplikate).
+    /// Warum: Bessere Wiederverwendbarkeit von Suchen; einfache UX.
     func commitSearchTerm() {
         let term = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard term.count >= 2 else { return }
@@ -388,14 +431,14 @@ class VideoViewModel: ObservableObject {
         UserDefaults.standard.set(history, forKey: searchHistoryKey)
     }
 
-    /// Lädt den gespeicherten Suchverlauf aus UserDefaults
+    /// Lädt gespeicherten Suchverlauf aus UserDefaults.
     private func loadSearchHistory() {
         if let arr = UserDefaults.standard.array(forKey: searchHistoryKey) as? [String] {
             searchHistory = arr
         }
     }
 
-    /// Löscht den Suchverlauf (UI kann diese Funktion z. B. über einen Button anstoßen)
+    /// Löscht den Suchverlauf (UI‑Action, z. B. Button).
     func clearSearchHistory() {
         searchHistory = []
         UserDefaults.standard.removeObject(forKey: searchHistoryKey)

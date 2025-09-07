@@ -2,11 +2,18 @@
 //  CategoriesView.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 05.08.25.
+//  Zweck: Übersicht aller Kategorien mit Suche und Navigation zur Detailansicht.
+//  Architekturrolle: SwiftUI View (präsentationsnah).
+//  Verantwortung: Listendarstellung, Suchfilter, Navigation.
+//  Warum? Schlanke UI, Logik (Filter) bleibt lokal, Datenmodell extern.
+//  Testbarkeit: Previews + klare Accessibility-Ziele möglich.
+//  Status: stabil.
 //
 
 import SwiftUI
 import UIKit
+
+// Kurzzusammenfassung: Grid/Stack-ähnliche Kategorie-Liste mit lokalem Suchfilter und systemkonformer Navigation.
 
 // Übersicht aller Kategorien
 struct CategoriesView: View {
@@ -15,6 +22,7 @@ struct CategoriesView: View {
 
     @State private var searchText: String = ""
 
+    // Lokalfilter: Case-insensitiv, matches Name oder Icon
     private var filteredCategories: [Category] {
         guard !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return categories }
         return categories.filter { cat in
@@ -23,7 +31,7 @@ struct CategoriesView: View {
         }
     }
 
-    // MARK: - UI
+    // MARK: - Body
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -61,6 +69,7 @@ struct CategoriesView: View {
             .scrollIndicators(.hidden)
             .background(AppTheme.listBackground(for: colorScheme))
             .toolbar {
+            // Warum: Titel in der Mitte für klares visuelles Hierarchiesignal
                 ToolbarItem(placement: .principal) {
                     Text("Kategorien")
                         .font(AppTheme.Typography.title)
@@ -70,6 +79,7 @@ struct CategoriesView: View {
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Kategorien suchen")
             .tint(AppTheme.Colors.accent)
             .onAppear {
+                // Styling der UISearchBar: an AppTheme angleichen (Portfolio: konsistentes Look&Feel)
                 let tf = UITextField.appearance(whenContainedInInstancesOf: [UISearchBar.self])
                 tf.backgroundColor = UIColor(AppTheme.Colors.surface)
                 tf.textColor = UIColor(AppTheme.Colors.textPrimary)
@@ -80,12 +90,15 @@ struct CategoriesView: View {
                 )
             }
         }
+        // MARK: - Styling
         .background(AppTheme.Colors.background)
     }
 }
 
+// MARK: - Preview
 struct CategoriesView_Previews: PreviewProvider {
     static var previews: some View {
         CategoriesView()
+        CategoriesView().preferredColorScheme(.dark)
     }
 }

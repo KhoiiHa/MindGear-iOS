@@ -1,14 +1,22 @@
+//
+//  WatchHistoryEntity.swift
+//  MindGear_iOS
+//
+//  Zweck: SwiftData‑Entity für den Video‑Verlauf („Zuletzt gesehen“).
+//  Architekturrolle: Persistence‑Model (SwiftData).
+//  Verantwortung: Speichert Video‑ID, Titel, Thumbnail, Zeitpunkt & Wiedergabeposition.
+//  Warum? Verlauf erleichtert Wiedereinstieg; Trennung zwischen Remote/API und lokaler Speicherung.
+//  Testbarkeit: Deterministisch; leicht mit In‑Memory ModelContainer prüfbar.
+//  Status: stabil.
+//
+
 import Foundation
 import SwiftData
 
-/// SwiftData-Modell für den Video‑Verlauf ("Zuletzt gesehen").
-///
-/// Minimaler MVP‑Umfang:
-///  - `videoId`: YouTube‑Video-ID (eindeutig pro Eintrag)
-///  - `title`: Titel zum Zeitpunkt des Ansehens (damit verlustfrei anzeigbar)
-///  - `thumbnailURL`: Vorschaubild (als String, optional später mit Data‑Cache erweiterbar)
-///  - `watchedAt`: Zeitpunkt, wann der Nutzer das Video angesehen hat (Sortierung DESC)
-///  - `lastPosition`: Reserviert für spätere Fortschrittsanzeige (Sekunden)
+// Kurzzusammenfassung: Speichert Video‑History mit ID, Titel, Thumbnail, Zeitstempel & Fortschrittsanzeige.
+
+// MARK: - WatchHistoryEntity
+/// SwiftData‑Entity für Video‑History („Zuletzt gesehen“).
 @Model
 final class WatchHistoryEntity {
     /// YouTube‑Video‑ID (eindeutig)

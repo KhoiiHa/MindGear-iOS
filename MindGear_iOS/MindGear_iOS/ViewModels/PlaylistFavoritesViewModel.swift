@@ -1,22 +1,27 @@
-
 //
 //  PlaylistFavoritesViewModel.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 11.08.25.
+//  Zweck: UI‑Zustand & Logik für favorisierte Playlists.
+//  Architekturrolle: ViewModel (MVVM).
+//  Verantwortung: Laden/Sortieren, Toggle‑Intents, explizites Entfernen.
+//  Warum? Entkoppelt Views von Persistenz; konsistente Liste & deterministische Tests.
+//  Testbarkeit: SwiftData‑Context injizierbar; State & Queries einfach prüfbar.
+//  Status: stabil.
 //
 
 import Foundation
 import SwiftData
+// Kurzzusammenfassung: Holt Favoriten (neueste zuerst), prüft Status und toggelt/entfernt per FavoritesManager.
 
-/// ViewModel für das Verwalten von favorisierten **Playlists**.
-/// Nutzt `FavoritePlaylistEntity` (SwiftData) und den `FavoritesManager`.
-/// Zeigt Favoritenliste für Playlists im Tab "Favoriten".
+// MARK: - Implementierung: PlaylistFavoritesViewModel
+// Warum: Zentralisiert Playlist‑Favoriten; erleichtert UI‑Tests & Wiederverwendung.
 @MainActor
 final class PlaylistFavoritesViewModel: ObservableObject {
     // MARK: - State
     @Published var favoritePlaylists: [FavoritePlaylistEntity] = []
 
+    // Injektionspunkt für SwiftData – erleichtert Tests & Previews
     private let context: ModelContext
 
     // MARK: - Init
@@ -25,12 +30,14 @@ final class PlaylistFavoritesViewModel: ObservableObject {
     }
 
     // MARK: - Loading
-    /// Lädt alle Playlist-Favoriten (neueste zuerst)
+    /// Lädt alle Playlist‑Favoriten (neueste zuerst).
+    /// Warum: Konsistente Anzeige & deterministische UI‑Tests.
     func reload() {
         let desc = FetchDescriptor<FavoritePlaylistEntity>(
             sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
         )
         do {
+            // Neueste zuerst – erleichtert Wahrnehmung & Teststabilität
             favoritePlaylists = try context.fetch(desc)
         } catch {
             print("Failed to fetch playlist favorites:", error)
@@ -39,7 +46,8 @@ final class PlaylistFavoritesViewModel: ObservableObject {
     }
 
     // MARK: - Queries
-    /// Prüft, ob eine Playlist bereits favorisiert ist
+    /// Prüft, ob eine Playlist bereits favorisiert ist.
+    /// Warum: Schneller Lookup für Toggle/Buttons in der UI.
     func isFavorite(id playlistId: String) -> Bool {
         do {
             let desc = FetchDescriptor<FavoritePlaylistEntity>(
@@ -53,7 +61,8 @@ final class PlaylistFavoritesViewModel: ObservableObject {
     }
 
     // MARK: - Mutations
-    /// Toggle – setzt oder entfernt den Favoritenstatus
+    /// Schaltet den Favoritenstatus einer Playlist um.
+    /// Warum: Delegiert Persistenz an FavoritesManager; `reload()` hält UI state‑aktuell.
     func toggleFavorite(id playlistId: String, title: String, thumbnailURL: String) async {
         await FavoritesManager.shared.togglePlaylistFavorite(
             id: playlistId,
@@ -65,7 +74,8 @@ final class PlaylistFavoritesViewModel: ObservableObject {
     }
 
     // MARK: - Deletion
-    /// Entfernt explizit einen Favoriten nach ID
+    /// Entfernt explizit einen Playlist‑Favoriten anhand der ID.
+    /// Warum: Bietet direkten Lösch‑Flow (z. B. Swipe‑to‑Delete) und aktualisiert die Liste.
     func removeFavorite(id playlistId: String) {
         do {
             let desc = FetchDescriptor<FavoritePlaylistEntity>(
@@ -81,4 +91,3 @@ final class PlaylistFavoritesViewModel: ObservableObject {
         }
     }
 }
-

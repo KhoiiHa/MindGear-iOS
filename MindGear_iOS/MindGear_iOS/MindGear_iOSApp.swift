@@ -1,9 +1,23 @@
+//
+//  MindGear_iOSApp.swift
+//  MindGear_iOS
+//
+//  Zweck: Einstiegspunkt der App (App Lifecycle).
+//  Architekturrolle: @main App (Composition Root).
+//  Verantwortung: Initialisierung von SwiftData‑Container, URLCache & Root‑Navigation.
+//  Warum? Zentrale Stelle für globale Konfigurationen; Onboarding‑Flow entscheidet über Start‑Screen.
+//  Testbarkeit: Indirekt über UI‑Tests; Debug‑Argumente (z. B. -resetOnboarding) vereinfachen Test‑Flows.
+//  Status: stabil.
+//
 import SwiftUI
 import SwiftData
+// Kurzzusammenfassung: Initialisiert URLCache, SwiftData Container & schaltet zwischen Onboarding/MainTab.
 
 @main
 struct MindGear_iOSApp: App {
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
+    // MARK: - Init
+    /// Konfiguriert globalen URLCache & verarbeitet Debug‑Argumente (z. B. Onboarding reset).
     init() {
         // Configure global URLCache for smoother thumbnail reuse (memory ~50MB, disk ~200MB)
         let memoryCapacity = 50 * 1024 * 1024
@@ -15,6 +29,8 @@ struct MindGear_iOSApp: App {
         }
     }
 
+    // MARK: - SwiftData Container
+    /// Gemeinsamer SwiftData‑Container mit allen Entities; Fallback: In‑Memory für Debug/Previews.
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             FavoriteVideoEntity.self,
@@ -38,6 +54,8 @@ struct MindGear_iOSApp: App {
         }
     }()
 
+    // MARK: - Scene
+    /// Root‑Scene: Entscheidet zwischen Onboarding & MainTabView.
     var body: some Scene {
         WindowGroup {
             Group {

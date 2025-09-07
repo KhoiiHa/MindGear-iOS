@@ -1,8 +1,21 @@
+//
+//  HistoryView.swift
+//  MindGear_iOS
+//
+//  Zweck: Verlaufsliste („Zuletzt gesehen“) mit Swipe‑to‑Delete & Pull‑to‑Refresh.
+//  Architekturrolle: SwiftUI View (präsentationsnah).
+//  Verantwortung: Anzeige, relative Datumsformatierung, Löschen & Refresh.
+//  Warum? Schlanke UI; Persistenz & Logik liegen im HistoryViewModel/SwiftData.
+//  Testbarkeit: Accessibility‑IDs + Previews ermöglichen stabile UI‑Tests.
+//  Status: stabil.
+//
 import SwiftUI
 import SwiftData
 
-/// Einfache Verlaufsliste ("Zuletzt gesehen").
-/// Zeigt gespeicherte `WatchHistoryEntity`‑Einträge, sortiert nach Datum.
+// Kurzzusammenfassung: Liste mit Thumbnails, Titel & relativer Zeit; Delete via Swipe; Refresh über Pull.
+
+// MARK: - HistoryView
+// Warum: Präsentiert Verlaufseinträge; ViewModel kapselt Laden/Entfernen.
 struct HistoryView: View {
     @Environment(\.modelContext) private var context
     @StateObject private var viewModel = HistoryViewModel()
@@ -10,14 +23,16 @@ struct HistoryView: View {
 
     // Relative Zeitdarstellung (z. B. "vor 2 Std.")
     private let relativeFormatter: RelativeDateTimeFormatter = {
+        // Warum: Nutzerfreundliche Anzeige („vor 2 Std.“) statt starrer Datumsstrings
         let f = RelativeDateTimeFormatter()
         f.unitsStyle = .short
         return f
     }()
 
-    // MARK: - UI
+    // MARK: - Body
     var body: some View {
         List {
+            // Hinweis: `id: .videoId` ist stabil genug, da VideoIDs eindeutig sind
             ForEach(viewModel.history, id: \.videoId) { entry in
                 HStack(spacing: AppTheme.Spacing.m) {
                     // Thumbnail (einfach & robust)
@@ -29,6 +44,7 @@ struct HistoryView: View {
                             case .success(let image):
                                 image.resizable().scaledToFill()
                                     .cornerRadius(AppTheme.Radius.m)
+                                    .accessibilityHidden(true)
                             case .failure:
                                 Image(systemName: "photo")
                                     .font(.title2)
@@ -61,12 +77,14 @@ struct HistoryView: View {
                 }
             }
             .onDelete { indices in
+                // Warum: Deletion zentral im ViewModel – Persistenz & Notifications dort bündeln
                 for index in indices {
                     let entry = viewModel.history[index]
                     viewModel.deleteFromHistory(entry: entry, context: context)
                 }
             }
         }
+        .accessibilityIdentifier("historyList")
         .refreshable {
             viewModel.loadHistory(context: context)
         }
@@ -95,12 +113,17 @@ struct HistoryView: View {
     }
 }
 
+// MARK: - Preview
 #Preview {
     do {
-        let container = try ModelContainer(for: WatchHistoryEntity.self)
+        let container = try ModelContainer(
+            for: WatchHistoryEntity.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
         return NavigationStack {
             HistoryView()
                 .modelContainer(container)
+            HistoryView().preferredColorScheme(.dark)
         }
     } catch {
         return Text("Preview-Fehler: \(error.localizedDescription)")

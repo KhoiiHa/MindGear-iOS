@@ -2,13 +2,20 @@
 //  MentorsView.swift
 //  MindGear_iOS
 //
-//  Created by Vu Minh Khoi Ha on 05.08.25.
+//  Zweck: Mentorenliste mit Suche & Favoriten-Indikator.
+//  Architekturrolle: SwiftUI View (präsentationsnah).
+//  Verantwortung: Suchfeld, gefilterte Liste, Navigation zur Detailansicht.
+//  Warum? Schlanke UI; Datenbeschaffung & Logik liegen im MentorViewModel/Services.
+//  Testbarkeit: Klare Accessibility-IDs; Preview mit In‑Memory ModelContainer.
+//  Status: stabil.
 //
 
 import SwiftUI
+// Kurzzusammenfassung: Debouncte Suche, sichere Avatare mit Fallback, Herz bei Favoriten, Navigation zu Details.
 import SwiftData
 
-// Listet Mentoren mit Suche und Favoritenstatus
+// MARK: - MentorsView
+// Warum: Präsentiert Mentoren übersichtlich; ViewModel kapselt Laden/Favoriten.
 struct MentorsView: View {
     @StateObject private var viewModel = MentorViewModel()
     @State private var searchText = ""
@@ -19,6 +26,7 @@ struct MentorsView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
 
+    // MARK: - Subviews (Header)
     // Eigene Suchleiste (statt .searchable) mit stabiler Accessibility-ID
     private var headerSearch: some View {
         SearchField(
@@ -43,12 +51,13 @@ struct MentorsView: View {
         .accessibilityValue(searchText)
     }
 
-    // Normalisiert Strings für eine robuste, akzent-insensitive Suche
+    // MARK: - Helpers
+    /// Normalisiert Strings (diakritik-insensitiv, case-folded) für robuste Suche.
     private func norm(_ s: String) -> String {
         s.folding(options: .diacriticInsensitive, locale: .current).lowercased()
     }
 
-    // Entfernt ein optionales "[Seed]"-Prefix aus Namen
+    /// Entfernt ein optionales "[Seed]"-Präfix aus Namen (nur Anzeige).
     private func cleanSeed(_ s: String) -> String {
         s.replacingOccurrences(of: #"^\[Seed\]\s*"#, with: "", options: [.regularExpression])
     }
@@ -69,13 +78,13 @@ struct MentorsView: View {
         }
     }
 
-    // Hilfsfunktion, um zu prüfen, ob ein Mentor in den Favoriten ist
+    /// Schneller Favoriten-Check für Badges/Toggles (UI-Binding).
     private func isFavorite(_ mentor: Mentor) -> Bool {
         FavoritesManager.shared.isMentorFavorite(mentor: mentor, context: modelContext)
     }
 
-
-    // Zeigt ein sicheres Avatarbild: lädt nur gültige http/https-URLs, sonst Fallback-Avatar
+    /// Avatar mit sicherem Fallback (nur http/https laden; sonst Initialen).
+    /// Warum: Verhindert endloses Laden/gebrochene Bilder; stabil in Listen.
     private func avatarView(for mentor: Mentor) -> some View {
         let raw = mentor.profileImageURL?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         // Nur laden, wenn eine echte http/https-URL vorliegt
@@ -87,6 +96,7 @@ struct MentorsView: View {
                         image
                             .resizable()
                             .scaledToFill()
+                            .accessibilityHidden(true)
                     case .failure(_):
                         fallbackAvatar(letter: mentor.name.first)
                     case .empty:
@@ -105,11 +115,13 @@ struct MentorsView: View {
             return AnyView(
                 fallbackAvatar(letter: mentor.name.first)
                     .frame(width: 50, height: 50)
+                    .accessibilityHidden(true)
             )
         }
     }
 
-    // Fallback-Avatar mit Initiale im Kreis
+    /// Fallback-Avatar mit Initiale.
+    /// Warum: Liefert stets sichtbaren Platzhalter ohne Netzwerkkosten.
     private func fallbackAvatar(letter: Character?) -> some View {
         ZStack {
             Circle().fill(AppTheme.Colors.surfaceElevated)
@@ -120,7 +132,7 @@ struct MentorsView: View {
         .clipShape(Circle())
     }
 
-    // MARK: - UI
+    // MARK: - Body
     var body: some View {
         // Liste der gefilterten Mentoren
         List(displayedMentors, id: \.id) { mentor in
@@ -154,6 +166,7 @@ struct MentorsView: View {
         .background(AppTheme.listBackground(for: colorScheme))
         .listRowSeparatorTint(AppTheme.Colors.separator)
         .safeAreaInset(edge: .top) {
+            // Warum: Suchfeld bleibt visuell an die Navigation gekoppelt (klare Hierarchie)
             headerSearch
                 .padding(.bottom, 8)
                 .background(AppTheme.listBackground(for: colorScheme))
@@ -162,6 +175,7 @@ struct MentorsView: View {
         .navigationTitle("Mentoren")
         .toolbarBackground(.visible, for: .navigationBar)
         .onAppear {
+            // Initial-Load: Seeds laden, dann anzeigen (responsiv)
             Task { @MainActor in
                 firstLoad = true
                 await viewModel.loadAllMentors(seeds: MentorData.allMentors)
@@ -170,6 +184,7 @@ struct MentorsView: View {
             }
         }
         .onChange(of: searchText, initial: false) { _, _ in
+            // Debounce ~250ms: verhindert teure Filterung beim schnellen Tippen
             searchTask?.cancel()
             searchTask = Task { @MainActor in
                 try? await Task.sleep(nanoseconds: 250_000_000) // 250ms Debounce
@@ -179,10 +194,12 @@ struct MentorsView: View {
         .onChange(of: viewModel.mentors) { _, _ in
             applySearch()
         }
+        // MARK: - Refresh
         .refreshable {
             await viewModel.loadAllMentors(seeds: MentorData.allMentors)
             await MainActor.run { applySearch() }
         }
+        // MARK: - Empty/Loading States
         .overlay(alignment: .center) {
             if firstLoad && displayedMentors.isEmpty {
                 ProgressView("Lade Mentoren…")
@@ -199,5 +216,18 @@ struct MentorsView: View {
         .onDisappear {
             searchTask?.cancel()
         }
+    }
+}
+// MARK: - Preview
+#Preview {
+    let container = try! ModelContainer(
+        for: FavoriteMentorEntity.self,
+            FavoriteVideoEntity.self,
+            FavoritePlaylistEntity.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
+    return NavigationStack {
+        MentorsView()
+            .modelContext(container.mainContext)
     }
 }
