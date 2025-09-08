@@ -46,7 +46,7 @@ final class PlaylistFavoritesViewModel: ObservableObject {
             #if DEBUG
             print("Failed to fetch playlist favorites:", appErr.localizedDescription)
             #endif
-            errorMessage = appErr.errorDescription ?? "Favoriten konnten nicht geladen werden."
+            errorMessage = AppErrorPresenter.message(for: appErr)
             favoritePlaylists = []
         }
     }
@@ -66,7 +66,7 @@ final class PlaylistFavoritesViewModel: ObservableObject {
             print("Failed to check playlist favorite:", appErr.localizedDescription)
             #endif
             if errorMessage == nil { // UI nicht fluten
-                errorMessage = appErr.errorDescription ?? "Favoritenstatus konnte nicht geprüft werden."
+                errorMessage = AppErrorPresenter.message(for: appErr)
             }
             return false
         }
@@ -103,7 +103,7 @@ final class PlaylistFavoritesViewModel: ObservableObject {
             #if DEBUG
             print("Failed to remove playlist favorite:", appErr.localizedDescription)
             #endif
-            errorMessage = appErr.recoverySuggestion ?? appErr.errorDescription ?? "Favorit konnte nicht entfernt werden."
+            errorMessage = AppErrorPresenter.message(for: appErr)
         }
     }
 }

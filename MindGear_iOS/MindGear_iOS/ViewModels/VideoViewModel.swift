@@ -248,19 +248,14 @@ class VideoViewModel: ObservableObject {
             applySearch()
         } catch let error as AppError {
             switch error {
-            case .invalidURL, .apiKeyMissing:
-                errorMessage = "Ungültige oder fehlende API‑Konfiguration. Bitte Einstellungen prüfen."
-
             case .networkError, .timeout:
                 if let underlying = error.errorDescription { print("Network error:", underlying) }
                 let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
                 if favorites.isEmpty {
-                    if errorMessage == nil || errorMessage?.isEmpty == true {
-                        errorMessage = "Daten konnten nicht geladen werden. Bitte Verbindung prüfen und später erneut versuchen."
-                    }
+                    errorMessage = AppErrorPresenter.message(for: error)
                 } else {
                     errorMessage = nil
-                    offlineMessage = "Offline‑Modus: Zeige gespeicherte Favoriten"
+                    offlineMessage = AppErrorPresenter.hint(for: error) ?? "Offline‑Modus: Zeige gespeicherte Favoriten"
                     self.videos = favorites.map { fav in
                         Video(
                             id: fav.id,
@@ -276,76 +271,35 @@ class VideoViewModel: ObservableObject {
                     self.hasMore = false
                     self.nextPageToken = nil
                 }
-
-            case .httpStatus(let code):
-                if code == 401 || code == 403 || code == 404 { // Unauthorized/Not found
-                    errorMessage = "Zugriff nicht möglich (Status \(code)). Bitte später erneut versuchen."
-                } else if code == 500 { // Serverfehler
-                    errorMessage = "Serverfehler (500). Bitte später erneut versuchen."
-                } else {
-                    errorMessage = "Server‑Fehler (Status \(code))."
+            default:
+                // Alle übrigen Fehlerarten: zentrale, konsistente Nachricht + optionaler Hinweis
+                errorMessage = AppErrorPresenter.message(for: error)
+                if offlineMessage == nil, let hint = AppErrorPresenter.hint(for: error) {
+                    offlineMessage = hint
                 }
-
-            case .rateLimited(let retryAfter):
-                if let s = retryAfter {
-                    errorMessage = "Ratenlimit erreicht. Bitte in \(s) Sekunden erneut versuchen."
-                } else {
-                    errorMessage = "Ratenlimit erreicht. Bitte kurz warten und erneut versuchen."
-                }
-
-            case .decodingError, .invalidResponse, .noData:
-                if let desc = (error as LocalizedError).errorDescription { print("Decoding/Response error:", desc) }
-                if let apiErrorMessage = errorMessage, !apiErrorMessage.isEmpty {
-                    errorMessage = apiErrorMessage
-                } else {
-                    errorMessage = "Fehler beim Verarbeiten der Daten. Versuche es später erneut."
-                }
-
-            case .unauthorized:
-                errorMessage = "Zugriff nicht autorisiert. Bitte API‑Schlüssel/Anmeldung prüfen."
-
-            case .unknown:
-                errorMessage = "Ein unbekannter Fehler ist aufgetreten."
-
-            case .underlying(let e):
-                print("Underlying:", e.localizedDescription)
-                errorMessage = e.localizedDescription
             }
         } catch {
-            if let urlErr = error as? URLError {
-                print("🌐 URLError:", urlErr.code, urlErr.localizedDescription)
-                let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
-                if favorites.isEmpty {
-                    switch urlErr.code {
-                    case .notConnectedToInternet, .timedOut, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost:
-                        errorMessage = "Netzwerkverbindung verloren. Bitte versuche es erneut."
-                    case .cannotParseResponse, .badServerResponse:
-                        print("⚠️ Serverantwort nicht parsebar / ungültig (\(urlErr.code.rawValue)):", urlErr.localizedDescription)
-                        errorMessage = "Daten konnten nicht geladen werden. Der Server lieferte keine gültigen Informationen. Bitte später erneut versuchen."
-                    default:
-                        errorMessage = "Netzwerkfehler. Bitte versuche es erneut."
-                    }
-                } else {
-                    errorMessage = nil
-                    offlineMessage = "Offline-Modus: Zeige gespeicherte Favoriten"
-                    self.videos = favorites.map { fav in
-                        Video(
-                            id: fav.id,
-                            title: fav.title,
-                            description: fav.videoDescription,
-                            thumbnailURL: fav.thumbnailURL,
-                            videoURL: fav.videoURL,
-                            category: fav.category,
-                            isFavorite: true
-                        )
-                    }
-                    applySearch()
-                    self.hasMore = false
-                    self.nextPageToken = nil
-                }
+            let appErr = AppError.from(error)
+            let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
+            if favorites.isEmpty {
+                errorMessage = AppErrorPresenter.message(for: appErr)
             } else {
-                print("❗️Unexpected error:", error.localizedDescription)
-                errorMessage = "Ein unerwarteter Fehler ist aufgetreten."
+                errorMessage = nil
+                offlineMessage = AppErrorPresenter.hint(for: appErr) ?? "Offline‑Modus: Zeige gespeicherte Favoriten"
+                self.videos = favorites.map { fav in
+                    Video(
+                        id: fav.id,
+                        title: fav.title,
+                        description: fav.videoDescription,
+                        thumbnailURL: fav.thumbnailURL,
+                        videoURL: fav.videoURL,
+                        category: fav.category,
+                        isFavorite: true
+                    )
+                }
+                applySearch()
+                self.hasMore = false
+                self.nextPageToken = nil
             }
         }
     }
@@ -403,10 +357,10 @@ class VideoViewModel: ObservableObject {
             // Weich fallen: Fehler mappen, dezente UI-Meldung, kein harter Abbruch
             let appErr = AppError.from(error)
             print("Mehr laden fehlgeschlagen:", appErr.localizedDescription)
-            if appErr.isNetworkRelated && offlineMessage == nil {
-                offlineMessage = "Netzwerkproblem – neuere Inhalte evtl. unvollständig."
+            if offlineMessage == nil, let hint = AppErrorPresenter.hint(for: appErr) {
+                offlineMessage = hint
             }
-            self.loadMoreError = appErr.recoverySuggestion ?? appErr.errorDescription ?? "Konnte weitere Videos nicht laden."
+            self.loadMoreError = AppErrorPresenter.message(for: appErr)
         }
     }
 
