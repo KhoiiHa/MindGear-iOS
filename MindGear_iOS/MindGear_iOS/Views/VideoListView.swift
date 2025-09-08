@@ -98,13 +98,14 @@ struct VideoListView: View {
         Group {
             let isEmpty = vmRef.filteredVideos.isEmpty
             if firstLoad && isEmpty {
-                VStack(spacing: 12) {
-                    // Erstes Laden – zeige Spinner, bis erste Seite da ist
-                    ProgressView()
-                        .accessibilityIdentifier("loadingSpinner")
-                    Text("Lade Videos…")
-                        .font(AppTheme.Typography.footnote)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                ProgressView {
+                    HStack(spacing: 12) {
+                        ProgressView()
+                            .accessibilityIdentifier("loadingSpinner")
+                        Text("Lade Videos…")
+                            .font(.footnote)
+                            .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             } else {
@@ -129,7 +130,6 @@ struct VideoListView: View {
                 .scrollIndicators(.hidden)
                 .scrollContentBackground(.hidden)
                 .listRowSeparator(.hidden)
-                .listRowSeparatorTint(AppTheme.Colors.separator)
                 // Einheitliches Listen‑Styling gemäß AppTheme (auch im Dark Mode)
                 .background(AppTheme.listBackground(for: colorScheme))
                 .accessibilityIdentifier("videosList")
@@ -216,7 +216,7 @@ struct VideoListView: View {
                 // Offline/Fehler‑Hinweis fixiert oben – unaufdringlich, aber sichtbar
                 if let offline = viewModel.offlineMessage, !offline.isEmpty {
                     Text(offline)
-                        .font(AppTheme.Typography.caption)
+                        .font(.caption)
                         .padding(.vertical, 6)
                         .padding(.horizontal, 12)
                         .background(.ultraThinMaterial)
@@ -238,7 +238,7 @@ private struct ChipView: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(AppTheme.Typography.footnote)
+                .font(.footnote)
                 .lineLimit(1)
                 .padding(.vertical, AppTheme.Spacing.xs)
                 .padding(.horizontal, AppTheme.Spacing.m)
@@ -250,7 +250,7 @@ private struct ChipView: View {
                     RoundedRectangle(cornerRadius: AppTheme.Radius.m, style: .continuous)
                         .stroke(isSelected ? AppTheme.Colors.accent : AppTheme.Colors.cardStroke(for: colorScheme), lineWidth: 1)
                 )
-                .foregroundStyle(isSelected ? AppTheme.Colors.background : AppTheme.Colors.textSecondary)
+                .foregroundStyle(isSelected ? AppTheme.Colors.background : AppTheme.textSecondary(for: colorScheme))
         }
         .buttonStyle(.plain)
         .contentShape(Rectangle())

@@ -14,6 +14,7 @@ import SwiftUI
 struct OnboardingView: View {
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
     @State private var page: Int = 0
+    @Environment(\.colorScheme) private var scheme
 
     // MARK: - Body
     var body: some View {
@@ -25,8 +26,8 @@ struct OnboardingView: View {
                 // Warum: Skip oben rechts – erwartet, leicht erreichbar, aber nicht dominant
                 // Skip
                 Button("Überspringen") { finish() }
-                    .font(AppTheme.Typography.footnote)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .font(.footnote)
+                    .foregroundStyle(AppTheme.textSecondary(for: scheme))
                     .padding(.top, 16)
                     .padding(.trailing, 16)
                     .accessibilityIdentifier("onboardingSkipButton")
@@ -62,13 +63,9 @@ struct OnboardingView: View {
                     // Primäraktion: Weiter/Start – füllt Breite, klare Call-to-Action
                     Button(action: advance) {
                         Text(page < 2 ? "Weiter" : "Los geht’s")
-                            .font(AppTheme.Typography.subtitle)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(AppTheme.Colors.primary)
-                            .foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            .font(.headline)
                     }
+                    .buttonStyle(PillButtonStyle())
                     .padding(.horizontal, AppTheme.Spacing.m)
                     .accessibilityIdentifier(page < 2 ? "onboardingNextButton" : "onboardingStartButton")
 
@@ -77,8 +74,8 @@ struct OnboardingView: View {
                             Image(systemName: "bell.badge.fill")
                             Text("Benachrichtigungen später in den Einstellungen aktivieren.")
                         }
-                        .font(AppTheme.Typography.footnote)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .font(.footnote)
+                        .foregroundStyle(AppTheme.textSecondary(for: scheme))
                     }
                     .padding(.bottom, AppTheme.Spacing.m)
                 }
@@ -107,6 +104,7 @@ private struct OnboardingCard: View {
     let title: String
     let subtitle: String
     let systemImage: String
+    @Environment(\.colorScheme) private var scheme
 
     // MARK: - Body
     var body: some View {
@@ -124,14 +122,15 @@ private struct OnboardingCard: View {
             .padding(.top, AppTheme.Spacing.l)
 
             Text(title)
-                .font(AppTheme.Typography.title)
-                .foregroundStyle(AppTheme.Colors.textPrimary)
+                .font(.title2.weight(.bold))
+                .foregroundStyle(AppTheme.textPrimary(for: scheme))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, AppTheme.Spacing.m)
 
             Text(subtitle)
-                .font(AppTheme.Typography.body)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+                .font(.body)
+                .lineSpacing(3)
+                .foregroundStyle(AppTheme.textSecondary(for: scheme))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, AppTheme.Spacing.m)
 
@@ -139,10 +138,7 @@ private struct OnboardingCard: View {
         }
         .frame(maxWidth: .infinity)
         .frame(height: 420)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(AppTheme.Colors.surface)
-        )
+        .mgCard()
         .padding(.horizontal, AppTheme.Spacing.m)
     }
 }

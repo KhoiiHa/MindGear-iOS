@@ -22,6 +22,7 @@ struct VideoRow: View {
     let video: Video
     @Environment(\.modelContext) private var context
     @State private var isFavorite: Bool = false
+    @Environment(\.colorScheme) private var scheme
 
     // MARK: - Body
     var body: some View {
@@ -36,14 +37,14 @@ struct VideoRow: View {
 
             VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                 Text(video.title)
-                    .font(AppTheme.Typography.subheadline)
-                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                    .font(.subheadline)
+                    .foregroundStyle(AppTheme.textPrimary(for: scheme))
                     .lineLimit(2)
                     .truncationMode(.tail) // Lange Titel sauber abschneiden
 
                 Text(video.description)
-                    .font(AppTheme.Typography.footnote)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .font(.footnote)
+                    .foregroundStyle(AppTheme.textSecondary(for: scheme))
                     .lineLimit(2)
                     .truncationMode(.tail) // Lange Beschreibungen sauber abschneiden
             }
@@ -58,9 +59,10 @@ struct VideoRow: View {
                 }
             } label: {
                 Image(systemName: isFavorite ? "heart.fill" : "heart")
-                    .font(AppTheme.Typography.title3)
+                    .font(.title3)
                     .foregroundStyle(isFavorite ? AppTheme.Colors.accent : AppTheme.Colors.iconSecondary)
                     .frame(width: 44, height: 44, alignment: .center)
+                    .symbolEffect(.bounce, value: isFavorite)
             }
             .accessibilityIdentifier("favoriteButton")
             .buttonStyle(.plain)

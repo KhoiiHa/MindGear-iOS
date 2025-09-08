@@ -45,6 +45,16 @@ struct AppTheme {
     static let textPrimary = Color.white
     static let textSecondary = Color.white.opacity(0.7)
     static let textTertiary = Color.white.opacity(0.5)
+    // Scheme-aware Textfarben – vermeiden harte Weißbindung im Light Mode
+    static func textPrimary(for scheme: ColorScheme) -> Color {
+        scheme == .dark ? Color.white : Color.primary
+    }
+    static func textSecondary(for scheme: ColorScheme) -> Color {
+        scheme == .dark ? Color.white.opacity(0.78) : Color.secondary
+    }
+    static func textTertiary(for scheme: ColorScheme) -> Color {
+        scheme == .dark ? Color.white.opacity(0.5) : Color.secondary.opacity(0.8)
+    }
     /// Alias for older call-sites
     public static let secondary = textSecondary
     static let secondaryText = textSecondary
@@ -127,10 +137,14 @@ struct AppTheme {
     /// Pills / Primary CTA
     static var capsuleGradient: LinearGradient { accentGradient }
 
-    // Große Header/Hero‑Flächen – tiefer Verlauf mit leichtem Cyan‑Akzent
+    // Große Header/Hero‑Flächen – tiefer Verlauf mit dezentem Cyan‑Akzent
     static var headerGradient: LinearGradient {
         LinearGradient(
-            gradient: Gradient(colors: [Color(hex: "#0B1220"), Color(hex: "#1B2A4A"), Color(hex: "#2EC5CE")]),
+            gradient: Gradient(colors: [
+                Color(hex: "#0B1220"),
+                Color(hex: "#1B2A4A"),
+                Color(hex: "#1FA4AD") // vorher: #2EC5CE
+            ]),
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
@@ -225,43 +239,18 @@ struct AppTheme {
     // Dezente Schatten – vermeiden visuelles Rauschen
     struct Shadows {
         static var soft: (Color, CGFloat, CGFloat, CGFloat) {
-            (Color.black.opacity(0.25), 20, 0, 10)
+            (Color.black.opacity(0.12), 12, 0, 6)
         }
         static var lifted: (Color, CGFloat, CGFloat, CGFloat) {
-            (Color.black.opacity(0.35), 30, 0, 16)
+            (Color.black.opacity(0.18), 20, 0, 10)
         }
     }
 
-    // Abgestimmte System‑Schriften (Rounded) für modernen, freundlichen Charakter
-    struct Fonts {
-        static let display   = Font.system(size: 34, weight: .bold, design: .rounded)
-        static let largeTitle = Font.system(.largeTitle, design: .rounded).weight(.bold)
-        static let title     = Font.system(.title2, design: .rounded).weight(.bold)
-        static let title3    = Font.system(.title3, design: .rounded).weight(.semibold)
-        static let headline  = Font.system(.headline, design: .rounded)
-        static let subheadline = Font.system(.subheadline, design: .rounded)
-        static let subtitle  = Font.system(.subheadline, design: .rounded).weight(.medium)
-        static let body      = Font.system(.body, design: .rounded)
-        static let callout   = Font.system(.callout, design: .rounded)
-        static let footnote  = Font.system(.footnote, design: .rounded)
-        static let caption   = Font.system(.caption, design: .rounded)
-    }
-    // Backwards-compat alias used in some files
-    static let titleFont = Fonts.title
-
-    // Backwards‑Compat Namespace für Typografie
-    struct Typography {
-        static let display     = Fonts.display
-        static let largeTitle  = Fonts.largeTitle
-        static let title       = Fonts.title
-        static let title3      = Fonts.title3
-        static let headline    = Fonts.headline
-        static let subheadline = Fonts.subheadline
-        static let subtitle    = Fonts.subtitle
-        static let body        = Fonts.body
-        static let callout     = Fonts.callout
-        static let footnote    = Fonts.footnote
-        static let caption     = Fonts.caption
+    // Bewegungs-Tokens für konsistente, ruhige Micro-Interactions
+    struct Motion {
+        static let tapScale: CGFloat = 0.98
+        static let tapDuration: Double = 0.12
+        static let appear: Animation = .easeOut(duration: 0.20)
     }
 
     // Häufig genutzte SF Symbols als zentrale Referenzen

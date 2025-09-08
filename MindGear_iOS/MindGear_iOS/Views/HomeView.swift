@@ -58,6 +58,8 @@ private final class HomeRemoteViewModel: ObservableObject {
 struct HomeView: View {
     @Environment(\.modelContext) private var context
     @StateObject private var rvm = HomeRemoteViewModel()
+    @Environment(\.colorScheme) private var scheme
+    @State private var searchText: String = ""
 
     // MARK: - Body
     var body: some View {
@@ -88,16 +90,22 @@ struct HomeView: View {
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
                             // Seitenkopf: klare Hierarchie (H1 + Subheadline)
                             Text("Startseite")
-                                .font(AppTheme.Typography.title)
-                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                                .font(.title2.weight(.bold))
+                                .foregroundStyle(AppTheme.textPrimary(for: scheme))
                                 .accessibilityHeading(.h1)
                                 .accessibilityIdentifier("homeHeaderTitle")
                             Text("Welche Perspektive bringt dich heute weiter?")
-                                .font(AppTheme.Typography.subheadline)
-                                .foregroundStyle(AppTheme.Colors.textSecondary)
-                                .padding(.bottom, AppTheme.Spacing.s)
+                                .font(.subheadline)
+                                .foregroundStyle(AppTheme.textSecondary(for: scheme))
+                                .padding(.bottom, AppTheme.Spacing.m)
+
+                            // Inline‑Search unter dem Titel
+                            SearchField(text: $searchText, placeholder: "Videos, Mentoren, Themen …")
+                                .padding(.top, AppTheme.Spacing.s)
                         }
                         .padding(.top, AppTheme.Spacing.m)
+                        .padding(.bottom, AppTheme.Spacing.m)
+                        .frame(minHeight: 210, alignment: .topLeading)
 
                         // Nicht-blockierendes Fehler-Feedback für Remote‑Teaser
                         if let msg = rvm.errorMessage, !msg.isEmpty {
@@ -120,14 +128,14 @@ struct HomeView: View {
 
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.m) {
                             Text("Empfohlen")
-                                .font(AppTheme.Typography.footnote)
+                                .font(.footnote)
                                 .fontWeight(.semibold)
-                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                                .foregroundStyle(AppTheme.textSecondary(for: scheme))
                                 .textCase(.uppercase)
 
                             Text("Deine Mentoren")
-                                .font(AppTheme.Typography.headline)
-                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                                .font(.title3.weight(.semibold))
+                                .foregroundStyle(AppTheme.textPrimary(for: scheme))
                                 .textCase(.uppercase)
                                 .tracking(0.6)
                                 .accessibilityHeading(.h2)
@@ -138,8 +146,8 @@ struct HomeView: View {
                                 HStack {
                                     ProgressView()
                                     Text("Lade empfohlene Playlists…")
-                                        .font(AppTheme.Typography.footnote)
-                                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                                        .font(.footnote)
+                                        .foregroundStyle(AppTheme.textSecondary(for: scheme))
                                 }
                                 .padding(.vertical, AppTheme.Spacing.s)
                             }

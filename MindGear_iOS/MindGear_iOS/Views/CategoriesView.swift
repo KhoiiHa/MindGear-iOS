@@ -42,11 +42,11 @@ struct CategoriesView: View {
                         } label: {
                             HStack {
                                 Text(category.icon)
-                                    .font(AppTheme.Typography.title)
+                                    .font(.title)
                                     .padding(.trailing, AppTheme.Spacing.s)
                                 Text(category.name)
-                                    .font(AppTheme.Typography.body)
-                                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                                    .font(.body)
+                                    .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
                             }
                             .padding(AppTheme.Spacing.m)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -72,8 +72,8 @@ struct CategoriesView: View {
             // Warum: Titel in der Mitte für klares visuelles Hierarchiesignal
                 ToolbarItem(placement: .principal) {
                     Text("Kategorien")
-                        .font(AppTheme.Typography.title)
-                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
                 }
             }
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Kategorien suchen")
@@ -82,11 +82,11 @@ struct CategoriesView: View {
                 // Styling der UISearchBar: an AppTheme angleichen (Portfolio: konsistentes Look&Feel)
                 let tf = UITextField.appearance(whenContainedInInstancesOf: [UISearchBar.self])
                 tf.backgroundColor = UIColor(AppTheme.Colors.surface)
-                tf.textColor = UIColor(AppTheme.Colors.textPrimary)
+                tf.textColor = UIColor(AppTheme.textPrimary(for: colorScheme))
                 tf.tintColor = UIColor(AppTheme.Colors.accent)
                 tf.attributedPlaceholder = NSAttributedString(
                     string: "Kategorien suchen",
-                    attributes: [.foregroundColor: UIColor(AppTheme.Colors.textSecondary)]
+                    attributes: [.foregroundColor: UIColor(AppTheme.textSecondary(for: colorScheme))]
                 )
             }
         }

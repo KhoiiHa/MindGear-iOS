@@ -14,6 +14,32 @@ import SwiftUI
 import SwiftData
 // Kurzzusammenfassung: Filterbare Liste (debounced), Toolbar‑Herz für Playlist‑Favorit, Refresh triggert API‑Reload.
 
+// Local fallback EmptyState for this file (used when global component isn't available)
+private struct EmptyState: View {
+    let systemImage: String
+    let title: String
+    let actionTitle: String
+    var action: () -> Void
+
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        VStack(spacing: AppTheme.Spacing.m) {
+            Image(systemName: systemImage)
+                .font(.system(size: 48))
+                .foregroundStyle(AppTheme.textSecondary(for: scheme))
+            Text(title)
+                .font(.title3.weight(.semibold))
+                .multilineTextAlignment(.center)
+                .foregroundStyle(AppTheme.textPrimary(for: scheme))
+            Button(actionTitle, action: action)
+                .buttonStyle(PillButtonStyle())
+        }
+        .padding(AppTheme.Spacing.l)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
 // MARK: - PlaylistView
 // Warum: Präsentiert Playlist‑Videos; ViewModel kapselt Laden/Suche/Paging.
 struct PlaylistView: View {
@@ -100,20 +126,26 @@ struct PlaylistView: View {
         .scrollIndicators(.hidden)
         .scrollContentBackground(.hidden)
         .background(AppTheme.listBackground(for: colorScheme))
-        .listRowSeparatorTint(AppTheme.Colors.separator)
+        .listRowSeparator(.hidden)
         .overlay(alignment: .center) {
             if firstLoad && viewModel.filteredVideos.isEmpty {
-                // Erstes Laden – zeige Spinner, bis erste Seite da ist
-                ProgressView("Lade Videos…")
-                    .progressViewStyle(CircularProgressViewStyle())
-                    .padding()
+                // Erstes Laden – ein Spinner + Label (kein doppelter Indicator)
+                HStack(spacing: 12) {
+                    ProgressView()
+                    Text("Lade Videos…")
+                        .font(.footnote)
+                        .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
+                }
+                .padding()
             } else if viewModel.filteredVideos.isEmpty {
-                // Leerzustand nach erstem Load – Hinweis auf Suche/Refresh
-                ContentUnavailableView(
-                    "Keine Videos",
+                // Leerzustand mit eigener EmptyState-Komponente
+                EmptyState(
                     systemImage: "video.slash",
-                    description: Text("Tippe oben ins Suchfeld oder ziehe zum Aktualisieren.")
-                )
+                    title: "Keine Videos",
+                    actionTitle: "Aktualisieren"
+                ) {
+                    Task { await viewModel.loadVideos(forceReload: true) }
+                }
                 .padding()
             }
         }
@@ -127,9 +159,8 @@ struct PlaylistView: View {
             // Warum: Suchfeld bleibt an die Navigation „angedockt“ (klare Hierarchie)
             headerSearch
                 .padding(.bottom, 8)
-                .background(AppTheme.listBackground(for: colorScheme))
-                .overlay(Rectangle().fill(AppTheme.Colors.separator).frame(height: 1), alignment: .bottom)
-                .shadow(color: AppTheme.Colors.shadowCard.opacity(0.6), radius: 8, y: 2)
+                .background(.thinMaterial)
+                .overlay(Divider(), alignment: .bottom)
         }
         .safeAreaInset(edge: .top) {
             if let msg = (viewModel.errorMessage ?? favoritesViewModel.errorMessage), !msg.isEmpty {
@@ -145,7 +176,6 @@ struct PlaylistView: View {
             }
         }
         .navigationTitle(title)
-        .tint(AppTheme.Colors.accent)
         .animation(.spring(response: 0.35, dampingFraction: 0.9), value: viewModel.errorMessage)
         .animation(.spring(response: 0.35, dampingFraction: 0.9), value: favoritesViewModel.errorMessage)
         .toolbarBackground(.visible, for: .navigationBar)
@@ -162,7 +192,9 @@ struct PlaylistView: View {
                     }
                 } label: {
                     Image(systemName: favoritesViewModel.isFavorite(id: playlistId) ? "heart.fill" : "heart")
+                        .font(.title3)
                         .foregroundStyle(favoritesViewModel.isFavorite(id: playlistId) ? AppTheme.Colors.accent : AppTheme.Colors.iconSecondary)
+                        .symbolEffect(.bounce, value: favoritesViewModel.isFavorite(id: playlistId))
                         .accessibilityLabel(favoritesViewModel.isFavorite(id: playlistId) ? "Playlist aus Favoriten entfernen" : "Playlist zu Favoriten hinzufügen")
                         .accessibilityHint("Favoritenstatus der Playlist ändern.")
                 }

@@ -18,19 +18,32 @@ import SwiftUI
 /// Einheitlicher Karten‑Look für Listen & Detail‑Elemente.
 /// Warum: Vermeidet Stil‑Drift & harte Werte.
 struct MGCard: ViewModifier {
+    @Environment(\.colorScheme) private var scheme
+
     func body(content: Content) -> some View {
-        content
+        let strokeColor: Color = {
+            // Dezenter Rahmen – hell/dunkel angepasst
+            if scheme == .dark { return Color.white.opacity(0.06) }
+            else { return Color.black.opacity(0.06) }
+        }()
+        let shadowColor: Color = {
+            // Ruhiger Schatten, im Dark Mode schwächer
+            if scheme == .dark { return Color.black.opacity(0.06) }
+            else { return Color.black.opacity(0.10) }
+        }()
+
+        return content
             .padding(AppTheme.Spacing.m)
             .background(
                 RoundedRectangle(cornerRadius: AppTheme.Radius.l, style: .continuous)
-                    .fill(Color(.secondarySystemBackground))
+                    .fill(Color(UIColor.secondarySystemBackground))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: AppTheme.Radius.l, style: .continuous)
-                    .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                    .stroke(strokeColor, lineWidth: 1)
             )
-            // Subtile Schattenebene – sorgt für Tiefe, ohne zu dominieren
-            .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
+            .shadow(color: shadowColor, radius: 8, x: 0, y: 4)
+            .contentShape(RoundedRectangle(cornerRadius: AppTheme.Radius.l, style: .continuous))
     }
 }
 
@@ -45,17 +58,20 @@ extension View {
 struct PillButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(AppTheme.Typography.body.weight(.semibold))
+            .font(.body.weight(.semibold))
             .padding(.horizontal, AppTheme.Spacing.m)
             .padding(.vertical, 10)
+            .frame(minHeight: 44) // Touch‑Target ≥44pt
             .background(
                 Capsule().fill(configuration.isPressed
                                ? AppTheme.Colors.accent.opacity(0.85)
                                : AppTheme.Colors.accent)
             )
             .foregroundStyle(Color.white)
-            // Kurze Press‑Animation → fühlbares Feedback
+            .contentShape(Capsule())
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
             .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+            .hoverEffect(.highlight)
             .accessibilityAddTraits(.isButton)
     }
 }

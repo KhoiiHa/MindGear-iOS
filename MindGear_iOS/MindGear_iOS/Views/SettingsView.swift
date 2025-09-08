@@ -20,6 +20,7 @@ struct SettingsView: View {
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
     @State private var showResetAlert = false
+    @Environment(\.colorScheme) private var scheme
 
     // MARK: - Body
     var body: some View {
@@ -38,13 +39,13 @@ struct SettingsView: View {
                         // Warum: Username lokal editierbar; Persistenz via ViewModel (UserDefaults)
                         TextField("Benutzername", text: $viewModel.username)
                             .textInputAutocapitalization(.words)
-                            .font(AppTheme.Typography.body)
+                            .font(.body)
                             .tint(AppTheme.Colors.primary)
                     }
                 } header: {
                     Text("Profil")
-                        .font(AppTheme.Typography.subtitle)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(AppTheme.textSecondary(for: scheme))
                 }
                 .listRowBackground(AppTheme.Colors.surface)
 
@@ -60,8 +61,8 @@ struct SettingsView: View {
                                     .foregroundStyle(AppTheme.Colors.secondary)
                             }
                             Text("Aktivieren")
-                                .font(AppTheme.Typography.body)
-                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                                .font(.body)
+                                .foregroundStyle(AppTheme.textPrimary(for: scheme))
                         }
                     }
                     .tint(AppTheme.Colors.primary)
@@ -75,8 +76,8 @@ struct SettingsView: View {
                     .accessibilityHint("Schalte Benachrichtigungen an oder aus")
                 } header: {
                     Text("Benachrichtigungen")
-                        .font(AppTheme.Typography.subtitle)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(AppTheme.textSecondary(for: scheme))
                 }
                 .listRowBackground(AppTheme.Colors.surface)
 
@@ -96,18 +97,18 @@ struct SettingsView: View {
                                     .foregroundStyle(AppTheme.Colors.primary)
                             }
                             Text("Verlauf")
-                                .font(AppTheme.Typography.body)
-                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                                .font(.body)
+                                .foregroundStyle(AppTheme.textPrimary(for: scheme))
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(AppTheme.Colors.textSecondary.opacity(0.6))
+                                .foregroundStyle(AppTheme.textSecondary(for: scheme).opacity(0.6))
                         }
                     }
                 } header: {
                     Text("Verlauf")
-                        .font(AppTheme.Typography.subtitle)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(AppTheme.textSecondary(for: scheme))
                 }
                 .listRowBackground(AppTheme.Colors.surface)
 
@@ -126,8 +127,8 @@ struct SettingsView: View {
                                     .foregroundStyle(AppTheme.Colors.accent)
                             }
                             Text("Onboarding zurücksetzen")
-                                .font(AppTheme.Typography.body)
-                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                                .font(.body)
+                                .foregroundStyle(AppTheme.textPrimary(for: scheme))
                         }
                     }
                     .accessibilityIdentifier("resetOnboardingButton")
@@ -142,8 +143,8 @@ struct SettingsView: View {
                     }
                 } header: {
                     Text("Demo")
-                        .font(AppTheme.Typography.subtitle)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(AppTheme.textSecondary(for: scheme))
                 }
                 .listRowBackground(AppTheme.Colors.surface)
             }
@@ -162,4 +163,3 @@ struct SettingsView: View {
         .preferredColorScheme(.dark)
     }
 }
-

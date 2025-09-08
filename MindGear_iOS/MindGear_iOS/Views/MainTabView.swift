@@ -32,9 +32,9 @@ struct MainTabView: View {
         appearance.shadowColor = UIColor(AppTheme.Colors.separator)
 
         // Einheitliche Icon/Title-Farben für normal/selected (auch inline/compactInline)
-        let normalTitle   = [NSAttributedString.Key.foregroundColor: UIColor(AppTheme.Colors.textSecondary)]
+        let normalTitle   = [NSAttributedString.Key.foregroundColor: UIColor(AppTheme.textSecondary(for: .dark))]
         let selectedTitle = [NSAttributedString.Key.foregroundColor: UIColor(AppTheme.Colors.accent)]
-        appearance.stackedLayoutAppearance.normal.iconColor = UIColor(AppTheme.Colors.textSecondary)
+        appearance.stackedLayoutAppearance.normal.iconColor = UIColor(AppTheme.textSecondary(for: .dark))
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = normalTitle
         appearance.stackedLayoutAppearance.selected.iconColor = UIColor(AppTheme.Colors.accent)
         appearance.stackedLayoutAppearance.selected.titleTextAttributes = selectedTitle
@@ -44,7 +44,7 @@ struct MainTabView: View {
         // Auf globale UITabBar anwenden (Standard/ScrollEdge), inkl. Tints
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
-        UITabBar.appearance().unselectedItemTintColor = UIColor(AppTheme.Colors.textSecondary)
+        UITabBar.appearance().unselectedItemTintColor = UIColor(AppTheme.textSecondary(for: .dark))
         UITabBar.appearance().tintColor = UIColor(AppTheme.Colors.accent)
         UITabBar.appearance().isTranslucent = true                     // enable blur behavior
 

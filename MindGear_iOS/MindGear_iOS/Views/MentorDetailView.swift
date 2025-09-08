@@ -23,6 +23,7 @@ struct MentorDetailView: View {
     @StateObject var viewModel: MentorViewModel
     @State private var lastUpdated: Date? = nil
     @State private var configPlaylists: [PlaylistInfo] = []
+    @Environment(\.colorScheme) private var scheme
 
     // MARK: - Helpers
     /// Entfernt ein optionales "[Seed]"‑Präfix für saubere UI‑Titel.
@@ -59,15 +60,15 @@ struct MentorDetailView: View {
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .foregroundStyle(AppTheme.Colors.danger)
                             Text(msg)
-                                .font(AppTheme.Typography.footnote)
-                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                                .font(.footnote)
+                                .foregroundStyle(AppTheme.textSecondary(for: scheme))
                                 .multilineTextAlignment(.center)
                         }
                         Button {
                             Task { await viewModel.loadFromAPIIfPossible() }
                         } label: {
                             Text("Erneut laden")
-                                .font(AppTheme.Typography.subheadline)
+                                .font(.subheadline)
                         }
                     }
                 }
@@ -91,36 +92,42 @@ struct MentorDetailView: View {
                                 EmptyView()
                             }
                         }
-                        .frame(width: 120, height: 120)
+                        .frame(width: 100, height: 100)
                         .clipShape(Circle())
+                        .shadow(color: AppTheme.Colors.shadowCard.opacity(0.3), radius: 6, y: 3)
                         .overlay(Circle().stroke(AppTheme.Colors.accent, lineWidth: 2))
-                        .shadow(color: AppTheme.Colors.shadowCard.opacity(0.6), radius: 12, x: 0, y: 6)
                         .accessibilityIdentifier("mentorProfileImage")
+                        .padding(.bottom, AppTheme.Spacing.s)
                     } else {
                         Image(systemName: "person.crop.circle.fill")
                             .resizable()
                             .scaledToFill()
-                            .frame(width: 120, height: 120)
+                            .frame(width: 100, height: 100)
                             .clipShape(Circle())
+                            .shadow(color: AppTheme.Colors.shadowCard.opacity(0.3), radius: 6, y: 3)
                             .overlay(Circle().stroke(AppTheme.Colors.accent, lineWidth: 2))
                             .foregroundStyle(AppTheme.Colors.iconSecondary)
-                            .shadow(color: AppTheme.Colors.shadowCard.opacity(0.6), radius: 12, x: 0, y: 6)
                             .accessibilityIdentifier("mentorProfileImage")
                             .accessibilityHidden(true)
+                            .padding(.bottom, AppTheme.Spacing.s)
                     }
 
                     // Name des Mentors anzeigen
                     Text(cleanSeed(m.name))
-                        .font(AppTheme.Typography.title)
-                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(AppTheme.textPrimary(for: scheme))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, AppTheme.Spacing.l)
                         .accessibilityIdentifier("mentorName")
 
                     // Biografie des Mentors anzeigen
                     if let bio = m.bio {
                         Text(bio)
-                            .font(AppTheme.Typography.body)
+                            .font(.body)
                             .multilineTextAlignment(.center)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                            .lineSpacing(4)
+                            .padding(.horizontal, AppTheme.Spacing.l)
+                            .foregroundStyle(AppTheme.textSecondary(for: scheme))
                             .accessibilityIdentifier("mentorBio")
                     }
 
@@ -129,20 +136,25 @@ struct MentorDetailView: View {
                             Image(systemName: "clock")
                                 .foregroundStyle(AppTheme.Colors.iconSecondary)
                             Text("Aktualisiert \(relative(ts))")
-                                .font(AppTheme.Typography.footnote)
-                                .foregroundStyle(AppTheme.Colors.textTertiary)
+                                .font(.footnote)
+                                .foregroundStyle(AppTheme.textSecondary(for: scheme))
                         }
                     }
 
                     // Soziale Links anzeigen, falls vorhanden
                     if let socials = m.socials, !socials.isEmpty {
-                        HStack(spacing: AppTheme.Spacing.m) {
-                            ForEach(socials) { social in
-                                if let url = URL(string: social.url) {
-                                    Link(destination: url) {
-                                        Text(social.platform)
-                                            .font(AppTheme.Typography.headline)
-                                            .foregroundStyle(AppTheme.Colors.accent)
+                        VStack(alignment: .center, spacing: AppTheme.Spacing.s) {
+                            Text("Social Links")
+                                .font(.title3.weight(.semibold))
+                                .foregroundStyle(AppTheme.textPrimary(for: scheme))
+                            HStack(spacing: AppTheme.Spacing.m) {
+                                ForEach(socials) { social in
+                                    if let url = URL(string: social.url) {
+                                        Link(destination: url) {
+                                            Text(social.platform)
+                                                .font(.headline)
+                                                .foregroundStyle(AppTheme.Colors.accent)
+                                        }
                                     }
                                 }
                             }
@@ -150,8 +162,8 @@ struct MentorDetailView: View {
                     } else {
                         // Hinweis, wenn keine Social-Links verfügbar sind
                         Text("Keine Social-Links verfügbar.")
-                            .font(AppTheme.Typography.footnote)
-                            .foregroundStyle(AppTheme.Colors.textTertiary)
+                            .font(.footnote)
+                            .foregroundStyle(AppTheme.textSecondary(for: scheme))
                     }
 
                     Group {
@@ -159,8 +171,8 @@ struct MentorDetailView: View {
                         if !allPlaylists.isEmpty {
                             VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
                                 Text("Playlists")
-                                    .font(AppTheme.Typography.headline)
-                                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                                    .font(.headline)
+                                    .foregroundStyle(AppTheme.textPrimary(for: scheme))
                                 ForEach(allPlaylists) { playlist in
                                     NavigationLink(destination: VideoListView(playlistID: playlist.playlistID, context: modelContext)) {
                                         HStack(alignment: .center, spacing: AppTheme.Spacing.m) {
@@ -169,13 +181,13 @@ struct MentorDetailView: View {
                                                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                                             VStack(alignment: .leading, spacing: 4) {
                                                 Text(playlist.title)
-                                                    .font(AppTheme.Typography.subheadline)
-                                                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                                                    .font(.subheadline)
+                                                    .foregroundStyle(AppTheme.textPrimary(for: scheme))
                                                     .lineLimit(2)
                                                 if !playlist.subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                                                     Text(playlist.subtitle)
-                                                        .font(AppTheme.Typography.footnote)
-                                                        .foregroundStyle(AppTheme.Colors.textTertiary)
+                                                        .font(.footnote)
+                                                        .foregroundStyle(AppTheme.textSecondary(for: scheme))
                                                         .lineLimit(2)
                                                 }
                                             }
@@ -194,8 +206,8 @@ struct MentorDetailView: View {
                             .padding(.horizontal, AppTheme.Spacing.m)
                         } else {
                             Text("Keine Playlists verknüpft.")
-                                .font(AppTheme.Typography.footnote)
-                                .foregroundStyle(AppTheme.Colors.textTertiary)
+                                .font(.footnote)
+                                .foregroundStyle(AppTheme.textSecondary(for: scheme))
                         }
                     }
 
@@ -203,15 +215,15 @@ struct MentorDetailView: View {
                     if let url = URL(string: "https://youtube.com/channel/\(m.id)") {
                         Link("YouTube-Kanal ansehen", destination: url)
                             .padding(.top, 16)
-                            .font(AppTheme.Typography.headline)
+                            .font(.headline)
                             .foregroundStyle(AppTheme.Colors.accent)
                             .accessibilityIdentifier("mentorChannelLink")
                     }
                 } else {
                     // Fallback, wenn (noch) kein Mentor vorhanden
                     Text("Keine Mentordaten verfügbar.")
-                        .font(AppTheme.Typography.body)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .font(.body)
+                        .foregroundStyle(AppTheme.textSecondary(for: scheme))
                 }
             }
             .accessibilityIdentifier("mentorDetailContent")
@@ -229,7 +241,9 @@ struct MentorDetailView: View {
                     }
                 } label: {
                     Image(systemName: viewModel.isFavorite ? "heart.fill" : "heart")
+                        .font(.title3)
                         .foregroundStyle(viewModel.isFavorite ? AppTheme.Colors.accent : AppTheme.Colors.iconPrimary)
+                        .symbolEffect(.bounce, value: viewModel.isFavorite)
                 }
                 .accessibilityIdentifier("mentorFavoriteButton")
                 .animation(.easeInOut, value: viewModel.isFavorite)

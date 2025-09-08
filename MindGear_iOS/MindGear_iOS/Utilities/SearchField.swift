@@ -33,14 +33,14 @@ struct SearchField: View {
             // Eingabefeld inkl. Lupe, Text, Clear‑Button
             HStack(spacing: AppTheme.Spacing.s) {
                 Image(systemName: "magnifyingglass")
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                     .accessibilityHidden(true)
 
                 TextField(placeholder, text: $text)
                     .submitLabel(.search)
                     .disableAutocorrection(true)
                     .textInputAutocapitalization(.never)
-                    .font(AppTheme.Typography.body)
+                    .font(.body)
                     .accessibilityLabel("Suche")
                     .accessibilityHint("Eingeben, um Ergebnisse zu filtern.")
                     .accessibilityIdentifier(accessibilityIdentifier ?? "")
@@ -53,7 +53,7 @@ struct SearchField: View {
                         text = ""
                     } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                            .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                     }
                     .accessibilityLabel("Suche löschen")
                     .accessibilityHint("Setzt den Suchtext zurück.")

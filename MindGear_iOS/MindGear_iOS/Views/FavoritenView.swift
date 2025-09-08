@@ -149,8 +149,8 @@ struct FavoritenView: View {
             Image(systemName: systemImage)
             Text("\(title) (\(count))")
         }
-        .font(AppTheme.Typography.footnote)
-        .foregroundStyle(AppTheme.Colors.textSecondary)
+        .font(.footnote)
+        .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
         .textCase(nil)
         .padding(.vertical, AppTheme.Spacing.xs)
         .padding(.horizontal, AppTheme.Spacing.m)
@@ -249,8 +249,8 @@ struct FavoritenView: View {
         .listStyle(.plain)
         .scrollIndicators(.hidden)
         .scrollContentBackground(.hidden)
-        .background(AppTheme.listBackground(for: colorScheme))
-        .listRowSeparatorTint(AppTheme.Colors.separator)
+        .background(AppTheme.listBackground(for: colorScheme).ignoresSafeArea())
+        .listRowSeparator(.hidden)
         .listRowBackground(AppTheme.listBackground(for: colorScheme))
         .listSectionSpacing(.compact)
         .listSectionSeparator(.hidden)
@@ -309,18 +309,18 @@ struct FavoritenView: View {
                         } else {
                             Image(systemName: "video")
                                 .frame(width: 88, height: 56)
-                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                                .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                                 .background(AppTheme.Colors.surfaceElevated)
                                 .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.m))
                                 .accessibilityHidden(true)
                         }
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                             Text(item.title)
-                                .font(AppTheme.Typography.headline)
-                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                                .font(.headline)
+                                .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
                             Text("Video")
-                                .font(AppTheme.Typography.caption)
-                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                                .font(.caption)
+                                .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                         }
                     }
                 }
@@ -350,25 +350,25 @@ struct FavoritenView: View {
                                 switch phase {
                                 case .empty: AppTheme.Colors.surfaceElevated
                                 case .success(let image): image.resizable().scaledToFill()
-                                case .failure: Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.Colors.textSecondary)
-                                @unknown default: Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.Colors.textSecondary)
+                                case .failure: Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.textSecondary(for: colorScheme))
+                                @unknown default: Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                                 }
                             }
                             .frame(width: 44, height: 44)
                             .clipShape(Circle())
                             .accessibilityHidden(true)
                         } else {
-                            Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.Colors.textSecondary)
+                            Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                                 .frame(width: 44, height: 44)
                                 .accessibilityHidden(true)
                         }
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                             Text(item.title)
-                                .font(AppTheme.Typography.headline)
-                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                                .font(.headline)
+                                .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
                             Text("Mentor")
-                                .font(AppTheme.Typography.caption)
-                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                                .font(.caption)
+                                .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                         }
                     }
                 }
@@ -399,18 +399,18 @@ struct FavoritenView: View {
                         } else {
                             Image(systemName: "rectangle.stack")
                                 .frame(width: 88, height: 56)
-                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                                .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                                 .background(AppTheme.Colors.surfaceElevated)
                                 .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.m))
                                 .accessibilityHidden(true)
                         }
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                             Text(item.title)
-                                .font(AppTheme.Typography.headline)
-                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                                .font(.headline)
+                                .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
                             Text("Playlist")
-                                .font(AppTheme.Typography.caption)
-                                .foregroundStyle(AppTheme.Colors.textSecondary)
+                                .font(.caption)
+                                .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                         }
                     }
                 }

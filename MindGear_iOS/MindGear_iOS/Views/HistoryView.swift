@@ -48,11 +48,11 @@ struct HistoryView: View {
                             case .failure:
                                 Image(systemName: "photo")
                                     .font(.title2)
-                                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                                    .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                             @unknown default:
                                 Image(systemName: "photo")
                                     .font(.title2)
-                                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                                    .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                             }
                         }
                         .frame(width: 80, height: 60)
@@ -60,7 +60,7 @@ struct HistoryView: View {
                     } else {
                         Image(systemName: "photo")
                             .font(.title2)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                            .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                             .frame(width: 80, height: 60)
                             .background(AppTheme.Colors.surfaceElevated)
                             .cornerRadius(AppTheme.Radius.m)
@@ -68,11 +68,11 @@ struct HistoryView: View {
 
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                         Text(entry.title)
-                            .font(AppTheme.Typography.headline)
-                            .foregroundStyle(AppTheme.Colors.textPrimary)
+                            .font(.headline)
+                            .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
                         Text(relativeFormatter.localizedString(for: entry.watchedAt, relativeTo: Date()))
-                            .font(AppTheme.Typography.caption)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                     }
                 }
             }
@@ -93,7 +93,7 @@ struct HistoryView: View {
         .scrollIndicators(.hidden)
         .scrollContentBackground(.hidden)
         .background(AppTheme.listBackground(for: colorScheme))
-        .listRowSeparatorTint(AppTheme.Colors.separator)
+        .listRowSeparator(.hidden)
         .navigationTitle("Verlauf")
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbar { EditButton() }

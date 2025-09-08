@@ -42,31 +42,23 @@ struct PlaylistCard: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
-                        .font(AppTheme.Typography.headline)
-                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                        .font(.headline)
+                        .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
 
                     Text(subtitle)
-                        .font(AppTheme.Typography.subheadline)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                 }
 
                 Spacer()
 
                 AppTheme.Icons.chevronRight
                     .font(.footnote)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
             }
             .padding(.vertical, AppTheme.Spacing.m)
             .padding(.horizontal, AppTheme.Spacing.l)
-            .background(
-                RoundedRectangle(cornerRadius: AppTheme.Radius.m, style: .continuous)
-                    .fill(AppTheme.Colors.cardBackground(for: colorScheme))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: AppTheme.Radius.m)
-                    .stroke(AppTheme.Colors.cardStroke(for: colorScheme), lineWidth: 1)
-            )
-            .shadow(color: AppTheme.Colors.shadowCard, radius: 4, x: 0, y: 2)
+            .mgCard()
             .padding(.horizontal)
             .contentShape(Rectangle())
             // Warum: Ganze Karte tappbar, ohne den Standard‑Buttonstil zu erben

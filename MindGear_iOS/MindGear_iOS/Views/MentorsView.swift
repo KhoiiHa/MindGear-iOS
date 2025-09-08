@@ -125,8 +125,8 @@ struct MentorsView: View {
         ZStack {
             Circle().fill(AppTheme.Colors.surfaceElevated)
             Text(letter.map { String($0) } ?? "•")
-                .font(AppTheme.Typography.headline)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+                .font(.headline)
+                .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
         }
         .clipShape(Circle())
     }
@@ -145,8 +145,8 @@ struct MentorsView: View {
                     avatarView(for: mentor)
                     // Anzeige des Mentorennamens
                     Text(cleanSeed(mentor.name))
-                        .font(AppTheme.Typography.headline)
-                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                        .font(.headline)
+                        .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
                     // Herz-Symbol, wenn der Mentor in den Favoriten ist
                     if isFavorite(mentor) {
                         Image(systemName: "heart.fill")
@@ -163,7 +163,7 @@ struct MentorsView: View {
         .scrollIndicators(.hidden)
         .scrollContentBackground(.hidden)
         .background(AppTheme.listBackground(for: colorScheme))
-        .listRowSeparatorTint(AppTheme.Colors.separator)
+        .listRowSeparator(.hidden)
         .safeAreaInset(edge: .top) {
             // Warum: Suchfeld bleibt visuell an die Navigation gekoppelt (klare Hierarchie)
             headerSearch
@@ -213,8 +213,14 @@ struct MentorsView: View {
         // MARK: - Empty/Loading States
         .overlay(alignment: .center) {
             if firstLoad && displayedMentors.isEmpty {
-                ProgressView("Lade Mentoren…")
-                    .padding()
+                // Erstes Laden – ein Spinner + Label (kein doppelter Indicator)
+                HStack(spacing: 12) {
+                    ProgressView()
+                    Text("Lade Mentoren…")
+                        .font(.footnote)
+                        .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
+                }
+                .padding()
             } else if displayedMentors.isEmpty && !searchText.isEmpty {
                 ContentUnavailableView(
                     "Keine Treffer",

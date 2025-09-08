@@ -80,7 +80,6 @@ struct VideoDetailView: View {
                             RoundedRectangle(cornerRadius: AppTheme.Radius.m, style: .continuous)
                                 .stroke(AppTheme.Colors.cardStroke(for: colorScheme), lineWidth: 1)
                         )
-                        .shadow(color: AppTheme.Colors.shadowCard.opacity(0.6), radius: 8, x: 0, y: 4)
                         .accessibilityIdentifier("videoWebView")
                         .accessibilityHidden(true)
                 } else {
@@ -91,16 +90,19 @@ struct VideoDetailView: View {
 
                 // Title
                 Text(video.title)
-                    .font(AppTheme.Typography.headline)
+                    .font(.headline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                    .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
                     .lineLimit(3)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityIdentifier("videoTitle")
 
                 // Description
                 Text(video.description)
-                    .font(AppTheme.Typography.body)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .font(.body)
+                    .lineSpacing(4)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                     .accessibilityIdentifier("videoDescription")
 
                 Button(action: {
@@ -119,7 +121,7 @@ struct VideoDetailView: View {
             .padding(AppTheme.Spacing.m)
         }
         .scrollIndicators(.hidden)
-        .background(AppTheme.listBackground(for: colorScheme))
+        .background(AppTheme.listBackground(for: colorScheme).ignoresSafeArea())
         .navigationTitle("Details")
         .toolbarTitleDisplayMode(.inline)
         .toolbarBackground(.visible, for: .navigationBar)
@@ -132,8 +134,9 @@ struct VideoDetailView: View {
                     }
                 }) {
                     Image(systemName: isFavorite ? "heart.fill" : "heart")
-                        .imageScale(.large)
+                        .font(.title3)
                         .foregroundStyle(isFavorite ? AppTheme.Colors.accent : AppTheme.Colors.iconSecondary)
+                        .symbolEffect(.bounce, value: isFavorite)
                 }
                 .accessibilityIdentifier("favoriteButton")
                 .accessibilityLabel(isFavorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen")

@@ -14,6 +14,24 @@ import SwiftUI
 import SwiftData
 // Kurzzusammenfassung: Oben Suchfeld, darunter 1–2 Playlist‑Previews (Empfohlen/Neu) mit Navigation.
 
+// MARK: - SectionHeader
+struct SectionHeader: View {
+    let title: String
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        HStack {
+            Text(title)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(AppTheme.textPrimary(for: scheme))
+            Spacer()
+        }
+        .padding(.horizontal, AppTheme.Spacing.m)
+        .padding(.top, AppTheme.Spacing.m)
+        .padding(.bottom, AppTheme.Spacing.s)
+    }
+}
+
 // MARK: - CategoryDetailView
 // Warum: Präsentiert kuratierten Inhalt pro Kategorie; bindet Playlist‑Previews ein.
 struct CategoryDetailView: View {
@@ -47,14 +65,12 @@ struct CategoryDetailView: View {
                     .font(.system(size: 72))
                     .accessibilityHidden(true)
                 Text(category.name)
-                    .font(AppTheme.Typography.title)
-                    .fontWeight(.bold)
-                    .foregroundStyle(AppTheme.Colors.textPrimary)
-                    .accessibilityHeading(.h1)
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
                 Text("Hier findest du passende Playlists und Impulse für die Kategorie \"\(category.name)\". (Beschreibung kann später angepasst werden)")
-                    .font(AppTheme.Typography.body)
+                    .font(.body)
                     .multilineTextAlignment(.center)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                     .padding(.bottom, AppTheme.Spacing.m)
 
                 Rectangle()
@@ -150,6 +166,7 @@ struct PlaylistPreviewSection: View {
     @State private var errorMessage: String? = nil
     @State private var videos: [Video] = []
     @State private var hasLoaded = false
+    @Environment(\.colorScheme) private var colorScheme
 
     // Gefilterte Videos (Filter aus dem ViewBuilder herausgezogen)
     private var filteredVideos: [Video] {
@@ -165,21 +182,14 @@ struct PlaylistPreviewSection: View {
     var body: some View {
         Group {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
-                HStack(spacing: AppTheme.Spacing.m) {
-                    Text(title)
-                        .font(AppTheme.Typography.headline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(AppTheme.Colors.textPrimary)
-                        .accessibilityHeading(.h2)
-                    Spacer()
-                    NavigationLink(destination: PlaylistView(playlistId: playlistId, context: context)) {
-                        Text("Alle anzeigen")
-                            .font(AppTheme.Typography.subheadline)
-                    }
-                    .disabled(isLoading)
-                    .accessibilityLabel("Alle Videos in \(title) anzeigen")
-                    .accessibilityHint("Öffnet die Playlist.")
+                SectionHeader(title: title)
+                NavigationLink(destination: PlaylistView(playlistId: playlistId, context: context)) {
+                    Text("Alle anzeigen")
+                        .font(.subheadline)
                 }
+                .disabled(isLoading)
+                .accessibilityLabel("Alle Videos in \(title) anzeigen")
+                .accessibilityHint("Öffnet die Playlist.")
 
                 if isLoading {
                     // Skeleton-Placeholders während des Ladens
@@ -202,8 +212,8 @@ struct PlaylistPreviewSection: View {
                         Image(systemName: "exclamationmark.triangle")
                             .accessibilityHidden(true)
                         Text(errorMessage)
-                            .font(AppTheme.Typography.subheadline)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                            .font(.subheadline)
+                            .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                         Spacer()
                         Button("Erneut laden") {
                             Task { await loadPreview() }
@@ -217,8 +227,8 @@ struct PlaylistPreviewSection: View {
                 } else if videos.isEmpty {
                     // Empty-State
                     Text("Keine Inhalte gefunden.")
-                        .font(AppTheme.Typography.subheadline)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                         .padding(.vertical, AppTheme.Spacing.xs)
                 } else {
                     // Erfolgszustand: horizontale Vorschau – gefiltert nach Suchtext
@@ -226,8 +236,8 @@ struct PlaylistPreviewSection: View {
 
                     if visible.isEmpty {
                         Text("Keine Inhalte gefunden.")
-                            .font(AppTheme.Typography.subheadline)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                            .font(.subheadline)
+                            .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                             .padding(.vertical, AppTheme.Spacing.xs)
                     } else {
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -241,8 +251,8 @@ struct PlaylistPreviewSection: View {
                                                 .accessibilityHidden(true)
 
                                             Text(video.title)
-                                                .font(AppTheme.Typography.caption)
-                                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                                                .font(.caption)
+                                                .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
                                                 .lineLimit(2)
                                                 .frame(width: 160, alignment: .leading)
                                         }
@@ -297,4 +307,3 @@ struct PlaylistPreviewSection: View {
         }
     }
 }
-
