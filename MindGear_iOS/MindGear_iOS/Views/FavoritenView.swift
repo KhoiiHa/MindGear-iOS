@@ -47,6 +47,8 @@ struct FavoritenView: View {
     @State private var searchText: String = ""
     @State private var selectedFilter: FavoriteFilter = .all
     @Environment(\.colorScheme) private var colorScheme
+    /// Nutzerfreundliche Fehlermeldung für Banner
+    @State private var errorMessage: String? = nil
 
     init(context: ModelContext) {
         _viewModel = StateObject(wrappedValue: FavoritenViewModel(context: context))
@@ -261,6 +263,17 @@ struct FavoritenView: View {
             headerSearch
                 .background(AppTheme.listBackground(for: colorScheme))
         }
+        .safeAreaInset(edge: .top) {
+            if let msg = errorMessage, !msg.isEmpty {
+                ErrorBanner(message: msg) { errorMessage = nil }
+                    .padding(.horizontal, AppTheme.Spacing.m)
+                    .padding(.bottom, 8)
+                    .background(AppTheme.listBackground(for: colorScheme))
+                    .overlay(Rectangle().fill(AppTheme.Colors.separator).frame(height: 1), alignment: .bottom)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .animation(.spring(response: 0.35, dampingFraction: 0.9), value: errorMessage)
         // MARK: - Navigation
         .navigationDestination(for: Route.self) { route in
             switch route {
@@ -499,7 +512,15 @@ struct FavoritenView: View {
             }
         }
         toDelete.forEach { context.delete($0) }
-        do { try context.save() } catch { print("Save failed (favorite delete):", error) }
+        do {
+            try context.save()
+        } catch {
+            let ns = error as NSError
+            errorMessage = "Favoriten konnten nicht gelöscht werden (\(ns.localizedDescription))."
+            #if DEBUG
+            print("Save failed (favorite delete):", ns)
+            #endif
+        }
         // UI informieren: Listen & Badges aktualisieren
         NotificationCenter.default.post(name: .favoritesDidChange, object: nil)
     }
@@ -529,7 +550,15 @@ struct FavoritenView: View {
                 context.delete(entity)
             }
         }
-        do { try context.save() } catch { print("Save failed (favorite delete single):", error) }
+        do {
+            try context.save()
+        } catch {
+            let ns = error as NSError
+            errorMessage = "Favorit konnte nicht gelöscht werden (\(ns.localizedDescription))."
+            #if DEBUG
+            print("Save failed (favorite delete single):", ns)
+            #endif
+        }
         // UI informieren (Single-Delete): Konsistentes Refresh der Favoriten-Views
         NotificationCenter.default.post(name: .favoritesDidChange, object: nil)
     }

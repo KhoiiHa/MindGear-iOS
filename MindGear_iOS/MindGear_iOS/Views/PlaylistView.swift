@@ -131,8 +131,23 @@ struct PlaylistView: View {
                 .overlay(Rectangle().fill(AppTheme.Colors.separator).frame(height: 1), alignment: .bottom)
                 .shadow(color: AppTheme.Colors.shadowCard.opacity(0.6), radius: 8, y: 2)
         }
+        .safeAreaInset(edge: .top) {
+            if let msg = (viewModel.errorMessage ?? favoritesViewModel.errorMessage), !msg.isEmpty {
+                ErrorBanner(message: msg) {
+                    viewModel.errorMessage = nil
+                    favoritesViewModel.errorMessage = nil
+                }
+                .padding(.horizontal, AppTheme.Spacing.m)
+                .padding(.bottom, 8)
+                .background(AppTheme.listBackground(for: colorScheme))
+                .overlay(Rectangle().fill(AppTheme.Colors.separator).frame(height: 1), alignment: .bottom)
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
         .navigationTitle(title)
         .tint(AppTheme.Colors.accent)
+        .animation(.spring(response: 0.35, dampingFraction: 0.9), value: viewModel.errorMessage)
+        .animation(.spring(response: 0.35, dampingFraction: 0.9), value: favoritesViewModel.errorMessage)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbar {
             // Favoriten‑Toggle der Playlist in der Toolbar (gut auffindbar)

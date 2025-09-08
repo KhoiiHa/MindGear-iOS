@@ -46,7 +46,11 @@ private final class HomeRemoteViewModel: ObservableObject {
             self.remotePlaylists = mapped
         } catch {
             // Fallback: Keine harten Fehler in der UI – lokale Kuratierung verwenden
-            print("ℹ️ [Home] Remote‑Playlists fehlgeschlagen → Fallback: \(error.localizedDescription)")
+            let appErr = AppError.from(error)
+            #if DEBUG
+            print("ℹ️ [Home] Remote‑Playlists fehlgeschlagen → Fallback: \(appErr.localizedDescription)")
+            #endif
+            self.errorMessage = appErr.recoverySuggestion ?? appErr.errorDescription
         }
     }
 }
@@ -95,6 +99,14 @@ struct HomeView: View {
                         }
                         .padding(.top, AppTheme.Spacing.m)
 
+                        // Nicht-blockierendes Fehler-Feedback für Remote‑Teaser
+                        if let msg = rvm.errorMessage, !msg.isEmpty {
+                            ErrorBanner(message: msg) {
+                                rvm.errorMessage = nil
+                            }
+                            .padding(.horizontal, AppTheme.Spacing.m)
+                        }
+
                         let playlists: [PlaylistInfo] = [
                             PlaylistInfo(title: "Die M.E.N. Series", subtitle: "ChrisWillx", iconName: "star.circle.fill", playlistID: ConfigManager.recommendedPlaylistId, thumbnailURL: nil),
                             PlaylistInfo(title: "On Purpose", subtitle: "Jay Shetty", iconName: "leaf.fill", playlistID: ConfigManager.jayShettyPlaylistId, thumbnailURL: nil),
@@ -130,32 +142,20 @@ struct HomeView: View {
                                         .foregroundStyle(AppTheme.Colors.textSecondary)
                                 }
                                 .padding(.vertical, AppTheme.Spacing.s)
-                            } else if !rvm.remotePlaylists.isEmpty {
-                                // Karten: Navigations‑Teaser zu PlaylistView
-                                ForEach(rvm.remotePlaylists) { playlist in
-                                    PlaylistCard(
-                                        title: playlist.title,
-                                        subtitle: "Playlist von \(playlist.subtitle)",
-                                        iconName: playlist.iconName,
-                                        playlistID: playlist.playlistID,
-                                        context: context
-                                    )
-                                    .mgCard()
-                                    .accessibilityIdentifier("homePlaylistCard_\(playlist.playlistID)")
-                                }
-                            } else {
-                                // Karten: Navigations‑Teaser zu PlaylistView
-                                ForEach(playlists) { playlist in
-                                    PlaylistCard(
-                                        title: playlist.title,
-                                        subtitle: "Playlist von \(playlist.subtitle)",
-                                        iconName: playlist.iconName,
-                                        playlistID: playlist.playlistID,
-                                        context: context
-                                    )
-                                    .mgCard()
-                                    .accessibilityIdentifier("homePlaylistCard_\(playlist.playlistID)")
-                                }
+                            }
+
+                            // Remote bevorzugen, Seeds auffüllen, Duplikate entfernen
+                            let displayed = (rvm.remotePlaylists + playlists).dedupByPlaylistID()
+                            ForEach(displayed) { playlist in
+                                PlaylistCard(
+                                    title: playlist.title,
+                                    subtitle: "Playlist von \(playlist.subtitle)",
+                                    iconName: playlist.iconName,
+                                    playlistID: playlist.playlistID,
+                                    context: context
+                                )
+                                .mgCard()
+                                .accessibilityIdentifier("homePlaylistCard_\(playlist.playlistID)")
                             }
                         }
 
@@ -170,6 +170,19 @@ struct HomeView: View {
             }
         }
         
+    }
+}
+
+// MARK: - Helpers
+private extension Array where Element == PlaylistInfo {
+    /// Entfernt Duplikate anhand der `playlistID` und behält die Reihenfolge (Remote vor Seeds)
+    func dedupByPlaylistID() -> [PlaylistInfo] {
+        var seen = Set<String>()
+        var result: [PlaylistInfo] = []
+        for p in self {
+            if seen.insert(p.playlistID).inserted { result.append(p) }
+        }
+        return result
     }
 }
 

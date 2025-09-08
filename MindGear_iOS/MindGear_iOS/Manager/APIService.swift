@@ -132,6 +132,11 @@ final class APIService: APIServiceProtocol {
 
                     let (data, response) = try await APIService.session.data(for: request)
 
+                    guard let http = response as? HTTPURLResponse else {
+                        lastError = AppError.invalidResponse
+                        break
+                    }
+
                     #if DEBUG
                     if let http = response as? HTTPURLResponse {
                         print("🌐 STATUS:", http.statusCode)
@@ -144,20 +149,28 @@ final class APIService: APIServiceProtocol {
                        text.contains("<html") || text.contains("<!DOCTYPE html") {
                         let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
                         print("❗️HTML statt JSON. KÖRPER-Vorschau:\n\(preview)")
-                        lastError = AppError.networkError
+                        lastError = AppError.invalidResponse
                         break // do not retry HTML response on same host, try next host
                     }
 
-                    // Nicht 2xx: Versuche, die YouTube-Fehlerhülle für bessere Diagnose zu dekodieren
-                    if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+                    // Nicht 2xx: Status mappen und ggf. YouTube-Fehlerhülle dekodieren
+                    if !(200..<300).contains(http.statusCode) {
                         if let yt = try? JSONDecoder().decode(YouTubeAPIErrorEnvelope.self, from: data) {
                             print("❗️YouTube API-Fehler:", yt.error.code, yt.error.message)
                         } else {
                             let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
                             print("❗️HTTP \(http.statusCode). KÖRPER-Vorschau:\n\(preview)")
                         }
-                        lastError = AppError.networkError
-                        break // do not retry HTTP error on same host, try next host
+                        switch http.statusCode {
+                        case 401, 403: lastError = AppError.unauthorized
+                        case 404: lastError = AppError.httpStatus(404)
+                        case 429:
+                            let retry = http.value(forHTTPHeaderField: "Retry-After").flatMap(Int.init)
+                            lastError = AppError.rateLimited(retryAfter: retry)
+                        case 500...599: lastError = AppError.httpStatus(http.statusCode)
+                        default: lastError = AppError.httpStatus(http.statusCode)
+                        }
+                        break // nicht erneut auf gleichem Host
                     }
 
                     // Erfolgreicher Pfad: Elemente dekodieren
@@ -172,7 +185,7 @@ final class APIService: APIServiceProtocol {
                     }
                 } catch {
                     print("❗️Transportfehler (Attempt #\(attempt)):", error.localizedDescription)
-                    lastError = error
+                    lastError = AppError.from(error)
 
                     if let urlError = error as? URLError {
                         switch urlError.code {
@@ -194,7 +207,7 @@ final class APIService: APIServiceProtocol {
             // if we exit the while without returning, try next host
         }
 
-        throw lastError
+        throw AppError.from(lastError)
     }
 
     /// Low-Level-Fetch für die YouTube-Suche.
@@ -237,29 +250,40 @@ final class APIService: APIServiceProtocol {
 
                     let (data, response) = try await APIService.session.data(for: request)
 
-                    #if DEBUG
-                    if let http = response as? HTTPURLResponse {
-                        print("🌐 STATUS:", http.statusCode)
-                        print("🌐 HEADERS:", http.allHeaderFields)
+                    guard let http = response as? HTTPURLResponse else {
+                        lastError = AppError.invalidResponse
+                        break
                     }
+
+                    #if DEBUG
+                    print("🌐 STATUS:", http.statusCode)
+                    print("🌐 HEADERS:", http.allHeaderFields)
                     #endif
 
                     if let text = String(data: data.prefix(200), encoding: .utf8),
                        text.contains("<html") || text.contains("<!DOCTYPE html") {
                         let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
                         print("❗️HTML statt JSON (Search). Vorschau:\n\(preview)")
-                        lastError = AppError.networkError
+                        lastError = AppError.invalidResponse
                         break
                     }
 
-                    if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+                    if !(200..<300).contains(http.statusCode) {
                         if let yt = try? JSONDecoder().decode(YouTubeAPIErrorEnvelope.self, from: data) {
                             print("❗️YouTube SEARCH-Fehler:", yt.error.code, yt.error.message)
                         } else {
                             let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
                             print("❗️HTTP \(http.statusCode). SEARCH KÖRPER-Vorschau:\n\(preview)")
                         }
-                        lastError = AppError.networkError
+                        switch http.statusCode {
+                        case 401, 403: lastError = AppError.unauthorized
+                        case 404: lastError = AppError.httpStatus(404)
+                        case 429:
+                            let retry = http.value(forHTTPHeaderField: "Retry-After").flatMap(Int.init)
+                            lastError = AppError.rateLimited(retryAfter: retry)
+                        case 500...599: lastError = AppError.httpStatus(http.statusCode)
+                        default: lastError = AppError.httpStatus(http.statusCode)
+                        }
                         break
                     }
 
@@ -274,7 +298,7 @@ final class APIService: APIServiceProtocol {
                     }
                 } catch {
                     print("❗️Transportfehler SEARCH (Attempt #\(attempt)):", error.localizedDescription)
-                    lastError = error
+                    lastError = AppError.from(error)
                     if let urlError = error as? URLError {
                         switch urlError.code {
                         case .cannotParseResponse, .badServerResponse:
@@ -291,13 +315,13 @@ final class APIService: APIServiceProtocol {
                 }
             }
         }
-        throw lastError
+        throw AppError.from(lastError)
     }
 
     func fetchVideos(from playlistId: String, apiKey: String, pageToken: String?) async throws -> YouTubeResponse {
         guard isValidApiKey(apiKey) else {
             print("⚠️ [APIService] Kein gültiger YouTube API Key – überspringe Request und nutze Seed/Cache (fetchVideos).")
-            throw AppError.networkError
+            throw AppError.apiKeyMissing
         }
         let key = CacheKey(playlistId: playlistId, pageToken: pageToken)
 
@@ -335,7 +359,7 @@ final class APIService: APIServiceProtocol {
     func searchVideos(query: String, apiKey: String, pageToken: String?) async throws -> YouTubeSearchResponse {
         guard isValidApiKey(apiKey) else {
             print("⚠️ [APIService] Kein gültiger YouTube API Key – überspringe Request und nutze Seed/Cache (searchVideos).")
-            throw AppError.networkError
+            throw AppError.apiKeyMissing
         }
         return try await performSearchFetch(query: query, apiKey: apiKey, pageToken: pageToken)
     }
@@ -372,30 +396,40 @@ final class APIService: APIServiceProtocol {
                     #endif
 
                     let (data, response) = try await APIService.session.data(for: request)
+                    guard let http = response as? HTTPURLResponse else {
+                        lastError = AppError.invalidResponse
+                        break
+                    }
 
                     #if DEBUG
-                    if let http = response as? HTTPURLResponse {
-                        print("🌐 STATUS:", http.statusCode)
-                        print("🌐 HEADERS:", http.allHeaderFields)
-                    }
+                    print("🌐 STATUS:", http.statusCode)
+                    print("🌐 HEADERS:", http.allHeaderFields)
                     #endif
 
                     if let text = String(data: data.prefix(200), encoding: .utf8),
                        text.contains("<html") || text.contains("<!DOCTYPE html") {
                         let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
                         print("❗️HTML statt JSON (Channels). Vorschau:\n\(preview)")
-                        lastError = AppError.networkError
+                        lastError = AppError.invalidResponse
                         break
                     }
 
-                    if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+                    if !(200..<300).contains(http.statusCode) {
                         if let yt = try? JSONDecoder().decode(YouTubeAPIErrorEnvelope.self, from: data) {
                             print("❗️YouTube CHANNEL-Fehler:", yt.error.code, yt.error.message)
                         } else {
                             let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
                             print("❗️HTTP \(http.statusCode). CHANNEL KÖRPER-Vorschau:\n\(preview)")
                         }
-                        lastError = AppError.networkError
+                        switch http.statusCode {
+                        case 401, 403: lastError = AppError.unauthorized
+                        case 404: lastError = AppError.httpStatus(404)
+                        case 429:
+                            let retry = http.value(forHTTPHeaderField: "Retry-After").flatMap(Int.init)
+                            lastError = AppError.rateLimited(retryAfter: retry)
+                        case 500...599: lastError = AppError.httpStatus(http.statusCode)
+                        default: lastError = AppError.httpStatus(http.statusCode)
+                        }
                         break
                     }
 
@@ -410,7 +444,7 @@ final class APIService: APIServiceProtocol {
                     }
                 } catch {
                     print("❗️Transportfehler CHANNELS (Attempt #\(attempt)):", error.localizedDescription)
-                    lastError = error
+                    lastError = AppError.from(error)
                     if let urlError = error as? URLError {
                         switch urlError.code {
                         case .cannotParseResponse, .badServerResponse:
@@ -427,7 +461,7 @@ final class APIService: APIServiceProtocol {
                 }
             }
         }
-        throw lastError
+        throw AppError.from(lastError)
     }
 
     // Strips any leading '@' from a handle string to keep callers flexible
@@ -443,7 +477,7 @@ final class APIService: APIServiceProtocol {
     func fetchChannel(byHandle handle: String, apiKey: String) async throws -> YouTubeChannelListResponse {
         guard isValidApiKey(apiKey) else {
             print("⚠️ [APIService] Kein gültiger YouTube API Key – überspringe Request (fetchChannel byHandle).")
-            throw AppError.networkError
+            throw AppError.apiKeyMissing
         }
         return try await performChannelFetch(queryItems: [
             URLQueryItem(name: "part", value: "snippet,statistics"),
@@ -456,7 +490,7 @@ final class APIService: APIServiceProtocol {
     func fetchChannel(byId channelId: String, apiKey: String) async throws -> YouTubeChannelListResponse {
         guard isValidApiKey(apiKey) else {
             print("⚠️ [APIService] Kein gültiger YouTube API Key – überspringe Request (fetchChannel byId).")
-            throw AppError.networkError
+            throw AppError.apiKeyMissing
         }
         return try await performChannelFetch(queryItems: [
             URLQueryItem(name: "part", value: "snippet,statistics"),
@@ -470,7 +504,7 @@ final class APIService: APIServiceProtocol {
     func fetchChannel(preferId channelId: String?, handle: String?, apiKey: String) async throws -> YouTubeChannelItem {
         guard isValidApiKey(apiKey) else {
             print("⚠️ [APIService] Kein gültiger YouTube API Key – überspringe Request (fetchChannel preferId/handle).")
-            throw AppError.networkError
+            throw AppError.apiKeyMissing
         }
         if let id = channelId, !id.isEmpty {
             let resp = try await fetchChannel(byId: id, apiKey: apiKey)
@@ -480,7 +514,7 @@ final class APIService: APIServiceProtocol {
             let resp = try await fetchChannel(byHandle: h, apiKey: apiKey)
             if let first = resp.items.first { return first }
         }
-        throw AppError.networkError
+        throw AppError.noData
     }
 
     // MARK: - Playlist Info (YouTube Playlist Lookup)
@@ -489,7 +523,7 @@ final class APIService: APIServiceProtocol {
     func fetchPlaylistInfo(playlistId: String, apiKey: String = ConfigManager.youtubeAPIKey) async throws -> PlaylistInfo {
         guard isValidApiKey(apiKey) else {
             print("⚠️ [APIService] Kein gültiger YouTube API Key – überspringe Request (fetchPlaylistInfo).")
-            throw AppError.networkError
+            throw AppError.apiKeyMissing
         }
         let hosts = [
             "https://www.googleapis.com/youtube/v3/playlists",
@@ -518,9 +552,21 @@ final class APIService: APIServiceProtocol {
                     request.cachePolicy = .reloadIgnoringLocalCacheData
 
                     let (data, response) = try await APIService.session.data(for: request)
+                    guard let http = response as? HTTPURLResponse else {
+                        lastError = AppError.invalidResponse
+                        break
+                    }
 
-                    if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
-                        lastError = AppError.networkError
+                    if !(200..<300).contains(http.statusCode) {
+                        switch http.statusCode {
+                        case 401, 403: lastError = AppError.unauthorized
+                        case 404: lastError = AppError.httpStatus(404)
+                        case 429:
+                            let retry = http.value(forHTTPHeaderField: "Retry-After").flatMap(Int.init)
+                            lastError = AppError.rateLimited(retryAfter: retry)
+                        case 500...599: lastError = AppError.httpStatus(http.statusCode)
+                        default: lastError = AppError.httpStatus(http.statusCode)
+                        }
                         break
                     }
 
@@ -548,16 +594,16 @@ final class APIService: APIServiceProtocol {
                             thumbnailURL: thumbUrl
                         )
                     } else {
-                        lastError = AppError.decodingError
+                        lastError = AppError.noData
                         break
                     }
                 } catch {
-                    lastError = error
+                    lastError = AppError.from(error)
                     continue
                 }
             }
         }
-        throw lastError
+        throw AppError.from(lastError)
     }
 
     // Bequemlichkeits-Überladung: erlaubt Aufrufe ohne pageToken (lädt erste Seite)

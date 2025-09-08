@@ -400,9 +400,13 @@ class VideoViewModel: ObservableObject {
             self.nextPageToken = response.nextPageToken
             self.hasMore = (response.nextPageToken != nil) && !response.items.isEmpty
         } catch {
-            // Kein hartes UI-Feedback nötig; Log genügt für Debugging
-            print("Mehr laden fehlgeschlagen:", error.localizedDescription)
-            self.loadMoreError = error.localizedDescription
+            // Weich fallen: Fehler mappen, dezente UI-Meldung, kein harter Abbruch
+            let appErr = AppError.from(error)
+            print("Mehr laden fehlgeschlagen:", appErr.localizedDescription)
+            if appErr.isNetworkRelated && offlineMessage == nil {
+                offlineMessage = "Netzwerkproblem – neuere Inhalte evtl. unvollständig."
+            }
+            self.loadMoreError = appErr.recoverySuggestion ?? appErr.errorDescription ?? "Konnte weitere Videos nicht laden."
         }
     }
 

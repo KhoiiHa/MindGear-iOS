@@ -97,6 +97,19 @@ struct HistoryView: View {
         .navigationTitle("Verlauf")
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbar { EditButton() }
+        .safeAreaInset(edge: .top) {
+            if let msg = viewModel.errorMessage, !msg.isEmpty {
+                ErrorBanner(message: msg) {
+                    viewModel.errorMessage = nil
+                }
+                .padding(.horizontal, AppTheme.Spacing.m)
+                .padding(.bottom, 8)
+                .background(AppTheme.listBackground(for: colorScheme))
+                .overlay(Rectangle().fill(AppTheme.Colors.separator).frame(height: 1), alignment: .bottom)
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .animation(.spring(response: 0.35, dampingFraction: 0.9), value: viewModel.errorMessage)
         .overlay {
             if viewModel.history.isEmpty {
                 ContentUnavailableView(

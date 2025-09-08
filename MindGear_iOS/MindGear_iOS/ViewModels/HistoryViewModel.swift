@@ -22,6 +22,8 @@ final class HistoryViewModel: ObservableObject {
     // MARK: - State
     // Enthält WatchHistoryEntities, sortiert nach watchedAt (neueste zuerst).
     @Published var history: [WatchHistoryEntity] = []
+    /// Nutzerfreundliche Fehlermeldung für die UI (optional)
+    @Published var errorMessage: String?
 
     // MARK: - Loading
     /// Lädt den Verlauf (WatchHistoryEntity), sortiert nach `watchedAt` absteigend.
@@ -34,7 +36,11 @@ final class HistoryViewModel: ObservableObject {
             // Neueste zuerst → UI bleibt konsistent & testbar
             history = try context.fetch(descriptor)
         } catch {
-            print("Failed to load history:", error)
+            let appErr = AppError.from(error)
+            #if DEBUG
+            print("Failed to load history:", appErr.localizedDescription)
+            #endif
+            errorMessage = appErr.errorDescription ?? "Verlauf konnte nicht geladen werden."
         }
     }
 
@@ -62,7 +68,11 @@ final class HistoryViewModel: ObservableObject {
             try context.save()
             loadHistory(context: context)
         } catch {
-            print("Failed to add to history:", error)
+            let appErr = AppError.from(error)
+            #if DEBUG
+            print("Failed to add to history:", appErr.localizedDescription)
+            #endif
+            errorMessage = appErr.recoverySuggestion ?? appErr.errorDescription ?? "Eintrag konnte nicht gespeichert werden."
         }
     }
 
@@ -75,7 +85,11 @@ final class HistoryViewModel: ObservableObject {
             try context.save()
             loadHistory(context: context)
         } catch {
-            print("Failed to delete from history:", error)
+            let appErr = AppError.from(error)
+            #if DEBUG
+            print("Failed to delete from history:", appErr.localizedDescription)
+            #endif
+            errorMessage = appErr.recoverySuggestion ?? appErr.errorDescription ?? "Eintrag konnte nicht gelöscht werden."
         }
     }
 }

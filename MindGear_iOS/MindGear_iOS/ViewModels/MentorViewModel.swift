@@ -140,10 +140,16 @@ class MentorViewModel: ObservableObject {
             }
             self.mentor = base
         } catch {
+            let appErr = AppError.from(error)
             #if DEBUG
-            print("ℹ️ Mentor-API-Fallback aktiv:", error.localizedDescription)
+            print("ℹ️ Mentor-API-Fallback aktiv:", appErr.localizedDescription)
             #endif
-            errorMessage = nil // Seeds behalten, UI ruhig lassen
+            // Seeds behalten, UI ruhig lassen – nur bei API-Key-Hinweis explizite Meldung
+            if case .apiKeyMissing = appErr {
+                errorMessage = appErr.errorDescription
+            } else {
+                errorMessage = nil
+            }
         }
     }
 
@@ -172,8 +178,16 @@ class MentorViewModel: ObservableObject {
                     loaded.append(seed)
                 }
             } catch {
+                let appErr = AppError.from(error)
+                #if DEBUG
+                print("ℹ️ Mentor-Liste: Seed-Fallback aktiv für \(seed.name):", appErr.localizedDescription)
+                #endif
                 // Fallback: Seed behalten, damit UI vollständig bleibt
                 loaded.append(seed)
+                // Nur bei fehlendem API-Key eine explizite Meldung setzen; sonst UI ruhig lassen
+                if case .apiKeyMissing = appErr, errorMessage == nil {
+                    errorMessage = appErr.errorDescription
+                }
             }
         }
         await MainActor.run {

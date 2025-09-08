@@ -24,7 +24,7 @@ struct VideoListView: View {
     @State private var isPlaylistFavorite: Bool = false
     @ObservedObject private var network = NetworkMonitor.shared
     @State private var selectedChip: String? = nil
-    @State private var showErrorAlert: Bool = false
+    /// Flag für erstes Laden (Spinner/Empty-Handling)
     @State private var firstLoad: Bool = true
     private let exploreChips: [String] = [
         "Mindset",
@@ -143,6 +143,16 @@ struct VideoListView: View {
             VStack(spacing: 0) {
                 // 🔎 Sichtbares Suchfeld für UI-Tests (playlistSearchField)
                 headerSearch
+                // 🔔 Einheitlicher Fehlerbanner (nicht-blockierend)
+                if let msg = viewModel.errorMessage, !msg.isEmpty {
+                    ErrorBanner(message: msg) {
+                        viewModel.errorMessage = nil
+                    }
+                    .padding(.horizontal, AppTheme.Spacing.m)
+                    .padding(.top, AppTheme.Spacing.s)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .animation(.spring(response: 0.35, dampingFraction: 0.9), value: viewModel.errorMessage)
+                }
                 videosList
             }
             .navigationTitle("Videos")
@@ -181,16 +191,6 @@ struct VideoListView: View {
                 isPlaylistFavorite = FavoritesManager.shared.isPlaylistFavorite(id: playlistID, context: context)
                 await viewModel.loadVideos()
                 firstLoad = false
-            }
-            .onChange(of: viewModel.errorMessage) { _, newValue in
-                showErrorAlert = (newValue != nil)
-            }
-            .alert(isPresented: $showErrorAlert) {
-                Alert(
-                    title: Text("Fehler"),
-                    message: Text(viewModel.errorMessage ?? "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es später erneut."),
-                    dismissButton: .default(Text("OK"), action: { viewModel.errorMessage = nil; showErrorAlert = false })
-                )
             }
             .overlay {
                 // Leerzustand bei aktiver Suche – Hinweis, Begriff anzupassen

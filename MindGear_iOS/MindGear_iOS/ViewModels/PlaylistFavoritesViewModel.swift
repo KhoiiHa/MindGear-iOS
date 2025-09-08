@@ -20,6 +20,8 @@ import SwiftData
 final class PlaylistFavoritesViewModel: ObservableObject {
     // MARK: - State
     @Published var favoritePlaylists: [FavoritePlaylistEntity] = []
+    /// Nutzerfreundliche Fehlermeldung für die UI (optional)
+    @Published var errorMessage: String?
 
     // Injektionspunkt für SwiftData – erleichtert Tests & Previews
     private let context: ModelContext
@@ -40,7 +42,11 @@ final class PlaylistFavoritesViewModel: ObservableObject {
             // Neueste zuerst – erleichtert Wahrnehmung & Teststabilität
             favoritePlaylists = try context.fetch(desc)
         } catch {
-            print("Failed to fetch playlist favorites:", error)
+            let appErr = AppError.from(error)
+            #if DEBUG
+            print("Failed to fetch playlist favorites:", appErr.localizedDescription)
+            #endif
+            errorMessage = appErr.errorDescription ?? "Favoriten konnten nicht geladen werden."
             favoritePlaylists = []
         }
     }
@@ -55,7 +61,13 @@ final class PlaylistFavoritesViewModel: ObservableObject {
             )
             return try !context.fetch(desc).isEmpty
         } catch {
-            print("Failed to check playlist favorite:", error)
+            let appErr = AppError.from(error)
+            #if DEBUG
+            print("Failed to check playlist favorite:", appErr.localizedDescription)
+            #endif
+            if errorMessage == nil { // UI nicht fluten
+                errorMessage = appErr.errorDescription ?? "Favoritenstatus konnte nicht geprüft werden."
+            }
             return false
         }
     }
@@ -87,7 +99,11 @@ final class PlaylistFavoritesViewModel: ObservableObject {
                 reload()
             }
         } catch {
-            print("Failed to remove playlist favorite:", error)
+            let appErr = AppError.from(error)
+            #if DEBUG
+            print("Failed to remove playlist favorite:", appErr.localizedDescription)
+            #endif
+            errorMessage = appErr.recoverySuggestion ?? appErr.errorDescription ?? "Favorit konnte nicht entfernt werden."
         }
     }
 }

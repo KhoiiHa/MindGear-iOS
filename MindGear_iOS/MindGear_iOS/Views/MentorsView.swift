@@ -47,7 +47,6 @@ struct MentorsView: View {
         .accessibilityAddTraits(.isSearchField)
         .accessibilityLabel("Mentoren suchen")
         .accessibilityHint("Tippe, um Mentoren zu suchen")
-        .accessibilityIdentifier("mentorSearchField")
         .accessibilityValue(searchText)
     }
 
@@ -172,6 +171,18 @@ struct MentorsView: View {
                 .background(AppTheme.listBackground(for: colorScheme))
                 .overlay(Rectangle().fill(AppTheme.Colors.separator).frame(height: 1), alignment: .bottom)
         }
+        .safeAreaInset(edge: .top) {
+            if let msg = viewModel.errorMessage, !msg.isEmpty {
+                ErrorBanner(message: msg) {
+                    viewModel.errorMessage = nil
+                }
+                .padding(.horizontal, AppTheme.Spacing.m)
+                .padding(.bottom, 8)
+                .background(AppTheme.listBackground(for: colorScheme))
+                .overlay(Rectangle().fill(AppTheme.Colors.separator).frame(height: 1), alignment: .bottom)
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
         .navigationTitle("Mentoren")
         .toolbarBackground(.visible, for: .navigationBar)
         .onAppear {
@@ -213,6 +224,7 @@ struct MentorsView: View {
             }
         }
         .animation(.default, value: displayedMentors)
+        .animation(.spring(response: 0.35, dampingFraction: 0.9), value: viewModel.errorMessage)
         .onDisappear {
             searchTask?.cancel()
         }
