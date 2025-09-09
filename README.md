@@ -6,7 +6,8 @@
 *iOS-App zur Selbstentwicklung und mentalen Gesundheit – speziell für Männer*
 
 > ✨ Dieses Projekt zeigt sowohl **technische Tiefe** als auch **gestalterische Stärke**:  
-> Von AppTheme-Architektur bis hin zum Dark-Mode-Redesign – alle UI-Komponenten wurden konsistent und portfolio-reif umgesetzt.
+> Von AppTheme-Architektur bis hin zum Dark-Mode-Redesign – alle UI-Komponenten wurden konsistent und portfolio-reif umgesetzt.  
+> **Neu:** Die gesamte **App-UI ist zweisprachig (Deutsch/Englisch)**, während internationale Inhalte (YouTube, Mentoren-Bios) bewusst im **Original (Englisch)** angezeigt werden – inkl. klarer Hinweis im UI.  
 
 ---
 
@@ -16,6 +17,8 @@
 - **Favoriten, Verlauf & Kategorien** mit SwiftData
 - **YouTube API Integration** (Videos, Playlists, Mentoren)
 - **Dark Mode & konsistentes Design** via AppTheme
+- **Zweisprachige UI (DE/EN)** über Localizable.strings
+- **Hinweis für englischsprachige Inhalte** (Video- & Mentor-Detailansichten)
 - **Offline-fähig** dank Caching & Retry
 - **Unit Tests** mit grünem Status ✅
 
@@ -26,7 +29,7 @@
 - **Intuitive Navigation** über Tabs: Start, Videos, Favoriten, Kategorien, Mentoren, Playlists, Verlauf, Einstellungen  
 - **Kuratiertes Home**: empfohlene Playlists mit Offline-Cache  
 - **Video-Listen & Detailansicht**: Suche mit Autovervollständigung, Verlauf & Favoriten-Option  
-- **Mentoren-Profilseiten**: Bio, Social Links & empfohlene Playlists  
+- **Mentoren-Profilseiten**: Bio, Social Links & empfohlene Playlists (inkl. Hinweis: *„Inhalt auf Englisch“*)  
 - **Favoriten**: Videos, Playlists & Mentoren speichern und verwalten  
 - **Kategorien**: thematische Entdeckung von Inhalten  
 - **Verlauf**: zuletzt gesehene Videos inkl. Löschfunktion  
@@ -37,11 +40,19 @@
 
 ---
 
+## 🌍 **Mehrsprachigkeit**
+
+- **App-UI vollständig lokalisiert**: Deutsch & Englisch (Tabs, Onboarding, Settings, Empty States)  
+- **API-Inhalte bewusst im Original**: Internationale Mentoren & YouTube-Beschreibungen bleiben Englisch  
+- **UX-Hinweis im UI**: Klare Kennzeichnung *„Inhalt auf Englisch“*, um Nutzer zu informieren  
+
+---
+
 ## 🖼️ **Screenshots (Platzhalter)**
 
 👉 Geplante Screenshots aus dem iOS-Simulator:  
 - HomeView  
-- VideoDetailView  
+- VideoDetailView (mit Hinweis „Inhalt auf Englisch“)  
 - MentorsView  
 
 *(aktuell Platzhalter – Screens folgen in Kürze)*
@@ -107,7 +118,7 @@ Die Gestaltung basiert auf hochwertigen Figma UI-Kits, angepasst an Zielgruppe &
 ## 📆 **Projektstatus**
 
 - 🔄 **Letztes Update:** September 2025  
-- ✅ **Aktueller Stand:** iOS-Version fertig für Portfolio (inkl. API-Härtung & Onboarding)  
+- ✅ **Aktueller Stand:** iOS-Version fertig für Portfolio (inkl. API-Härtung, Onboarding & Mehrsprachigkeit)  
 
 ---
 
