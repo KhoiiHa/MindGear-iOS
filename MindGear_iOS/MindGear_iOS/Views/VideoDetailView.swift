@@ -105,6 +105,13 @@ struct VideoDetailView: View {
                     .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                     .accessibilityIdentifier("videoDescription")
 
+                // Language notice
+                Text("content.languageNotice")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 4)
+                    .accessibilityIdentifier("videoLanguageNotice")
+
                 Button(action: {
                     if let url = URL(string: video.videoURL) {
                         UIApplication.shared.open(url)

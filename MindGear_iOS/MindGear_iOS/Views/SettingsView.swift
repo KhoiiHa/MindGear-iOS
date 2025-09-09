@@ -37,13 +37,13 @@ struct SettingsView: View {
                                 .foregroundStyle(AppTheme.Colors.primary)
                         }
                         // Warum: Username lokal editierbar; Persistenz via ViewModel (UserDefaults)
-                        TextField("Benutzername", text: $viewModel.username)
+                        TextField(NSLocalizedString("settings.username.placeholder", comment: ""), text: $viewModel.username)
                             .textInputAutocapitalization(.words)
                             .font(.body)
                             .tint(AppTheme.Colors.primary)
                     }
                 } header: {
-                    Text("Profil")
+                    Text(NSLocalizedString("settings.section.profile", comment: ""))
                         .font(.title3.weight(.semibold))
                         .foregroundStyle(AppTheme.textSecondary(for: scheme))
                 }
@@ -60,7 +60,7 @@ struct SettingsView: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(AppTheme.Colors.secondary)
                             }
-                            Text("Aktivieren")
+                            Text(NSLocalizedString("settings.notifications.enable", comment: ""))
                                 .font(.body)
                                 .foregroundStyle(AppTheme.textPrimary(for: scheme))
                         }
@@ -73,9 +73,9 @@ struct SettingsView: View {
                     }
                     // UI-Tests: stabiler Zugriff auf den Toggle
                     .accessibilityIdentifier("notificationsToggle")
-                    .accessibilityHint("Schalte Benachrichtigungen an oder aus")
+                    .accessibilityHint(NSLocalizedString("a11y.notifications.toggle.hint", comment: ""))
                 } header: {
-                    Text("Benachrichtigungen")
+                    Text(NSLocalizedString("settings.section.notifications", comment: ""))
                         .font(.title3.weight(.semibold))
                         .foregroundStyle(AppTheme.textSecondary(for: scheme))
                 }
@@ -85,7 +85,7 @@ struct SettingsView: View {
                     // Warum: Verlauf als eigener Screen – Verantwortlichkeiten trennen
                     NavigationLink {
                         HistoryView()
-                            .navigationTitle("Verlauf")
+                            .navigationTitle("history.title")
                     } label: {
                         HStack(spacing: 12) {
                             ZStack {
@@ -96,7 +96,7 @@ struct SettingsView: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(AppTheme.Colors.primary)
                             }
-                            Text("Verlauf")
+                            Text(NSLocalizedString("history.title", comment: ""))
                                 .font(.body)
                                 .foregroundStyle(AppTheme.textPrimary(for: scheme))
                             Spacer()
@@ -106,7 +106,7 @@ struct SettingsView: View {
                         }
                     }
                 } header: {
-                    Text("Verlauf")
+                    Text(NSLocalizedString("history.title", comment: ""))
                         .font(.title3.weight(.semibold))
                         .foregroundStyle(AppTheme.textSecondary(for: scheme))
                 }
@@ -126,23 +126,23 @@ struct SettingsView: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(AppTheme.Colors.accent)
                             }
-                            Text("Onboarding zurücksetzen")
+                            Text(NSLocalizedString("settings.onboarding.reset", comment: ""))
                                 .font(.body)
                                 .foregroundStyle(AppTheme.textPrimary(for: scheme))
                         }
                     }
                     .accessibilityIdentifier("resetOnboardingButton")
-                    .alert("Onboarding wirklich zurücksetzen?", isPresented: $showResetAlert) {
-                        Button("Abbrechen", role: .cancel) {}
-                        Button("Zurücksetzen", role: .destructive) {
+                    .alert(NSLocalizedString("settings.onboarding.reset.alert.title", comment: ""), isPresented: $showResetAlert) {
+                        Button(NSLocalizedString("action.cancel", comment: ""), role: .cancel) {}
+                        Button(NSLocalizedString("settings.onboarding.reset.alert.confirm", comment: ""), role: .destructive) {
                             // Single Source of Truth: AppStorage-Flag zurücksetzen
                             hasSeenOnboarding = false
                         }
                     } message: {
-                        Text("Beim nächsten Start wird das Onboarding erneut angezeigt.")
+                        Text(NSLocalizedString("settings.onboarding.reset.alert.message", comment: ""))
                     }
                 } header: {
-                    Text("Demo")
+                    Text(NSLocalizedString("settings.section.demo", comment: ""))
                         .font(.title3.weight(.semibold))
                         .foregroundStyle(AppTheme.textSecondary(for: scheme))
                 }
@@ -152,7 +152,7 @@ struct SettingsView: View {
             .scrollIndicators(.hidden)
             .background(AppTheme.listBackground(for: colorScheme))
             .tint(AppTheme.Colors.primary)
-            .navigationTitle("Einstellungen")
+            .navigationTitle("settings.title")
             .accessibilityIdentifier("settingsScreen")
             .toolbarBackground(.visible, for: .navigationBar)
             // Lifecycle: Beim Öffnen einmalig den echten System-Status der Notifications spiegeln

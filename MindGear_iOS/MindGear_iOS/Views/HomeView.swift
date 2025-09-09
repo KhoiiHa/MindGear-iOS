@@ -89,18 +89,18 @@ struct HomeView: View {
                         // Modernized header
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
                             // Seitenkopf: klare Hierarchie (H1 + Subheadline)
-                            Text("Startseite")
+                            Text("home.title")
                                 .font(.title2.weight(.bold))
                                 .foregroundStyle(AppTheme.textPrimary(for: scheme))
                                 .accessibilityHeading(.h1)
                                 .accessibilityIdentifier("homeHeaderTitle")
-                            Text("Welche Perspektive bringt dich heute weiter?")
+                            Text("home.subtitle")
                                 .font(.subheadline)
                                 .foregroundStyle(AppTheme.textSecondary(for: scheme))
                                 .padding(.bottom, AppTheme.Spacing.m)
 
                             // Inline‑Search unter dem Titel
-                            SearchField(text: $searchText, placeholder: "Videos, Mentoren, Themen …")
+                            SearchField(text: $searchText, placeholder: NSLocalizedString("search.placeholder", comment: ""))
                                 .padding(.top, AppTheme.Spacing.s)
                         }
                         .padding(.top, AppTheme.Spacing.m)
@@ -127,13 +127,13 @@ struct HomeView: View {
                         ]
 
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.m) {
-                            Text("Empfohlen")
+                            Text("section.recommended")
                                 .font(.footnote)
                                 .fontWeight(.semibold)
                                 .foregroundStyle(AppTheme.textSecondary(for: scheme))
                                 .textCase(.uppercase)
 
-                            Text("Deine Mentoren")
+                            Text("section.yourMentors")
                                 .font(.title3.weight(.semibold))
                                 .foregroundStyle(AppTheme.textPrimary(for: scheme))
                                 .textCase(.uppercase)
@@ -145,7 +145,7 @@ struct HomeView: View {
                             if rvm.isLoading && rvm.remotePlaylists.isEmpty {
                                 HStack {
                                     ProgressView()
-                                    Text("Lade empfohlene Playlists…")
+                                    Text("loading.playlists")
                                         .font(.footnote)
                                         .foregroundStyle(AppTheme.textSecondary(for: scheme))
                                 }

@@ -1,0 +1,98 @@
+//
+//  Localizable.strings
+//  MindGear_iOS
+//
+//  Created by Vu Minh Khoi Ha on 09.09.25.
+//
+
+/* Tabs */
+"tab.home" = "Home";
+"tab.mentors" = "Mentors";
+"tab.videos" = "Videos";
+"tab.favorites" = "Favorites";
+"tab.more" = "More";
+
+/* Sections */
+"section.recommended" = "Recommended";
+"section.yourMentors" = "Your Mentors";
+
+/* Home */
+"home.title" = "Home";
+"home.subtitle" = "Which perspective will help you today?";
+"search.placeholder" = "Search videos, mentors, topics…";
+"loading.playlists" = "Loading playlists…";
+
+/* Mentors */
+"search.mentors" = "Search mentors";
+"search.mentors.hint" = "Type to search mentors.";
+"loading.mentors" = "Loading mentors…";
+"search.noResults" = "No results";
+"search.noResults.hint" = "Adjust your query or use history.";
+
+/* Videos */
+"search.inPlaylist" = "Search in playlist";
+"search.inPlaylist.hint" = "Type to filter results.";
+"loading.videos" = "Loading videos…";
+"filter.favoritesOnly" = "Show favorites only";
+"filter.favoritesOnly.hint" = "Toggle to show only saved videos.";
+"favorites.videos.empty.title" = "No favorite videos";
+"favorites.videos.empty.hint" = "Save videos with the heart in the detail view.";
+
+/* Favorites */
+"favorites.filter.all" = "All";
+"favorites.filter.videos" = "Videos";
+"favorites.filter.mentors" = "Mentors";
+"favorites.filter.playlists" = "Playlists";
+"search.favorites" = "Search favorites";
+"search.favorites.hint" = "Type to filter your favorites.";
+"search.title" = "Search";
+"favorites.empty.title" = "No favorites yet";
+"favorites.empty.hint" = "Save videos, mentors and playlists to see them here.";
+
+/* Playlists */
+"playlist.title.fallback" = "🎥 Playlist";
+"playlist.empty.title" = "No videos";
+"action.refresh" = "Refresh";
+
+/* Settings */
+"settings.username.placeholder" = "Username";
+"settings.section.profile" = "Profile";
+"settings.notifications.enable" = "Enable";
+"settings.section.notifications" = "Notifications";
+"a11y.notifications.toggle.hint" = "Turn notifications on or off.";
+"history.title" = "History";
+"settings.onboarding.reset" = "Reset onboarding";
+"settings.onboarding.reset.alert.title" = "Reset onboarding?";
+"settings.onboarding.reset.alert.confirm" = "Reset";
+"settings.onboarding.reset.alert.message" = "The onboarding will be shown again on next launch.";
+"settings.section.demo" = "Demo";
+"settings.title" = "Settings";
+"action.cancel" = "Cancel";
+
+/* Onboarding */
+"onboarding.skip" = "Skip";
+"onboarding.page1.title" = "Welcome to MindGear";
+"onboarding.page1.subtitle" = "Discover curated content about mindset, focus and mental strength.";
+"onboarding.page2.title" = "Mentors & Playlists";
+"onboarding.page2.subtitle" = "Follow mentors, save playlists as favorites and find what helps you grow.";
+"onboarding.page3.title" = "Fast & Offline-friendly";
+"onboarding.page3.subtitle" = "Smart caching, history & favorites for a smooth experience.";
+"onboarding.next" = "Next";
+"onboarding.start" = "Let’s go";
+"onboarding.notifications.hint" = "Enable notifications later in settings.";
+
+/* Errors & Actions */
+"action.delete" = "Delete";
+"type.video" = "Video";
+"type.mentor" = "Mentor";
+"type.playlist" = "Playlist";
+"a11y.openDetails" = "Double tap to open details.";
+"a11y.openPlaylist" = "Opens playlist.";
+"error.mentor.notFound" = "Mentor not found";
+"error.video.notFound" = "Video not found";
+"error.favorites.deleteMany" = "Could not delete favorites (%@).";
+"error.favorites.deleteOne" = "Could not delete favorite (%@).";
+
+
+/* Content Notices */
+"content.languageNotice" = "Content in English";

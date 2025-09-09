@@ -1,0 +1,98 @@
+//
+//  Localizable.strings
+//  MindGear_iOS
+//
+//  Created by Vu Minh Khoi Ha on 09.09.25.
+//
+
+/* Tabs */
+"tab.home" = "Start";
+"tab.mentors" = "Mentoren";
+"tab.videos" = "Videos";
+"tab.favorites" = "Favoriten";
+"tab.more" = "Mehr";
+
+/* Sections */
+"section.recommended" = "Empfohlen";
+"section.yourMentors" = "Deine Mentoren";
+
+/* Home */
+"home.title" = "Startseite";
+"home.subtitle" = "Welche Perspektive bringt dich heute weiter?";
+"search.placeholder" = "Videos, Mentoren, Themen …";
+"loading.playlists" = "Lade Playlists…";
+
+/* Mentors */
+"search.mentors" = "Mentoren suchen";
+"search.mentors.hint" = "Tippe, um Mentoren zu suchen.";
+"loading.mentors" = "Lade Mentoren…";
+"search.noResults" = "Keine Treffer";
+"search.noResults.hint" = "Begriff anpassen oder Verlauf nutzen.";
+
+/* Videos */
+"search.inPlaylist" = "In Playlist suchen";
+"search.inPlaylist.hint" = "Eingeben, um Ergebnisse zu filtern.";
+"loading.videos" = "Lade Videos…";
+"filter.favoritesOnly" = "Nur Favoriten anzeigen";
+"filter.favoritesOnly.hint" = "Nur gespeicherte Videos ein- oder ausblenden.";
+"favorites.videos.empty.title" = "Keine Video-Favoriten";
+"favorites.videos.empty.hint" = "Speichere Videos mit dem Herz in der Detailansicht.";
+
+/* Favorites */
+"favorites.filter.all" = "Alle";
+"favorites.filter.videos" = "Videos";
+"favorites.filter.mentors" = "Mentoren";
+"favorites.filter.playlists" = "Playlists";
+"search.favorites" = "Favoriten durchsuchen";
+"search.favorites.hint" = "Eingeben, um Favoriten zu filtern.";
+"search.title" = "Suche";
+"favorites.empty.title" = "Keine Favoriten";
+"favorites.empty.hint" = "Speichere Videos, Mentoren und Playlists als Favorit, um sie hier zu sehen.";
+
+/* Playlists */
+"playlist.title.fallback" = "🎥 Playlist";
+"playlist.empty.title" = "Keine Videos";
+"action.refresh" = "Aktualisieren";
+
+/* Settings */
+"settings.username.placeholder" = "Benutzername";
+"settings.section.profile" = "Profil";
+"settings.notifications.enable" = "Aktivieren";
+"settings.section.notifications" = "Benachrichtigungen";
+"a11y.notifications.toggle.hint" = "Schalte Benachrichtigungen an oder aus.";
+"history.title" = "Verlauf";
+"settings.onboarding.reset" = "Onboarding zurücksetzen";
+"settings.onboarding.reset.alert.title" = "Onboarding wirklich zurücksetzen?";
+"settings.onboarding.reset.alert.confirm" = "Zurücksetzen";
+"settings.onboarding.reset.alert.message" = "Beim nächsten Start wird das Onboarding erneut angezeigt.";
+"settings.section.demo" = "Demo";
+"settings.title" = "Einstellungen";
+"action.cancel" = "Abbrechen";
+
+/* Onboarding */
+"onboarding.skip" = "Überspringen";
+"onboarding.page1.title" = "Willkommen bei MindGear";
+"onboarding.page1.subtitle" = "Entdecke kuratierte Inhalte zu Mindset, Fokus und mentaler Stärke.";
+"onboarding.page2.title" = "Mentoren & Playlists";
+"onboarding.page2.subtitle" = "Folge Mentoren, speichere Playlists als Favoriten und finde schnell, was dich weiterbringt.";
+"onboarding.page3.title" = "Schnell & Offline-freundlich";
+"onboarding.page3.subtitle" = "Cleveres Caching, Verlauf & Favoriten – für eine flüssige Experience.";
+"onboarding.next" = "Weiter";
+"onboarding.start" = "Los geht’s";
+"onboarding.notifications.hint" = "Benachrichtigungen später in den Einstellungen aktivieren.";
+
+/* Errors & Actions */
+"action.delete" = "Löschen";
+"type.video" = "Video";
+"type.mentor" = "Mentor";
+"type.playlist" = "Playlist";
+"a11y.openDetails" = "Doppeltippen, um Details zu öffnen.";
+"a11y.openPlaylist" = "Öffnet Playlist.";
+"error.mentor.notFound" = "Mentor nicht gefunden";
+"error.video.notFound" = "Video nicht gefunden";
+"error.favorites.deleteMany" = "Favoriten konnten nicht gelöscht werden (%@).";
+"error.favorites.deleteOne" = "Favorit konnte nicht gelöscht werden (%@).";
+
+
+/* Content Notices */
+"content.languageNotice" = "Inhalt auf Englisch";

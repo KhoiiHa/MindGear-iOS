@@ -129,6 +129,12 @@ struct MentorDetailView: View {
                             .padding(.horizontal, AppTheme.Spacing.l)
                             .foregroundStyle(AppTheme.textSecondary(for: scheme))
                             .accessibilityIdentifier("mentorBio")
+                        // Language notice for bio
+                        Text("content.languageNotice")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .padding(.top, 4)
+                            .accessibilityIdentifier("mentorBioLanguageNotice")
                     }
 
                     if let ts = lastUpdated {

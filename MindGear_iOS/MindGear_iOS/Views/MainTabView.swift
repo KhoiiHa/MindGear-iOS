@@ -76,7 +76,7 @@ struct MainTabView: View {
             NavigationStack { HomeView() }
                 .tabItem {
                     Image(systemName: "house.fill")
-                    Text("Start")
+                    Text("tab.home")
                 }
                 .accessibilityIdentifier("tab_home")
                 .tag(Tab.home)
@@ -85,7 +85,7 @@ struct MainTabView: View {
             NavigationStack { MentorsView() }
                 .tabItem {
                     Image(systemName: "person.2.fill")
-                    Text("Mentoren")
+                    Text("tab.mentors")
                 }
                 .accessibilityIdentifier("tab_mentors")
                 .tag(Tab.mentors)
@@ -94,7 +94,7 @@ struct MainTabView: View {
             NavigationStack { VideoListView(playlistID: ConfigManager.recommendedPlaylistId, context: context) }
                 .tabItem {
                     Image(systemName: "play.rectangle.fill")
-                    Text("Videos")
+                    Text("tab.videos")
                 }
                 .accessibilityIdentifier("tab_videos")
                 .tag(Tab.videos)
@@ -103,7 +103,7 @@ struct MainTabView: View {
             NavigationStack { FavoritenView(context: context) }
                 .tabItem {
                     Image(systemName: "heart.fill")
-                    Text("Favoriten")
+                    Text("tab.favorites")
                 }
                 .accessibilityIdentifier("tab_favorites")
                 .tag(Tab.favorites)
@@ -112,7 +112,7 @@ struct MainTabView: View {
             NavigationStack { SettingsView() }
                 .tabItem {
                     Image(systemName: "gearshape.fill")
-                    Text("Einstellungen")
+                    Text("settings.title")
                 }
                 .accessibilityIdentifier("tab_settings")
                 .tag(Tab.settings)
@@ -121,18 +121,18 @@ struct MainTabView: View {
             NavigationStack { CategoriesView() }
                 .tabItem {
                     Image(systemName: "square.grid.2x2.fill")
-                    Text("Kategorien")
+                    Text("categories.title")
                 }
 
             NavigationStack { PlaylistView(playlistId: ConfigManager.recommendedPlaylistId, context: context) }
                 .tabItem {
                     Image(systemName: "music.note.list")
-                    Text("Playlists")
+                    Text("playlists.title")
                 }
 
             NavigationStack { HistoryView() }
                 .tabItem {
-                    Label("Verlauf", systemImage: "clock.arrow.circlepath")
+                    Label("history.title", systemImage: "clock.arrow.circlepath")
                 }
         }
         .tint(AppTheme.Colors.accent)

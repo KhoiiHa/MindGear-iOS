@@ -31,7 +31,7 @@ struct MentorsView: View {
     private var headerSearch: some View {
         SearchField(
             text: $searchText,
-            placeholder: "Mentoren suchen",
+            placeholder: NSLocalizedString("search.mentors", comment: ""),
             suggestions: [],
             onSubmit: {
                 applySearch()
@@ -45,8 +45,8 @@ struct MentorsView: View {
         .padding(.vertical, AppTheme.Spacing.s)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isSearchField)
-        .accessibilityLabel("Mentoren suchen")
-        .accessibilityHint("Tippe, um Mentoren zu suchen")
+        .accessibilityLabel(NSLocalizedString("search.mentors", comment: ""))
+        .accessibilityHint(NSLocalizedString("search.mentors.hint", comment: ""))
         .accessibilityValue(searchText)
     }
 
@@ -183,7 +183,7 @@ struct MentorsView: View {
                 .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
-        .navigationTitle("Mentoren")
+        .navigationTitle("tab.mentors")
         .toolbarBackground(.visible, for: .navigationBar)
         .onAppear {
             // Initial-Load: Seeds laden, dann anzeigen (responsiv)
@@ -216,16 +216,16 @@ struct MentorsView: View {
                 // Erstes Laden – ein Spinner + Label (kein doppelter Indicator)
                 HStack(spacing: 12) {
                     ProgressView()
-                    Text("Lade Mentoren…")
+                    Text("loading.mentors")
                         .font(.footnote)
                         .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                 }
                 .padding()
             } else if displayedMentors.isEmpty && !searchText.isEmpty {
                 ContentUnavailableView(
-                    "Keine Treffer",
+                    NSLocalizedString("search.noResults", comment: ""),
                     systemImage: "magnifyingglass",
-                    description: Text("Passe den Suchbegriff an.")
+                    description: Text(NSLocalizedString("search.noResults.hint", comment: ""))
                 )
             }
         }

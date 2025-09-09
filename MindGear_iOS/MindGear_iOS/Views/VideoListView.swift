@@ -62,7 +62,7 @@ struct VideoListView: View {
     // Schlankes Suchfeld – Debounce steckt im ViewModel (Warum: schnelle UX ohne API‑Kosten)
     private var headerSearch: some View {
         TextField(
-            "In Playlist suchen",
+            NSLocalizedString("search.inPlaylist", comment: ""),
             text: Binding(
                 get: { viewModel.searchText },
                 set: { viewModel.updateSearch(text: $0) }
@@ -102,7 +102,7 @@ struct VideoListView: View {
                     HStack(spacing: 12) {
                         ProgressView()
                             .accessibilityIdentifier("loadingSpinner")
-                        Text("Lade Videos…")
+                        Text("loading.videos")
                             .font(.footnote)
                             .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                     }
@@ -155,7 +155,7 @@ struct VideoListView: View {
                 }
                 videosList
             }
-            .navigationTitle("Videos")
+            .navigationTitle(NSLocalizedString("tab.videos", comment: ""))
             .toolbarTitleDisplayMode(.large)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
@@ -166,8 +166,8 @@ struct VideoListView: View {
                     }
                     .toggleStyle(.button)
                     .accessibilityIdentifier("favoritesOnlyToggle")
-                    .accessibilityLabel("Nur Favoriten anzeigen")
-                    .accessibilityHint("Nur gespeicherte Videos ein- oder ausblenden.")
+                    .accessibilityLabel(NSLocalizedString("filter.favoritesOnly", comment: ""))
+                    .accessibilityHint(NSLocalizedString("filter.favoritesOnly.hint", comment: ""))
 
                     Button { togglePlaylistFavorite() } label: {
                         Image(systemName: isPlaylistFavorite ? "star.fill" : "star")
@@ -196,9 +196,9 @@ struct VideoListView: View {
                 // Leerzustand bei aktiver Suche – Hinweis, Begriff anzupassen
                 if !viewModel.searchText.isEmpty && viewModel.filteredVideos.isEmpty {
                     ContentUnavailableView(
-                        "Keine Treffer",
+                        NSLocalizedString("search.noResults", comment: ""),
                         systemImage: "magnifyingglass",
-                        description: Text("Begriff anpassen oder Verlauf nutzen.")
+                        description: Text(NSLocalizedString("search.noResults.hint", comment: ""))
                     )
                 }
             }
@@ -206,9 +206,9 @@ struct VideoListView: View {
                 // Leerzustand bei aktivem Favoriten‑Filter – erklärt den nächsten Schritt
                 if viewModel.showFavoritesOnly && viewModel.filteredVideos.isEmpty {
                     ContentUnavailableView(
-                        "Keine Video-Favoriten",
+                        NSLocalizedString("favorites.videos.empty.title", comment: ""),
                         systemImage: "heart.fill",
-                        description: Text("Speichere Videos mit dem Herz in der Detailansicht.")
+                        description: Text(NSLocalizedString("favorites.videos.empty.hint", comment: ""))
                     )
                 }
             }

@@ -32,6 +32,14 @@ private enum FavoriteFilter: String, CaseIterable, Identifiable {
         case .playlists: return "rectangle.stack.fill"
         }
     }
+    var localizedTitle: String {
+        switch self {
+        case .all: return NSLocalizedString("favorites.filter.all", comment: "")
+        case .videos: return NSLocalizedString("favorites.filter.videos", comment: "")
+        case .mentors: return NSLocalizedString("favorites.filter.mentors", comment: "")
+        case .playlists: return NSLocalizedString("favorites.filter.playlists", comment: "")
+        }
+    }
 }
 
 // MARK: - Routing
@@ -104,7 +112,7 @@ struct FavoritenView: View {
             Picker("Filter", selection: $selectedFilter) {
                 ForEach(FavoriteFilter.allCases) { f in
                     Label {
-                        Text("\(f.rawValue) (\(count(for: f)))")
+                        Text("\(f.localizedTitle) (\(count(for: f)))")
                     } icon: { Image(systemName: f.icon) }
                     .tag(f)
                     .accessibilityElement(children: .combine)
@@ -116,13 +124,13 @@ struct FavoritenView: View {
             .accessibilityIdentifier("favoritesSegmentedControl")
             .overlay(
                 HStack(spacing: AppTheme.Spacing.s) {
-                    Button("Alle") { selectedFilter = .all }
+                    Button(NSLocalizedString("favorites.filter.all", comment: "")) { selectedFilter = .all }
                         .accessibilityIdentifier("favoritesAllTab")
-                    Button("Videos") { selectedFilter = .videos }
+                    Button(NSLocalizedString("favorites.filter.videos", comment: "")) { selectedFilter = .videos }
                         .accessibilityIdentifier("favoritesVideosTab")
-                    Button("Mentoren") { selectedFilter = .mentors }
+                    Button(NSLocalizedString("favorites.filter.mentors", comment: "")) { selectedFilter = .mentors }
                         .accessibilityIdentifier("favoritesMentorsTab")
-                    Button("Playlists") { selectedFilter = .playlists }
+                    Button(NSLocalizedString("favorites.filter.playlists", comment: "")) { selectedFilter = .playlists }
                         .accessibilityIdentifier("favoritesPlaylistsTab")
                 }
                 .opacity(0.02)
@@ -130,15 +138,15 @@ struct FavoritenView: View {
 
             SearchField(
                 text: $searchText,
-                placeholder: "Favoriten durchsuchen",
+                placeholder: NSLocalizedString("search.favorites", comment: ""),
                 suggestions: suggestionItems,
                 onSubmit: { },
                 onTapSuggestion: { s in searchText = s },
                 accessibilityIdentifier: "favoritesSearchField"
             )
             .padding(.horizontal, AppTheme.Spacing.m)
-            .accessibilityLabel("Suche")
-            .accessibilityHint("Eingeben, um Favoriten zu filtern.")
+            .accessibilityLabel(NSLocalizedString("search.title", comment: ""))
+            .accessibilityHint(NSLocalizedString("search.favorites.hint", comment: ""))
         }
         .padding(.top, AppTheme.Spacing.s)
     }
@@ -162,9 +170,9 @@ struct FavoritenView: View {
         List {
             if filteredFavorites.isEmpty {
                 ContentUnavailableView(
-                    "Keine Favoriten",
+                    NSLocalizedString("favorites.empty.title", comment: ""),
                     systemImage: "heart",
-                    description: Text("Speichere Videos, Mentoren und Playlists als Favorit, um sie hier zu sehen.")
+                    description: Text(NSLocalizedString("favorites.empty.hint", comment: ""))
                 )
             } else {
                 if selectedFilter == .all {
@@ -175,7 +183,7 @@ struct FavoritenView: View {
                                 // Warum: Swipe-to-Delete statt versteckter Menüs → klare, erwartbare Interaktion
                                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                         Button(role: .destructive) { delete(item: item) } label: {
-                                            Label("Löschen", systemImage: "trash")
+                                            Label(NSLocalizedString("action.delete", comment: ""), systemImage: "trash")
                                         }
                                         .accessibilityIdentifier("favoritesDeleteButton")
                                         .tint(AppTheme.Colors.danger)
@@ -183,7 +191,7 @@ struct FavoritenView: View {
                             }
                             .onDelete { idx in deleteFrom(list: videoFavorites, at: idx) }
                         } header: {
-                            sectionHeader("Videos", systemImage: "play.rectangle.fill", count: videoFavorites.count)
+                            sectionHeader(NSLocalizedString("tab.videos", comment: ""), systemImage: "play.rectangle.fill", count: videoFavorites.count)
                         }
                         .headerProminence(.standard)
                         .listRowBackground(AppTheme.listBackground(for: colorScheme))
@@ -195,7 +203,7 @@ struct FavoritenView: View {
                                 // Warum: Swipe-to-Delete statt versteckter Menüs → klare, erwartbare Interaktion
                                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                         Button(role: .destructive) { delete(item: item) } label: {
-                                            Label("Löschen", systemImage: "trash")
+                                            Label(NSLocalizedString("action.delete", comment: ""), systemImage: "trash")
                                         }
                                         .accessibilityIdentifier("favoritesDeleteButton")
                                         .tint(AppTheme.Colors.danger)
@@ -203,7 +211,7 @@ struct FavoritenView: View {
                             }
                             .onDelete { idx in deleteFrom(list: mentorFavorites, at: idx) }
                         } header: {
-                            sectionHeader("Mentoren", systemImage: "person.2.fill", count: mentorFavorites.count)
+                            sectionHeader(NSLocalizedString("tab.mentors", comment: ""), systemImage: "person.2.fill", count: mentorFavorites.count)
                         }
                         .headerProminence(.standard)
                         .listRowBackground(AppTheme.listBackground(for: colorScheme))
@@ -215,7 +223,7 @@ struct FavoritenView: View {
                                 // Warum: Swipe-to-Delete statt versteckter Menüs → klare, erwartbare Interaktion
                                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                         Button(role: .destructive) { delete(item: item) } label: {
-                                            Label("Löschen", systemImage: "trash")
+                                            Label(NSLocalizedString("action.delete", comment: ""), systemImage: "trash")
                                         }
                                         .accessibilityIdentifier("favoritesDeleteButton")
                                         .tint(AppTheme.Colors.danger)
@@ -223,7 +231,7 @@ struct FavoritenView: View {
                             }
                             .onDelete { idx in deleteFrom(list: playlistFavorites, at: idx) }
                         } header: {
-                            sectionHeader("Playlists", systemImage: "rectangle.stack.fill", count: playlistFavorites.count)
+                            sectionHeader(NSLocalizedString("playlists.title", comment: ""), systemImage: "rectangle.stack.fill", count: playlistFavorites.count)
                         }
                         .headerProminence(.standard)
                         .listRowBackground(AppTheme.listBackground(for: colorScheme))
@@ -234,7 +242,7 @@ struct FavoritenView: View {
                         // Warum: Swipe-to-Delete statt versteckter Menüs → klare, erwartbare Interaktion
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button(role: .destructive) { delete(item: item) } label: {
-                                    Label("Löschen", systemImage: "trash")
+                                    Label(NSLocalizedString("action.delete", comment: ""), systemImage: "trash")
                                 }
                                 .accessibilityIdentifier("favoritesDeleteButton")
                                 .tint(AppTheme.Colors.danger)
@@ -254,7 +262,7 @@ struct FavoritenView: View {
         .listRowBackground(AppTheme.listBackground(for: colorScheme))
         .listSectionSpacing(.compact)
         .listSectionSeparator(.hidden)
-        .navigationTitle("Favoriten")
+        .navigationTitle("tab.favorites")
         .toolbarTitleDisplayMode(.large)
         .toolbarBackground(.visible, for: .navigationBar)
         .scrollDismissesKeyboard(.immediately)
@@ -281,7 +289,7 @@ struct FavoritenView: View {
                 if let mentor = resolveMentor(for: id) {
                     MentorDetailView(mentor: mentor, context: context)
                 } else {
-                    ContentUnavailableView("Mentor nicht gefunden", systemImage: "person.crop.circle.badge.questionmark")
+                    ContentUnavailableView(NSLocalizedString("error.mentor.notFound", comment: ""), systemImage: "person.crop.circle.badge.questionmark")
                 }
             case .playlist(let id):
                 PlaylistView(playlistId: id, context: context)
@@ -289,7 +297,7 @@ struct FavoritenView: View {
                 if let video = resolveVideo(for: id) {
                     VideoDetailView(video: video, context: context)
                 } else {
-                    ContentUnavailableView("Video nicht gefunden", systemImage: "film.stack")
+                    ContentUnavailableView(NSLocalizedString("error.video.notFound", comment: ""), systemImage: "film.stack")
                 }
             }
         }
@@ -339,8 +347,8 @@ struct FavoritenView: View {
             .listRowBackground(AppTheme.listBackground(for: colorScheme))
             .accessibilityElement(children: .combine)
             .accessibilityLabel(item.title)
-            .accessibilityValue("Video")
-            .accessibilityHint("Doppeltippen, um Details zu öffnen.")
+            .accessibilityValue(NSLocalizedString("type.video", comment: ""))
+            .accessibilityHint(NSLocalizedString("a11y.openDetails", comment: ""))
         case .mentor:
             HStack(spacing: AppTheme.Spacing.m) {
                 NavigationLink(value: Route.mentor(item.id)) {
@@ -387,8 +395,8 @@ struct FavoritenView: View {
             .listRowBackground(AppTheme.listBackground(for: colorScheme))
             .accessibilityElement(children: .combine)
             .accessibilityLabel(item.title)
-            .accessibilityValue("Mentor")
-            .accessibilityHint("Doppeltippen, um Details zu öffnen.")
+            .accessibilityValue(NSLocalizedString("type.mentor", comment: ""))
+            .accessibilityHint(NSLocalizedString("a11y.openDetails", comment: ""))
         case .playlist:
             HStack(spacing: AppTheme.Spacing.m) {
                 NavigationLink(value: Route.playlist(item.id)) {
@@ -429,8 +437,8 @@ struct FavoritenView: View {
             .listRowBackground(AppTheme.listBackground(for: colorScheme))
             .accessibilityElement(children: .combine)
             .accessibilityLabel(item.title)
-            .accessibilityValue("Playlist")
-            .accessibilityHint("Öffnet Playlist.")
+            .accessibilityValue(NSLocalizedString("type.playlist", comment: ""))
+            .accessibilityHint(NSLocalizedString("a11y.openPlaylist", comment: ""))
         }
     }
 
@@ -516,7 +524,7 @@ struct FavoritenView: View {
             try context.save()
         } catch {
             let ns = error as NSError
-            errorMessage = "Favoriten konnten nicht gelöscht werden (\(ns.localizedDescription))."
+            errorMessage = String(format: NSLocalizedString("error.favorites.deleteMany", comment: ""), ns.localizedDescription)
             #if DEBUG
             print("Save failed (favorite delete):", ns)
             #endif
@@ -554,7 +562,7 @@ struct FavoritenView: View {
             try context.save()
         } catch {
             let ns = error as NSError
-            errorMessage = "Favorit konnte nicht gelöscht werden (\(ns.localizedDescription))."
+            errorMessage = String(format: NSLocalizedString("error.favorites.deleteOne", comment: ""), ns.localizedDescription)
             #if DEBUG
             print("Save failed (favorite delete single):", ns)
             #endif

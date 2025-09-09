@@ -60,7 +60,7 @@ struct PlaylistView: View {
     
     private var title: String {
         let t = viewModel.playlistTitle
-        return t.isEmpty ? "🎥 Playlist" : t
+        return t.isEmpty ? NSLocalizedString("playlist.title.fallback", comment: "") : t
     }
     
     // Bidirektionales Binding zum ViewModel-Suchtext
@@ -92,7 +92,7 @@ struct PlaylistView: View {
     private var headerSearch: some View {
         SearchField(
             text: searchTextBinding,
-            placeholder: "Suche",
+            placeholder: NSLocalizedString("search.inPlaylist", comment: ""),
             suggestions: suggestionItems,
             onSubmit: { viewModel.commitSearchTerm() },
             onTapSuggestion: { s in
@@ -103,8 +103,8 @@ struct PlaylistView: View {
         )
         .padding(.horizontal, AppTheme.Spacing.m)
         .padding(.top, AppTheme.Spacing.s)
-        .accessibilityLabel("Suche")
-        .accessibilityHint("Eingeben, um Ergebnisse zu filtern.")
+        .accessibilityLabel(NSLocalizedString("search.title", comment: ""))
+        .accessibilityHint(NSLocalizedString("search.inPlaylist.hint", comment: ""))
         .accessibilityAddTraits(.isSearchField)
     }
 
@@ -132,7 +132,7 @@ struct PlaylistView: View {
                 // Erstes Laden – ein Spinner + Label (kein doppelter Indicator)
                 HStack(spacing: 12) {
                     ProgressView()
-                    Text("Lade Videos…")
+                    Text(NSLocalizedString("loading.videos", comment: ""))
                         .font(.footnote)
                         .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                 }
@@ -141,8 +141,8 @@ struct PlaylistView: View {
                 // Leerzustand mit eigener EmptyState-Komponente
                 EmptyState(
                     systemImage: "video.slash",
-                    title: "Keine Videos",
-                    actionTitle: "Aktualisieren"
+                    title: NSLocalizedString("playlist.empty.title", comment: ""),
+                    actionTitle: NSLocalizedString("action.refresh", comment: "")
                 ) {
                     Task { await viewModel.loadVideos(forceReload: true) }
                 }
@@ -195,8 +195,12 @@ struct PlaylistView: View {
                         .font(.title3)
                         .foregroundStyle(favoritesViewModel.isFavorite(id: playlistId) ? AppTheme.Colors.accent : AppTheme.Colors.iconSecondary)
                         .symbolEffect(.bounce, value: favoritesViewModel.isFavorite(id: playlistId))
-                        .accessibilityLabel(favoritesViewModel.isFavorite(id: playlistId) ? "Playlist aus Favoriten entfernen" : "Playlist zu Favoriten hinzufügen")
-                        .accessibilityHint("Favoritenstatus der Playlist ändern.")
+                        .accessibilityLabel(
+                            favoritesViewModel.isFavorite(id: playlistId)
+                            ? NSLocalizedString("a11y.favorites.remove.playlist", comment: "")
+                            : NSLocalizedString("a11y.favorites.add.playlist", comment: "")
+                        )
+                        .accessibilityHint(NSLocalizedString("a11y.favorites.toggle.playlist", comment: ""))
                 }
                 .accessibilityIdentifier("favoriteButton")
             }

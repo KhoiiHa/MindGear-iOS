@@ -25,7 +25,7 @@ struct OnboardingView: View {
 
                 // Warum: Skip oben rechts – erwartet, leicht erreichbar, aber nicht dominant
                 // Skip
-                Button("Überspringen") { finish() }
+                Button(NSLocalizedString("onboarding.skip", comment: "")) { finish() }
                     .font(.footnote)
                     .foregroundStyle(AppTheme.textSecondary(for: scheme))
                     .padding(.top, 16)
@@ -35,22 +35,22 @@ struct OnboardingView: View {
                 VStack(spacing: AppTheme.Spacing.l) {
                     TabView(selection: $page) {
                         OnboardingCard(
-                            title: "Willkommen bei MindGear",
-                            subtitle: "Entdecke kuratierte Inhalte zu Mindset, Fokus und mentaler Stärke.",
+                            title: NSLocalizedString("onboarding.page1.title", comment: ""),
+                            subtitle: NSLocalizedString("onboarding.page1.subtitle", comment: ""),
                             systemImage: "brain.head.profile"
                         )
                         .tag(0)
-
+                        
                         OnboardingCard(
-                            title: "Mentoren & Playlists",
-                            subtitle: "Folge Mentoren, speichere Playlists als Favoriten und finde schnell, was dich weiterbringt.",
+                            title: NSLocalizedString("onboarding.page2.title", comment: ""),
+                            subtitle: NSLocalizedString("onboarding.page2.subtitle", comment: ""),
                             systemImage: "person.3.sequence.fill"
                         )
                         .tag(1)
-
+                        
                         OnboardingCard(
-                            title: "Schnell & Offline‑freundlich",
-                            subtitle: "Cleveres Caching, Verlauf & Favoriten – für eine flüssige Experience.",
+                            title: NSLocalizedString("onboarding.page3.title", comment: ""),
+                            subtitle: NSLocalizedString("onboarding.page3.subtitle", comment: ""),
                             systemImage: "bolt.fill"
                         )
                         .tag(2)
@@ -62,7 +62,7 @@ struct OnboardingView: View {
 
                     // Primäraktion: Weiter/Start – füllt Breite, klare Call-to-Action
                     Button(action: advance) {
-                        Text(page < 2 ? "Weiter" : "Los geht’s")
+                        Text(page < 2 ? NSLocalizedString("onboarding.next", comment: "") : NSLocalizedString("onboarding.start", comment: ""))
                             .font(.headline)
                     }
                     .buttonStyle(PillButtonStyle())
@@ -72,7 +72,7 @@ struct OnboardingView: View {
                     VStack(spacing: 6) {
                         HStack(spacing: 6) {
                             Image(systemName: "bell.badge.fill")
-                            Text("Benachrichtigungen später in den Einstellungen aktivieren.")
+                            Text(NSLocalizedString("onboarding.notifications.hint", comment: ""))
                         }
                         .font(.footnote)
                         .foregroundStyle(AppTheme.textSecondary(for: scheme))
