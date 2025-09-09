@@ -43,9 +43,7 @@ struct SettingsView: View {
                             .tint(AppTheme.Colors.primary)
                     }
                 } header: {
-                    Text(NSLocalizedString("settings.section.profile", comment: ""))
-                        .font(.title3.weight(.semibold))
-                        .foregroundStyle(AppTheme.textSecondary(for: scheme))
+                    SectionHeader(title: "settings.section.profile")
                 }
                 .listRowBackground(AppTheme.Colors.surface)
 
@@ -75,9 +73,7 @@ struct SettingsView: View {
                     .accessibilityIdentifier("notificationsToggle")
                     .accessibilityHint(NSLocalizedString("a11y.notifications.toggle.hint", comment: ""))
                 } header: {
-                    Text(NSLocalizedString("settings.section.notifications", comment: ""))
-                        .font(.title3.weight(.semibold))
-                        .foregroundStyle(AppTheme.textSecondary(for: scheme))
+                    SectionHeader(title: "settings.section.notifications")
                 }
                 .listRowBackground(AppTheme.Colors.surface)
 
@@ -106,9 +102,7 @@ struct SettingsView: View {
                         }
                     }
                 } header: {
-                    Text(NSLocalizedString("history.title", comment: ""))
-                        .font(.title3.weight(.semibold))
-                        .foregroundStyle(AppTheme.textSecondary(for: scheme))
+                    SectionHeader(title: "history.title")
                 }
                 .listRowBackground(AppTheme.Colors.surface)
 
@@ -142,9 +136,7 @@ struct SettingsView: View {
                         Text(NSLocalizedString("settings.onboarding.reset.alert.message", comment: ""))
                     }
                 } header: {
-                    Text(NSLocalizedString("settings.section.demo", comment: ""))
-                        .font(.title3.weight(.semibold))
-                        .foregroundStyle(AppTheme.textSecondary(for: scheme))
+                    SectionHeader(title: "settings.section.demo")
                 }
                 .listRowBackground(AppTheme.Colors.surface)
             }

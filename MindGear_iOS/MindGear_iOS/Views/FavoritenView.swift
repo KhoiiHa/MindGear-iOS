@@ -18,7 +18,7 @@ import SwiftData
 private typealias FavoriteItem = FavoritenViewModel.FavoriteItem
 
 // UI-Filter (Alle/Videos/Mentoren/Playlists) – wirkt nur lokal auf die kombinierte Liste
-private enum FavoriteFilter: String, CaseIterable, Identifiable {
+enum FavoriteFilter: String, CaseIterable, Identifiable {
     case all = "Alle"
     case videos = "Videos"
     case mentors = "Mentoren"
@@ -44,6 +44,7 @@ private enum FavoriteFilter: String, CaseIterable, Identifiable {
 
 // MARK: - Routing
 private enum Route: Hashable {
+    case categories        // Kategorien-Übersicht
     case mentor(String)    // channelId oder Name
     case playlist(String)  // playlistId
     case video(String)     // videoId
@@ -106,74 +107,35 @@ struct FavoritenView: View {
     }
 
     // MARK: - Subviews (Header)
-    // Schlankes Suchfeld über der Liste – Filter passiert lokal via searchText (Warum: schnelle UX ohne API-Kosten)
+    // Reusable header component
     private var headerSearch: some View {
-        VStack(spacing: AppTheme.Spacing.s) {
-            Picker("Filter", selection: $selectedFilter) {
-                ForEach(FavoriteFilter.allCases) { f in
-                    Label {
-                        Text("\(f.localizedTitle) (\(count(for: f)))")
-                    } icon: { Image(systemName: f.icon) }
-                    .tag(f)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityAddTraits(.isButton)
-                }
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, AppTheme.Spacing.m)
-            .accessibilityIdentifier("favoritesSegmentedControl")
-            .overlay(
-                HStack(spacing: AppTheme.Spacing.s) {
-                    Button(NSLocalizedString("favorites.filter.all", comment: "")) { selectedFilter = .all }
-                        .accessibilityIdentifier("favoritesAllTab")
-                    Button(NSLocalizedString("favorites.filter.videos", comment: "")) { selectedFilter = .videos }
-                        .accessibilityIdentifier("favoritesVideosTab")
-                    Button(NSLocalizedString("favorites.filter.mentors", comment: "")) { selectedFilter = .mentors }
-                        .accessibilityIdentifier("favoritesMentorsTab")
-                    Button(NSLocalizedString("favorites.filter.playlists", comment: "")) { selectedFilter = .playlists }
-                        .accessibilityIdentifier("favoritesPlaylistsTab")
-                }
-                .opacity(0.02)
-            )
-
-            SearchField(
-                text: $searchText,
-                placeholder: NSLocalizedString("search.favorites", comment: ""),
-                suggestions: suggestionItems,
-                onSubmit: { },
-                onTapSuggestion: { s in searchText = s },
-                accessibilityIdentifier: "favoritesSearchField"
-            )
-            .padding(.horizontal, AppTheme.Spacing.m)
-            .accessibilityLabel(NSLocalizedString("search.title", comment: ""))
-            .accessibilityHint(NSLocalizedString("search.favorites.hint", comment: ""))
-        }
-        .padding(.top, AppTheme.Spacing.s)
+        FavoritesHeader(
+            selectedFilter: $selectedFilter,
+            searchText: $searchText,
+            suggestions: suggestionItems
+        )
     }
 
-    @ViewBuilder
-    private func sectionHeader(_ title: String, systemImage: String, count: Int) -> some View {
-        HStack(spacing: AppTheme.Spacing.xs) {
-            Image(systemName: systemImage)
-            Text("\(title) (\(count))")
-        }
-        .font(.footnote)
-        .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
-        .textCase(nil)
-        .padding(.vertical, AppTheme.Spacing.xs)
-        .padding(.horizontal, AppTheme.Spacing.m)
-        .accessibilityAddTraits(.isHeader)
-    }
 
     // MARK: - Body
     var body: some View {
         List {
             if filteredFavorites.isEmpty {
-                ContentUnavailableView(
-                    NSLocalizedString("favorites.empty.title", comment: ""),
-                    systemImage: "heart",
-                    description: Text(NSLocalizedString("favorites.empty.hint", comment: ""))
-                )
+                VStack(spacing: AppTheme.Spacing.m) {
+                    ContentUnavailableView(
+                        NSLocalizedString("favorites.empty.title", comment: ""),
+                        systemImage: "heart",
+                        description: Text(NSLocalizedString("favorites.empty.hint", comment: ""))
+                    )
+                    NavigationLink(value: Route.categories) {
+                        Label("tab.categories", systemImage: "square.grid.2x2.fill")
+                            .labelStyle(.titleAndIcon)
+                    }
+                    .buttonStyle(PillButtonStyle())
+                    .accessibilityIdentifier("favoritesEmptyCTA")
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .listRowBackground(AppTheme.listBackground(for: colorScheme))
             } else {
                 if selectedFilter == .all {
                     if !videoFavorites.isEmpty {
@@ -191,7 +153,7 @@ struct FavoritenView: View {
                             }
                             .onDelete { idx in deleteFrom(list: videoFavorites, at: idx) }
                         } header: {
-                            sectionHeader(NSLocalizedString("tab.videos", comment: ""), systemImage: "play.rectangle.fill", count: videoFavorites.count)
+                            SectionHeader(title: "tab.videos", subtitle: LocalizedStringKey("(\(videoFavorites.count))"))
                         }
                         .headerProminence(.standard)
                         .listRowBackground(AppTheme.listBackground(for: colorScheme))
@@ -211,7 +173,7 @@ struct FavoritenView: View {
                             }
                             .onDelete { idx in deleteFrom(list: mentorFavorites, at: idx) }
                         } header: {
-                            sectionHeader(NSLocalizedString("tab.mentors", comment: ""), systemImage: "person.2.fill", count: mentorFavorites.count)
+                            SectionHeader(title: "tab.mentors", subtitle: LocalizedStringKey("(\(mentorFavorites.count))"))
                         }
                         .headerProminence(.standard)
                         .listRowBackground(AppTheme.listBackground(for: colorScheme))
@@ -220,7 +182,6 @@ struct FavoritenView: View {
                         Section {
                             ForEach(playlistFavorites, id: \._id) { item in
                                 row(for: item)
-                                // Warum: Swipe-to-Delete statt versteckter Menüs → klare, erwartbare Interaktion
                                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                         Button(role: .destructive) { delete(item: item) } label: {
                                             Label(NSLocalizedString("action.delete", comment: ""), systemImage: "trash")
@@ -231,7 +192,7 @@ struct FavoritenView: View {
                             }
                             .onDelete { idx in deleteFrom(list: playlistFavorites, at: idx) }
                         } header: {
-                            sectionHeader(NSLocalizedString("playlists.title", comment: ""), systemImage: "rectangle.stack.fill", count: playlistFavorites.count)
+                            SectionHeader(title: "playlists.title", subtitle: LocalizedStringKey("(\(playlistFavorites.count))"))
                         }
                         .headerProminence(.standard)
                         .listRowBackground(AppTheme.listBackground(for: colorScheme))
@@ -239,7 +200,6 @@ struct FavoritenView: View {
                 } else {
                     ForEach(filteredFavorites, id: \._id) { item in
                         row(for: item)
-                        // Warum: Swipe-to-Delete statt versteckter Menüs → klare, erwartbare Interaktion
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button(role: .destructive) { delete(item: item) } label: {
                                     Label(NSLocalizedString("action.delete", comment: ""), systemImage: "trash")
@@ -285,6 +245,8 @@ struct FavoritenView: View {
         // MARK: - Navigation
         .navigationDestination(for: Route.self) { route in
             switch route {
+            case .categories:
+                CategoriesView()
             case .mentor(let id):
                 if let mentor = resolveMentor(for: id) {
                     MentorDetailView(mentor: mentor, context: context)
@@ -308,137 +270,38 @@ struct FavoritenView: View {
     private func row(for item: FavoriteItem) -> some View {
         switch item.type {
         case .video:
-            HStack(spacing: AppTheme.Spacing.m) {
-                NavigationLink(value: Route.video(item.id)) {
-                    HStack(spacing: AppTheme.Spacing.m) {
-                        if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
-                            ThumbnailView(urlString: url.absoluteString, width: 88, height: 56, cornerRadius: AppTheme.Radius.m)
-                                .accessibilityHidden(true)
-                        } else {
-                            Image(systemName: "video")
-                                .frame(width: 88, height: 56)
-                                .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
-                                .background(AppTheme.Colors.surfaceElevated)
-                                .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.m))
-                                .accessibilityHidden(true)
-                        }
-                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                            Text(item.title)
-                                .font(.headline)
-                                .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
-                            Text("Video")
-                                .font(.caption)
-                                .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
-                        }
-                    }
-                }
-                .buttonStyle(.plain)
-
-                Spacer(minLength: 0)
-
-                Button(role: .destructive) { delete(item: item) } label: {
-                    Image(systemName: "trash")
-                }
-                .buttonStyle(.borderless)
-                .accessibilityIdentifier("favoritesInlineDelete")
+            NavigationLink(value: Route.video(item.id)) {
+                FavoriteRow(
+                    title: item.title,
+                    subtitle: NSLocalizedString("type.video", comment: ""),
+                    systemImage: "play.rectangle.fill",
+                    thumbnailURL: item.thumbnailURL,
+                    accessibilityIdentifier: "favoriteCell_video_\(item.id)"
+                )
             }
-            .contentShape(Rectangle())
-            .accessibilityIdentifier("favoriteCell_video_\(item.id)")
-            .listRowBackground(AppTheme.listBackground(for: colorScheme))
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(item.title)
-            .accessibilityValue(NSLocalizedString("type.video", comment: ""))
-            .accessibilityHint(NSLocalizedString("a11y.openDetails", comment: ""))
+            .buttonStyle(.plain)
         case .mentor:
-            HStack(spacing: AppTheme.Spacing.m) {
-                NavigationLink(value: Route.mentor(item.id)) {
-                    HStack(spacing: AppTheme.Spacing.m) {
-                        if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
-                            AsyncImage(url: url) { phase in
-                                switch phase {
-                                case .empty: AppTheme.Colors.surfaceElevated
-                                case .success(let image): image.resizable().scaledToFill()
-                                case .failure: Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.textSecondary(for: colorScheme))
-                                @unknown default: Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.textSecondary(for: colorScheme))
-                                }
-                            }
-                            .frame(width: 44, height: 44)
-                            .clipShape(Circle())
-                            .accessibilityHidden(true)
-                        } else {
-                            Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(AppTheme.textSecondary(for: colorScheme))
-                                .frame(width: 44, height: 44)
-                                .accessibilityHidden(true)
-                        }
-                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                            Text(item.title)
-                                .font(.headline)
-                                .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
-                            Text("Mentor")
-                                .font(.caption)
-                                .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
-                        }
-                    }
-                }
-                .buttonStyle(.plain)
-
-                Spacer(minLength: 0)
-
-                Button(role: .destructive) { delete(item: item) } label: {
-                    Image(systemName: "trash")
-                }
-                .buttonStyle(.borderless)
-                .accessibilityIdentifier("favoritesInlineDelete")
+            NavigationLink(value: Route.mentor(item.id)) {
+                FavoriteRow(
+                    title: item.title,
+                    subtitle: NSLocalizedString("type.mentor", comment: ""),
+                    systemImage: "person.2.fill",
+                    thumbnailURL: item.thumbnailURL,
+                    accessibilityIdentifier: "favoriteCell_mentor_\(item.id)"
+                )
             }
-            .contentShape(Rectangle())
-            .accessibilityIdentifier("favoriteCell_mentor_\(item.id)")
-            .listRowBackground(AppTheme.listBackground(for: colorScheme))
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(item.title)
-            .accessibilityValue(NSLocalizedString("type.mentor", comment: ""))
-            .accessibilityHint(NSLocalizedString("a11y.openDetails", comment: ""))
+            .buttonStyle(.plain)
         case .playlist:
-            HStack(spacing: AppTheme.Spacing.m) {
-                NavigationLink(value: Route.playlist(item.id)) {
-                    HStack(spacing: AppTheme.Spacing.m) {
-                        if let urlStr = item.thumbnailURL, let url = URL(string: urlStr) {
-                            ThumbnailView(urlString: url.absoluteString, width: 88, height: 56, cornerRadius: AppTheme.Radius.m)
-                                .accessibilityHidden(true)
-                        } else {
-                            Image(systemName: "rectangle.stack")
-                                .frame(width: 88, height: 56)
-                                .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
-                                .background(AppTheme.Colors.surfaceElevated)
-                                .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.m))
-                                .accessibilityHidden(true)
-                        }
-                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                            Text(item.title)
-                                .font(.headline)
-                                .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
-                            Text("Playlist")
-                                .font(.caption)
-                                .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
-                        }
-                    }
-                }
-                .buttonStyle(.plain)
-
-                Spacer(minLength: 0)
-
-                Button(role: .destructive) { delete(item: item) } label: {
-                    Image(systemName: "trash")
-                }
-                .buttonStyle(.borderless)
-                .accessibilityIdentifier("favoritesInlineDelete")
+            NavigationLink(value: Route.playlist(item.id)) {
+                FavoriteRow(
+                    title: item.title,
+                    subtitle: NSLocalizedString("type.playlist", comment: ""),
+                    systemImage: "rectangle.stack.fill",
+                    thumbnailURL: item.thumbnailURL,
+                    accessibilityIdentifier: "favoriteCell_playlist_\(item.id)"
+                )
             }
-            .contentShape(Rectangle())
-            .accessibilityIdentifier("favoriteCell_playlist_\(item.id)")
-            .listRowBackground(AppTheme.listBackground(for: colorScheme))
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(item.title)
-            .accessibilityValue(NSLocalizedString("type.playlist", comment: ""))
-            .accessibilityHint(NSLocalizedString("a11y.openPlaylist", comment: ""))
+            .buttonStyle(.plain)
         }
     }
 

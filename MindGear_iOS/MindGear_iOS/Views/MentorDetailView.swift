@@ -118,6 +118,7 @@ struct MentorDetailView: View {
                         .foregroundStyle(AppTheme.textPrimary(for: scheme))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, AppTheme.Spacing.l)
+                        .frame(maxWidth: 640)
                         .accessibilityIdentifier("mentorName")
 
                     // Biografie des Mentors anzeigen
@@ -128,6 +129,7 @@ struct MentorDetailView: View {
                             .lineSpacing(4)
                             .padding(.horizontal, AppTheme.Spacing.l)
                             .foregroundStyle(AppTheme.textSecondary(for: scheme))
+                            .frame(maxWidth: 640)
                             .accessibilityIdentifier("mentorBio")
                         // Language notice for bio
                         Text("content.languageNotice")
@@ -225,6 +227,17 @@ struct MentorDetailView: View {
                             .foregroundStyle(AppTheme.Colors.accent)
                             .accessibilityIdentifier("mentorChannelLink")
                     }
+                    // NavigationLink to CategoriesView as a contextual CTA
+                    NavigationLink {
+                        CategoriesView()
+                    } label: {
+                        Label("Weitere in Kategorien", systemImage: "square.grid.2x2.fill")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(AppTheme.Colors.accent)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, AppTheme.Spacing.s)
+                    .accessibilityIdentifier("mentorCategoriesLink")
                 } else {
                     // Fallback, wenn (noch) kein Mentor vorhanden
                     Text("Keine Mentordaten verfügbar.")

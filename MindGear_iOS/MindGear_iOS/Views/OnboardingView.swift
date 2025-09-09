@@ -10,11 +10,13 @@
 //  Status: stabil.
 //
 import SwiftUI
+import UIKit
 // Kurzzusammenfassung: 3 Karten (Willkommen, Mentoren/Playlists, Performance) mit progressiver Navigation.
 struct OnboardingView: View {
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
     @State private var page: Int = 0
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     // MARK: - Body
     var body: some View {
@@ -26,6 +28,7 @@ struct OnboardingView: View {
                 // Warum: Skip oben rechts – erwartet, leicht erreichbar, aber nicht dominant
                 // Skip
                 Button(NSLocalizedString("onboarding.skip", comment: "")) { finish() }
+                    .accessibilityHint("Onboarding überspringen und zur App wechseln")
                     .font(.footnote)
                     .foregroundStyle(AppTheme.textSecondary(for: scheme))
                     .padding(.top, 16)
@@ -60,9 +63,16 @@ struct OnboardingView: View {
                     .frame(maxHeight: 520)
                     .accessibilityIdentifier("onboardingPageControl")
 
+                    // Progress indicator (1/3)
+                    Text("\(page + 1)/3")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppTheme.textSecondary(for: scheme))
+                        .accessibilityLabel("Fortschritt \(page + 1) von 3")
+
                     // Primäraktion: Weiter/Start – füllt Breite, klare Call-to-Action
                     Button(action: advance) {
-                        Text(page < 2 ? NSLocalizedString("onboarding.next", comment: "") : NSLocalizedString("onboarding.start", comment: ""))
+                        let label = page < 2 ? NSLocalizedString("onboarding.next", comment: "") : NSLocalizedString("onboarding.start", comment: "")
+                        Text(page < 2 ? "\(label) (\(page + 1)/3)" : label)
                             .font(.headline)
                     }
                     .buttonStyle(PillButtonStyle())
@@ -90,8 +100,16 @@ struct OnboardingView: View {
     /// Warum: Einfache Logik lokal halten; AppState nur über `hasSeenOnboarding` berühren.
     private func advance() {
         if page < 2 {
-            withAnimation(.easeInOut) { page += 1 }
-        } else { finish() }
+            if reduceMotion {
+                page += 1
+            } else {
+                withAnimation(.easeInOut) { page += 1 }
+            }
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        } else {
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            finish()
+        }
     }
 
     /// Setzt das Onboarding-Flag und beendet die Sequenz.
@@ -126,6 +144,8 @@ private struct OnboardingCard: View {
                 .foregroundStyle(AppTheme.textPrimary(for: scheme))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, AppTheme.Spacing.m)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("onboardingCardTitle")
 
             Text(subtitle)
                 .font(.body)

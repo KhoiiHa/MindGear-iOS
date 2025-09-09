@@ -18,9 +18,11 @@ import SwiftUI
 struct SearchField: View {
     // Gebundener Suchtext (Debounce im ViewModel via updateSearch(text:))
     @Binding var text: String
-    var placeholder: String = "Suche"
+    var placeholder: String = NSLocalizedString("search.title", comment: "")
     // Optionale Vorschläge (z. B. Verlauf oder Auto‑Suggest)
     var suggestions: [String] = []
+    // Optionaler a11y‑Hint-Key (falls View kontextspezifisch ist)
+    var accessibilityHintKey: String? = nil
     // Aktionen
     var onSubmit: () -> Void = {}
     var onTapSuggestion: (String) -> Void = { _ in }
@@ -41,8 +43,8 @@ struct SearchField: View {
                     .disableAutocorrection(true)
                     .textInputAutocapitalization(.never)
                     .font(.body)
-                    .accessibilityLabel("Suche")
-                    .accessibilityHint("Eingeben, um Ergebnisse zu filtern.")
+                    .accessibilityLabel(NSLocalizedString("search.title", comment: ""))
+                    .accessibilityHint(NSLocalizedString(accessibilityHintKey ?? "search.generic.hint", comment: ""))
                     .accessibilityIdentifier(accessibilityIdentifier ?? "")
                     .accessibilityAddTraits(.isSearchField)
                     .onSubmit { onSubmit() }
@@ -55,19 +57,21 @@ struct SearchField: View {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                     }
-                    .accessibilityLabel("Suche löschen")
-                    .accessibilityHint("Setzt den Suchtext zurück.")
+                    .transition(.opacity.combined(with: .scale))
+                    .accessibilityLabel(NSLocalizedString("search.clear", comment: ""))
+                    .accessibilityHint(NSLocalizedString("search.clear.hint", comment: ""))
                 }
             }
             .padding(.horizontal, AppTheme.Spacing.m)
-            .frame(height: 44)
+            .frame(height: 50)
             .background(AppTheme.Colors.cardBackground(for: colorScheme))
-            .cornerRadius(AppTheme.Radius.m)
+            .cornerRadius(AppTheme.Radius.l)
             .overlay(
-                RoundedRectangle(cornerRadius: AppTheme.Radius.m)
+                RoundedRectangle(cornerRadius: AppTheme.Radius.l)
                     .stroke(AppTheme.Colors.cardStroke(for: colorScheme), lineWidth: 1)
             )
-            .shadow(color: AppTheme.Colors.shadowCard.opacity(0.5), radius: 6, y: 3)
+            .shadow(color: AppTheme.Colors.shadowCard.opacity(0.35), radius: 8, y: 4)
+            .animation(.easeInOut(duration: 0.12), value: text.isEmpty)
 
             // Horizontale Vorschläge (optional)
             if !suggestions.isEmpty {

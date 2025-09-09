@@ -11,6 +11,7 @@
 "tab.videos" = "Videos";
 "tab.favorites" = "Favoriten";
 "tab.more" = "Mehr";
+"tab.categories" = "Kategorien";
 
 /* Sections */
 "section.recommended" = "Empfohlen";
@@ -96,3 +97,18 @@
 
 /* Content Notices */
 "content.languageNotice" = "Inhalt auf Englisch";
+
+
+/* Additional Navigation Titles */
+"categories.title" = "Kategorien";
+"playlists.title" = "Playlists";
+
+/* Search – generic & clear button */
+"search.generic.hint" = "Eingeben, um Ergebnisse zu filtern.";
+"search.clear" = "Suche löschen";
+"search.clear.hint" = "Setzt den Suchtext zurück.";
+
+/* Favorites – a11y for playlist toggle */
+"a11y.favorites.add.playlist" = "Playlist zu Favoriten hinzufügen";
+"a11y.favorites.remove.playlist" = "Playlist aus Favoriten entfernen";
+"a11y.favorites.toggle.playlist" = "Favoritenstatus der Playlist umschalten.";

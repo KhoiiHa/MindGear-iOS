@@ -140,19 +140,29 @@ struct MentorsView: View {
                     refreshID = UUID()
                 }
             ) {
-                HStack(spacing: AppTheme.Spacing.m) {
+                HStack(alignment: .top, spacing: AppTheme.Spacing.m) {
                     // Avatar mit sicherem Fallback (kein endloses Laden)
                     avatarView(for: mentor)
-                    // Anzeige des Mentorennamens
-                    Text(cleanSeed(mentor.name))
-                        .font(.headline)
-                        .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
+                        .frame(width: 50, height: 50)
+                    // Textblock
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(cleanSeed(mentor.name))
+                            .font(.headline)
+                            .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
+                            .multilineTextAlignment(.leading)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .layoutPriority(1)
+                    }
+                    Spacer(minLength: 0)
                     // Herz-Symbol, wenn der Mentor in den Favoriten ist
                     if isFavorite(mentor) {
                         Image(systemName: "heart.fill")
                             .foregroundStyle(AppTheme.Colors.accent)
+                            .padding(.top, 4)
                     }
                 }
+                .frame(minHeight: 72)
                 .contentShape(Rectangle())
             }
             .accessibilityIdentifier("mentorCell_\(mentor.id)")

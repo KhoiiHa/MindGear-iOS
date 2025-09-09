@@ -84,6 +84,11 @@ struct AppTheme {
     static func listBackground(for scheme: ColorScheme) -> Color {
         scheme == .dark ? backgroundSecondary : Color.white
     }
+    /// Hintergrund für Header-/Toolbar-nahe Bereiche.
+    /// Standard: folgt der Listen-Hintergrundfarbe, kann später separat getunt werden.
+    static func headerBackground(for scheme: ColorScheme) -> Color {
+        listBackground(for: scheme)
+    }
 
     // MARK: - Color namespace (backwards-compat for AppTheme.Colors.*)
     // Warum: Backwards‑Compat für ältere Call‑Sites (AppTheme.Colors.*)
@@ -131,6 +136,7 @@ struct AppTheme {
         static func tabBarBackground(for scheme: ColorScheme) -> Color { AppTheme.tabBarBackground(for: scheme) }
         static func listBackground(for scheme: ColorScheme) -> Color { AppTheme.listBackground(for: scheme) }
         static func cardGradient(for scheme: ColorScheme) -> LinearGradient { AppTheme.cardGradient(for: scheme) }
+        static func headerBackground(for scheme: ColorScheme) -> Color { AppTheme.headerBackground(for: scheme) }
     }
 
     // MARK: - Gradients

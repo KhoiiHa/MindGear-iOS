@@ -181,6 +181,45 @@ final class FavoritesManager {
     }
 
     @MainActor
+    /// Fügt eine Playlist als Favorit hinzu, falls noch nicht vorhanden.
+    func addPlaylistFavorite(id: String, title: String, thumbnailURL: String = "", context: ModelContext) {
+        do {
+            let descriptor = FetchDescriptor<FavoritePlaylistEntity>(
+                predicate: #Predicate { $0.id == id }
+            )
+            if try context.fetch(descriptor).first == nil {
+                let favorite = FavoritePlaylistEntity(
+                    id: id,
+                    title: title,
+                    thumbnailURL: thumbnailURL
+                )
+                context.insert(favorite)
+                do { try context.save() } catch { print("Save failed (add playlist favorite):", error) }
+                NotificationCenter.default.post(name: .favoritesDidChange, object: nil)
+            }
+        } catch {
+            print("Error adding playlist favorite:", error)
+        }
+    }
+
+    @MainActor
+    /// Entfernt eine Playlist aus den Favoriten, falls vorhanden.
+    func removePlaylistFavorite(id: String, context: ModelContext) {
+        do {
+            let descriptor = FetchDescriptor<FavoritePlaylistEntity>(
+                predicate: #Predicate { $0.id == id }
+            )
+            if let existing = try context.fetch(descriptor).first {
+                context.delete(existing)
+                do { try context.save() } catch { print("Save failed (remove playlist favorite):", error) }
+                NotificationCenter.default.post(name: .favoritesDidChange, object: nil)
+            }
+        } catch {
+            print("Error removing playlist favorite:", error)
+        }
+    }
+
+    @MainActor
     /// Schaltet den Favoritenstatus einer Playlist um.
     /// Warum: Kapselt Insert/Delete und benachrichtigt die UI zentral.
     func togglePlaylistFavorite(id: String, title: String, thumbnailURL: String, context: ModelContext) async {

@@ -31,33 +31,45 @@ struct PlaylistCard: View {
         NavigationLink {
             VideoListView(playlistID: playlistID, context: context)
         } label: {
-            HStack(spacing: AppTheme.Spacing.m) {
+            HStack(alignment: .top, spacing: AppTheme.Spacing.m) {
                 // Dekoratives Icon – Inhalt steckt in Texten; Screenreader bekommt Label unten
                 Image(systemName: iconName)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 30, height: 30)
+                    .frame(width: 44, height: 44)
+                    .padding(.top, 2)
                     .foregroundStyle(AppTheme.Colors.accent)
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
-                        .font(.headline)
+                        .font(.headline.weight(.semibold))
                         .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
+                        .multilineTextAlignment(.leading)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .layoutPriority(1)
 
                     Text(subtitle)
                         .font(.subheadline)
                         .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
+                        .multilineTextAlignment(.leading)
+                        .lineSpacing(2)
+                        .lineLimit(2)
+                        .truncationMode(.tail)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 Spacer()
 
                 AppTheme.Icons.chevronRight
-                    .font(.footnote)
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
+                    .padding(.top, 6)
             }
             .padding(.vertical, AppTheme.Spacing.m)
             .padding(.horizontal, AppTheme.Spacing.l)
+            .frame(minHeight: 92)
             .mgCard()
             .padding(.horizontal)
             .contentShape(Rectangle())

@@ -14,24 +14,6 @@ import SwiftUI
 import SwiftData
 // Kurzzusammenfassung: Oben Suchfeld, darunter 1–2 Playlist‑Previews (Empfohlen/Neu) mit Navigation.
 
-// MARK: - SectionHeader
-struct SectionHeader: View {
-    let title: String
-    @Environment(\.colorScheme) private var scheme
-
-    var body: some View {
-        HStack {
-            Text(title)
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(AppTheme.textPrimary(for: scheme))
-            Spacer()
-        }
-        .padding(.horizontal, AppTheme.Spacing.m)
-        .padding(.top, AppTheme.Spacing.m)
-        .padding(.bottom, AppTheme.Spacing.s)
-    }
-}
-
 // MARK: - CategoryDetailView
 // Warum: Präsentiert kuratierten Inhalt pro Kategorie; bindet Playlist‑Previews ein.
 struct CategoryDetailView: View {
@@ -47,14 +29,14 @@ struct CategoryDetailView: View {
     private var headerSearch: some View {
         SearchField(
             text: $searchText,
-            suggestions: [], // optional: Kategorien‑bezogene Vorschläge
+            suggestions: [],
+            accessibilityHintKey: "search.generic.hint",
             onSubmit: {},
-            onTapSuggestion: { q in searchText = q }
+            onTapSuggestion: { q in searchText = q },
+            accessibilityIdentifier: "categorySearch"
         )
         .padding(.horizontal, AppTheme.Spacing.m)
         .padding(.top, AppTheme.Spacing.s)
-        .accessibilityLabel("Suche")
-        .accessibilityHint("Eingeben, um Inhalte in dieser Kategorie zu filtern.")
     }
 
     // MARK: - Body
@@ -182,9 +164,9 @@ struct PlaylistPreviewSection: View {
     var body: some View {
         Group {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
-                SectionHeader(title: title)
+                SectionHeader(title: LocalizedStringKey(title))
                 NavigationLink(destination: PlaylistView(playlistId: playlistId, context: context)) {
-                    Text("Alle anzeigen")
+                    Text("section.seeAll")
                         .font(.subheadline)
                 }
                 .disabled(isLoading)

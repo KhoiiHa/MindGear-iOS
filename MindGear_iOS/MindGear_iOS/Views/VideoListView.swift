@@ -11,6 +11,7 @@
 //
 
 import SwiftUI
+import Foundation
 import SwiftData
 
 // Kurzzusammenfassung: Remote‑Cache → API, debouncte Suche, Favoriten‑Filter, Offline‑Hinweis oben.
@@ -23,7 +24,6 @@ struct VideoListView: View {
     @StateObject private var viewModel: VideoViewModel
     @State private var isPlaylistFavorite: Bool = false
     @ObservedObject private var network = NetworkMonitor.shared
-    @State private var selectedChip: String? = nil
     /// Flag für erstes Laden (Spinner/Empty-Handling)
     @State private var firstLoad: Bool = true
     private let exploreChips: [String] = [
@@ -59,38 +59,37 @@ struct VideoListView: View {
     // Entkoppelte Referenz auf das StateObject (verhindert Wrapper-Inferenz in Subviews)
     private var vmRef: VideoViewModel { viewModel }
 
+    /// Toggle Favoritenstatus der aktuellen Playlist
+    private func togglePlaylistFavorite() {
+        if isPlaylistFavorite {
+            FavoritesManager.shared.removePlaylistFavorite(id: playlistID, context: context)
+            isPlaylistFavorite = false
+        } else {
+            let title = viewModel.playlistTitle
+            FavoritesManager.shared.addPlaylistFavorite(id: playlistID, title: title, context: context)
+            isPlaylistFavorite = true
+        }
+    }
+
     // Schlankes Suchfeld – Debounce steckt im ViewModel (Warum: schnelle UX ohne API‑Kosten)
     private var headerSearch: some View {
-        TextField(
-            NSLocalizedString("search.inPlaylist", comment: ""),
+        SearchField(
             text: Binding(
                 get: { viewModel.searchText },
                 set: { viewModel.updateSearch(text: $0) }
-            )
+            ),
+            placeholder: NSLocalizedString("search.inPlaylist", comment: ""),
+            suggestions: exploreChips,
+            accessibilityHintKey: "search.inPlaylist.hint",
+            onSubmit: { viewModel.commitSearchTerm() },
+            onTapSuggestion: { q in
+                viewModel.updateSearch(text: q)
+                viewModel.commitSearchTerm()
+            },
+            accessibilityIdentifier: "playlistSearchField"
         )
-        .textInputAutocapitalization(.never)
-        .autocorrectionDisabled(true)
-        .submitLabel(.search)
-        .onSubmit { viewModel.commitSearchTerm() }
-        .accessibilityIdentifier("playlistSearchField")
         .padding(.horizontal, AppTheme.Spacing.m)
         .padding(.top, AppTheme.Spacing.s)
-        .textFieldStyle(.roundedBorder)
-    }
-
-    private func togglePlaylistFavorite() {
-        let derivedTitle = viewModel.playlistTitle.isEmpty ? "Playlist" : viewModel.playlistTitle
-        let derivedThumb = viewModel.playlistThumbnailURL
-        Task { @MainActor in
-            await FavoritesManager.shared.togglePlaylistFavorite(
-                id: playlistID,
-                title: derivedTitle,
-                thumbnailURL: derivedThumb,
-                context: context
-            )
-            // Nur Status aktualisieren, keine Liste neu laden
-            isPlaylistFavorite = FavoritesManager.shared.isPlaylistFavorite(id: playlistID, context: context)
-        }
     }
 
     // MARK: - Subviews (Liste)
@@ -98,14 +97,12 @@ struct VideoListView: View {
         Group {
             let isEmpty = vmRef.filteredVideos.isEmpty
             if firstLoad && isEmpty {
-                ProgressView {
-                    HStack(spacing: 12) {
-                        ProgressView()
-                            .accessibilityIdentifier("loadingSpinner")
-                        Text("loading.videos")
-                            .font(.footnote)
-                            .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
-                    }
+                HStack(spacing: 12) {
+                    ProgressView()
+                        .accessibilityIdentifier("loadingSpinner")
+                    Text(NSLocalizedString("loading.videos", comment: ""))
+                        .font(.footnote)
+                        .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             } else {
@@ -193,7 +190,6 @@ struct VideoListView: View {
                 firstLoad = false
             }
             .overlay {
-                // Leerzustand bei aktiver Suche – Hinweis, Begriff anzupassen
                 if !viewModel.searchText.isEmpty && viewModel.filteredVideos.isEmpty {
                     ContentUnavailableView(
                         NSLocalizedString("search.noResults", comment: ""),
@@ -224,7 +220,8 @@ struct VideoListView: View {
                         .padding(.top, 8)
                 }
             }
-            .animation(.default, value: viewModel.filteredVideos)
+            .animation(.default, value: viewModel.searchText)
+            .animation(.default, value: viewModel.showFavoritesOnly)
         }
     }
 }

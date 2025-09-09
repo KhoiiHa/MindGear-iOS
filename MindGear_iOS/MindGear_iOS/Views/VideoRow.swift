@@ -39,14 +39,20 @@ struct VideoRow: View {
                 Text(video.title)
                     .font(.subheadline)
                     .foregroundStyle(AppTheme.textPrimary(for: scheme))
+                    .multilineTextAlignment(.leading)
                     .lineLimit(2)
-                    .truncationMode(.tail) // Lange Titel sauber abschneiden
+                    .truncationMode(.tail)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .layoutPriority(1)
 
                 Text(video.description)
                     .font(.footnote)
                     .foregroundStyle(AppTheme.textSecondary(for: scheme))
+                    .multilineTextAlignment(.leading)
+                    .lineSpacing(2)
                     .lineLimit(2)
-                    .truncationMode(.tail) // Lange Beschreibungen sauber abschneiden
+                    .truncationMode(.tail)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             Spacer(minLength: 8)
@@ -61,7 +67,8 @@ struct VideoRow: View {
                 Image(systemName: isFavorite ? "heart.fill" : "heart")
                     .font(.title3)
                     .foregroundStyle(isFavorite ? AppTheme.Colors.accent : AppTheme.Colors.iconSecondary)
-                    .frame(width: 44, height: 44, alignment: .center)
+                    .frame(width: 44, height: 44, alignment: .top)
+                    .padding(.top, 4)
                     .symbolEffect(.bounce, value: isFavorite)
             }
             .accessibilityIdentifier("favoriteButton")
@@ -74,6 +81,7 @@ struct VideoRow: View {
         // Ganze Row tappbar für Navigation – Button bleibt trotzdem erreichbar
         .contentShape(Rectangle()) // komplette Zeile tappbar
         .padding(.vertical, AppTheme.Spacing.s)
+        .frame(minHeight: 82)
         // Barrierefreiheit: Titel als Hauptlabel, Rest wird kombiniert
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("videoCell_\(video.id)")

@@ -100,12 +100,20 @@ struct HomeView: View {
                                 .padding(.bottom, AppTheme.Spacing.m)
 
                             // Inline‑Search unter dem Titel
-                            SearchField(text: $searchText, placeholder: NSLocalizedString("search.placeholder", comment: ""))
-                                .padding(.top, AppTheme.Spacing.s)
+                            SearchField(
+                                text: $searchText,
+                                placeholder: NSLocalizedString("search.placeholder", comment: ""),
+                                suggestions: [],
+                                accessibilityHintKey: "search.generic.hint",
+                                onSubmit: {},
+                                onTapSuggestion: { q in searchText = q },
+                                accessibilityIdentifier: "homeSearch"
+                            )
+                            .padding(.top, AppTheme.Spacing.s)
                         }
                         .padding(.top, AppTheme.Spacing.m)
-                        .padding(.bottom, AppTheme.Spacing.m)
-                        .frame(minHeight: 210, alignment: .topLeading)
+                        .padding(.bottom, AppTheme.Spacing.s)
+                        .frame(minHeight: 0, alignment: .topLeading)
 
                         // Nicht-blockierendes Fehler-Feedback für Remote‑Teaser
                         if let msg = rvm.errorMessage, !msg.isEmpty {
@@ -127,20 +135,7 @@ struct HomeView: View {
                         ]
 
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.m) {
-                            Text("section.recommended")
-                                .font(.footnote)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(AppTheme.textSecondary(for: scheme))
-                                .textCase(.uppercase)
-
-                            Text("section.yourMentors")
-                                .font(.title3.weight(.semibold))
-                                .foregroundStyle(AppTheme.textPrimary(for: scheme))
-                                .textCase(.uppercase)
-                                .tracking(0.6)
-                                .accessibilityHeading(.h2)
-                                .accessibilityLabel("Deine Mentoren")
-                                .accessibilityIdentifier("homeMentorsSectionTitle")
+                            SectionHeader(title: "section.recommended")
 
                             if rvm.isLoading && rvm.remotePlaylists.isEmpty {
                                 HStack {
@@ -195,6 +190,8 @@ private extension Array where Element == PlaylistInfo {
 }
 
 #Preview {
-    HomeView()
-    HomeView().preferredColorScheme(.dark)
+    Group {
+        HomeView()
+        HomeView().preferredColorScheme(.dark)
+    }
 }

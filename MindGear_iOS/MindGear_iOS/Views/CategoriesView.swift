@@ -95,10 +95,4 @@ struct CategoriesView: View {
     }
 }
 
-// MARK: - Preview
-struct CategoriesView_Previews: PreviewProvider {
-    static var previews: some View {
-        CategoriesView()
-        CategoriesView().preferredColorScheme(.dark)
-    }
-}
+

@@ -9,6 +9,7 @@
 "tab.home" = "Home";
 "tab.mentors" = "Mentors";
 "tab.videos" = "Videos";
+"tab.categories" = "Categories";
 "tab.favorites" = "Favorites";
 "tab.more" = "More";
 
@@ -96,3 +97,18 @@
 
 /* Content Notices */
 "content.languageNotice" = "Content in English";
+
+
+/* Additional Navigation Titles */
+"categories.title" = "Categories";
+"playlists.title" = "Playlists";
+
+/* Search – generic & clear button */
+"search.generic.hint" = "Type to filter results.";
+"search.clear" = "Clear search";
+"search.clear.hint" = "Clears the current query.";
+
+/* Favorites – a11y for playlist toggle */
+"a11y.favorites.add.playlist" = "Add playlist to favorites";
+"a11y.favorites.remove.playlist" = "Remove playlist from favorites";
+"a11y.favorites.toggle.playlist" = "Toggle playlist favorite status.";

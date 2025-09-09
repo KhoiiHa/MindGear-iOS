@@ -112,11 +112,21 @@ struct HistoryView: View {
         .animation(.spring(response: 0.35, dampingFraction: 0.9), value: viewModel.errorMessage)
         .overlay {
             if viewModel.history.isEmpty {
-                ContentUnavailableView(
-                    "Noch kein Verlauf",
-                    systemImage: "clock.arrow.circlepath",
-                    description: Text("Gesehene Videos erscheinen hier.")
-                )
+                VStack(spacing: AppTheme.Spacing.m) {
+                    ContentUnavailableView(
+                        "Noch kein Verlauf",
+                        systemImage: "clock.arrow.circlepath",
+                        description: Text("Gesehene Videos erscheinen hier.")
+                    )
+                    NavigationLink {
+                        CategoriesView()
+                    } label: {
+                        Label("tab.categories", systemImage: "square.grid.2x2.fill")
+                            .labelStyle(.titleAndIcon)
+                    }
+                    .buttonStyle(PillButtonStyle())
+                    .accessibilityIdentifier("historyEmptyCTA")
+                }
                 .padding()
             }
         }

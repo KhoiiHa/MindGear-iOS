@@ -101,7 +101,8 @@ struct VideoDetailView: View {
                 Text(video.description)
                     .font(.body)
                     .lineSpacing(4)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxWidth: 640, alignment: .leading)
+                    .padding(.horizontal, AppTheme.Spacing.m)
                     .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                     .accessibilityIdentifier("videoDescription")
 
