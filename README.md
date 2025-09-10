@@ -48,14 +48,23 @@
 
 ---
 
-## 🖼️ **Screenshots (Platzhalter)**
+## 🖼️ **Screenshots**
 
-👉 Geplante Screenshots aus dem iOS-Simulator:  
-- HomeView  
-- VideoDetailView (mit Hinweis „Inhalt auf Englisch“)  
-- MentorsView  
+<p align="center">
+  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505241/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.44.35_ugmxun.png" alt="Onboarding" width="220" />
+  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505278/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.46.08_fsic9x.png" alt="Home – Empfohlene Playlists" width="220" />
+  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505291/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.46.24_ptjhih.png" alt="Kategorien-Übersicht" width="220" />
+</p>
 
-*(aktuell Platzhalter – Screens folgen in Kürze)*
+<p align="center">
+  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505331/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.47.12_q2zdkh.png" alt="Mentoren-Liste" width="220" />
+  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505364/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.47.26_ptjvdy.png" alt="Favoriten – leerer Zustand" width="220" />
+  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505388/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.47.41_i2ye10.png" alt="Favoriten – mit Inhalten" width="220" />
+</p>
+
+<p align="center">
+  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505409/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.48.33_j0afix.png" alt="Video-Detailansicht (Englischer Inhalt)" width="220" />
+</p>
 
 ---
 
