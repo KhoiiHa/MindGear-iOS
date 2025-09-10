@@ -40,27 +40,66 @@ class VideoViewModel: ObservableObject {
         s.folding(options: .diacriticInsensitive, locale: .current).lowercased()
     }
 
+    /// DE→EN Keyword-Mapping (klein & robust)
+    private let keywordMap: [String: [String]] = [
+        "disziplin": ["discipline","focus","attention","concentration"],
+        "fokus": ["focus","attention","concentration"],
+        "emotionale": ["emotional","emotion"],
+        "emotionale intelligenz": ["emotional intelligence","eq","empathy","self-awareness"],
+        "beziehungen": ["relationships","relationship","communication","partner","dating"],
+        "achtsamkeit": ["mindfulness","meditation","breathing","calm"],
+        "innere": ["inner","calm"],
+        "innere ruhe": ["inner peace","calm","stress"],
+        "motivation": ["motivation","drive","inspiration","energy"],
+        "energie": ["energy","vitality"],
+        "mindset": ["mindset","growth mindset","habits","beliefs"],
+    ]
+
+    /// Zerlegt einen Text in einfache, normalisierte Tokens (min. 2 Zeichen).
+    private func tokens(from text: String) -> [String] {
+        let n = norm(text)
+        return n.split { !$0.isLetter && !$0.isNumber && $0 != "'" }
+            .map { String($0) }
+            .filter { $0.count >= 2 }
+    }
+
+    /// Erweitert die Query um Synonyme/Alias-Tokens aus `keywordMap`.
+    private func expandedTokens(for text: String) -> [String] {
+        let base = tokens(from: text)
+        guard !base.isEmpty else { return [] }
+        var set = Set(base)
+        for t in base {
+            if let syns = keywordMap[t] {
+                for s in syns { set.insert(norm(s)) }
+            }
+        }
+        return Array(set)
+    }
+
     /// Wendet die Suche auf `videos` an und aktualisiert `filteredVideos`.
     /// Warum: Trennung von State‑Mutation und UI‑Events; optionaler Favorites‑Filter.
     private func applySearch() {
-        let q = norm(searchText.trimmingCharacters(in: .whitespacesAndNewlines))
+        let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let tokens = expandedTokens(for: q)
         let base = videos
-        let filteredByQuery: [Video]
-        if q.isEmpty {
-            filteredByQuery = base
-        } else {
-            filteredByQuery = base.filter { v in
-                let title = norm(v.title)
-                let desc  = norm(v.description)
-                let cat   = norm(v.category)
-                return title.contains(q) || desc.contains(q) || cat.contains(q)
-            }
+
+        // Keine Query → optional nur Favoriten filtern
+        if tokens.isEmpty {
+            filteredVideos = showFavoritesOnly ? base.filter { $0.isFavorite } : base
+            return
         }
-        if showFavoritesOnly {
-            filteredVideos = filteredByQuery.filter { $0.isFavorite }
-        } else {
-            filteredVideos = filteredByQuery
+
+        func haystack(for v: Video) -> String {
+            // Titel + Beschreibung + Kategorie, alles normalisiert
+            return norm(v.title) + " " + norm(v.description) + " " + norm(v.category)
         }
+
+        let filteredByQuery: [Video] = base.filter { v in
+            let h = haystack(for: v)
+            return tokens.contains { h.contains($0) }
+        }
+
+        filteredVideos = showFavoritesOnly ? filteredByQuery.filter { $0.isFavorite } : filteredByQuery
     }
 
     /// Leitet Playlist‑Metadaten defensiv aus vorhandenen Videos ab.

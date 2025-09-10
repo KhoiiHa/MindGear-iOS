@@ -79,7 +79,7 @@ struct VideoListView: View {
                 set: { viewModel.updateSearch(text: $0) }
             ),
             placeholder: NSLocalizedString("search.inPlaylist", comment: ""),
-            suggestions: exploreChips,
+            suggestions: [],
             accessibilityHintKey: "search.inPlaylist.hint",
             onSubmit: { viewModel.commitSearchTerm() },
             onTapSuggestion: { q in
@@ -140,6 +140,24 @@ struct VideoListView: View {
             VStack(spacing: 0) {
                 // 🔎 Sichtbares Suchfeld für UI-Tests (playlistSearchField)
                 headerSearch
+                // 🔹 Schnellzugriff: Kategorie‑Chips (nutzen das Mapping im ViewModel)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: AppTheme.Spacing.s) {
+                        ForEach(exploreChips, id: \.self) { chip in
+                            ChipView(
+                                title: chip,
+                                isSelected: viewModel.searchText.localizedCaseInsensitiveContains(chip),
+                                colorScheme: colorScheme
+                            ) {
+                                viewModel.updateSearch(text: chip)
+                                viewModel.commitSearchTerm()
+                            }
+                        }
+                    }
+                    .padding(.horizontal, AppTheme.Spacing.m)
+                    .padding(.vertical, AppTheme.Spacing.s)
+                }
+                .accessibilityIdentifier("exploreChips")
                 // 🔔 Einheitlicher Fehlerbanner (nicht-blockierend)
                 if let msg = viewModel.errorMessage, !msg.isEmpty {
                     ErrorBanner(message: msg) {
@@ -191,11 +209,20 @@ struct VideoListView: View {
             }
             .overlay {
                 if !viewModel.searchText.isEmpty && viewModel.filteredVideos.isEmpty {
-                    ContentUnavailableView(
-                        NSLocalizedString("search.noResults", comment: ""),
-                        systemImage: "magnifyingglass",
-                        description: Text(NSLocalizedString("search.noResults.hint", comment: ""))
-                    )
+                    VStack(spacing: AppTheme.Spacing.m) {
+                        ContentUnavailableView(
+                            NSLocalizedString("search.noResults", comment: ""),
+                            systemImage: "magnifyingglass",
+                            description: Text(NSLocalizedString("search.noResults.hint", comment: ""))
+                        )
+                        Button(NSLocalizedString("search.reset", comment: "Suche zurücksetzen")) {
+                            viewModel.updateSearch(text: "")
+                            viewModel.commitSearchTerm()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .accessibilityIdentifier("resetSearchButton")
+                    }
+                    .padding()
                 }
             }
             .overlay {
