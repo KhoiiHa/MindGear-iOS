@@ -21,7 +21,7 @@ final class MentorSearchTests: XCTestCase {
     // Hilfs-Fabrik, damit wir die echten, vollständigen Initializer der App treffen.
     // Passe die Felder an dein Modell an (z. B. falls `imageURL`, `bio` etc. Pflicht sind).
     private func makeMentor(_ name: String) -> Mentor {
-        // TODO: Felder ggf. anpassen – wichtig ist, dass alle required-Parameter gesetzt sind.
+        // Platzhalter: Zusätzliche Modellfelder bei Bedarf ergänzen.
         return Mentor(
             id: "id-\(name.lowercased())",
             name: name,

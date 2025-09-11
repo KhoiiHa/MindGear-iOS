@@ -8,8 +8,10 @@
 import SwiftUI
 
 /// Einheitlicher Abschnitts-Header für Listen/Grids.
-/// Unterstützt Titel, optionalen Untertitel und optionalen Trailing-Action („Alle anzeigen“).
+/// Warum: Konsistente Optik & stabile UI-Tests.
+/// Parameterreihenfolge: Titel zuerst, optionale Action zuletzt – klare Call-Sites.
 struct SectionHeader: View {
+    // MARK: - Properties
     let title: LocalizedStringKey
     var subtitle: LocalizedStringKey? = nil
     var showAction: Bool = false
@@ -19,6 +21,7 @@ struct SectionHeader: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.sizeCategory) private var sizeCategory
 
+    // MARK: - Body
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             VStack(alignment: .leading, spacing: 2) {

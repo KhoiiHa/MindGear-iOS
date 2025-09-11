@@ -19,6 +19,7 @@ import SwiftData
 // MARK: - VideoDetailView
 // Warum: Präsentiert Video‑Details; WebView‑Einbettung ist gekapselt.
 struct VideoDetailView: View {
+    // MARK: - Properties
     let video: Video
     @State private var isFavorite: Bool
     @StateObject private var favoritesViewModel: FavoritenViewModel
@@ -27,12 +28,14 @@ struct VideoDetailView: View {
     @State private var loadError = false
     @Environment(\.colorScheme) private var colorScheme
 
+    // MARK: - Init
     init(video: Video, context: ModelContext) {
         self.video = video
         self._isFavorite = State(initialValue: video.isFavorite)
         _favoritesViewModel = StateObject(wrappedValue: FavoritenViewModel(context: context))
     }
 
+    // MARK: - Helpers
     /// Normalisiert unterschiedliche Eingaben (ID, watch‑URL, youtu.be, /embed) zu einer privacy‑freundlichen Embed‑URL.
     /// Warum: youtube‑nocookie.com verringert Tracking; `playsinline` & `modestbranding` verbessern UX.
     private func makeYouTubeEmbedURL(from raw: String) -> URL? {
@@ -69,6 +72,8 @@ struct VideoDetailView: View {
     }
 
     // MARK: - Body
+    /// Zeigt WebView oder ruhigen Fallback (ContentUnavailableView) bei Laufzeitfehlern.
+    /// Entscheidung: Fallback statt Alert – weniger Unterbrechung; Retry/YouTube als Optionen.
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.m) {
@@ -80,38 +85,38 @@ struct VideoDetailView: View {
                             RoundedRectangle(cornerRadius: AppTheme.Radius.m, style: .continuous)
                                 .stroke(AppTheme.Colors.cardStroke(for: colorScheme), lineWidth: 1)
                         )
-                        .accessibilityIdentifier("videoWebView")
+                        .accessibilityIdentifier("videoWebView") // UI-Test Hook
                         .accessibilityHidden(true)
                 } else if loadError {
                     ContentUnavailableView(
-                        "Video nicht verfügbar",
+                        LocalizedStringKey("video.unavailable.title"),
                         systemImage: "exclamationmark.triangle",
-                        description: Text("Dieses Video kann nicht geladen werden. Es könnte privat, blockiert oder entfernt sein.")
+                        description: Text(LocalizedStringKey("video.unavailable.description"))
                     )
                     .frame(maxWidth: .infinity)
                     .padding()
                     .overlay(
                         VStack(spacing: AppTheme.Spacing.s) {
-                            Button("Erneut versuchen") {
+                            Button(LocalizedStringKey("action.retry")) {
                                 if let embedURL = makeYouTubeEmbedURL(from: video.videoURL) {
                                     loadError = false
                                     NotificationCenter.default.post(name: .reloadVideoWebView, object: embedURL)
                                 }
                             }
                             .buttonStyle(.borderedProminent)
-                            .accessibilityIdentifier("retryButton")
+                            .accessibilityIdentifier("retryButton") // UI-Test Hook
 
-                            Button("Auf YouTube öffnen") {
+                            Button(LocalizedStringKey("action.openInYouTube")) {
                                 if let url = URL(string: video.videoURL) {
                                     UIApplication.shared.open(url)
                                 }
                             }
                             .buttonStyle(.bordered)
-                            .accessibilityIdentifier("openInYouTubeButton")
+                            .accessibilityIdentifier("openInYouTubeButton") // UI-Test Hook
                         }
                     )
                 } else {
-                    Text("Ungültige Video-URL")
+                    Text(LocalizedStringKey("error.invalidVideoURL"))
                         .foregroundStyle(AppTheme.Colors.accent)
                         .frame(maxWidth: .infinity)
                 }
@@ -123,7 +128,7 @@ struct VideoDetailView: View {
                     .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
                     .lineLimit(3)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityIdentifier("videoTitle")
+                    .accessibilityIdentifier("videoTitle") // UI-Test Hook
 
                 // Description
                 Text(video.description)
@@ -132,24 +137,24 @@ struct VideoDetailView: View {
                     .frame(maxWidth: 640, alignment: .leading)
                     .padding(.horizontal, AppTheme.Spacing.m)
                     .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
-                    .accessibilityIdentifier("videoDescription")
+                    .accessibilityIdentifier("videoDescription") // UI-Test Hook
 
                 // Language notice
                 Text("content.languageNotice")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .padding(.top, 4)
-                    .accessibilityIdentifier("videoLanguageNotice")
+                    .accessibilityIdentifier("videoLanguageNotice") // UI-Test Hook
 
                 Button(action: {
                     if let url = URL(string: video.videoURL) {
                         UIApplication.shared.open(url)
                     }
                 }) {
-                    Label("Im Browser öffnen", systemImage: "safari")
+                    Label(LocalizedStringKey("action.openInBrowser"), systemImage: "safari")
                 }
                 .buttonStyle(PillButtonStyle())
-                .accessibilityIdentifier("detailOpenInBrowserButton")
+                .accessibilityIdentifier("detailOpenInBrowserButton") // UI-Test Hook
 
                 Spacer()
             }
@@ -158,7 +163,7 @@ struct VideoDetailView: View {
         }
         .scrollIndicators(.hidden)
         .background(AppTheme.listBackground(for: colorScheme).ignoresSafeArea())
-        .navigationTitle("Details")
+        .navigationTitle(LocalizedStringKey("details.title"))
         .toolbarTitleDisplayMode(.inline)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbar {
@@ -174,9 +179,9 @@ struct VideoDetailView: View {
                         .foregroundStyle(isFavorite ? AppTheme.Colors.accent : AppTheme.Colors.iconSecondary)
                         .symbolEffect(.bounce, value: isFavorite)
                 }
-                .accessibilityIdentifier("favoriteButton")
-                .accessibilityLabel(isFavorite ? "Aus Favoriten entfernen" : "Zu Favoriten hinzufügen")
-                .accessibilityHint("Favorit umschalten")
+                .accessibilityIdentifier("favoriteButton") // UI-Test Hook
+                .accessibilityLabel(isFavorite ? NSLocalizedString("a11y.favorites.remove.video", comment: "") : NSLocalizedString("a11y.favorites.add.video", comment: ""))
+                .accessibilityHint(NSLocalizedString("a11y.favorites.toggle.video", comment: ""))
                 .accessibilityAddTraits(.isButton)
                 .contentShape(Rectangle())
             }
@@ -280,13 +285,17 @@ struct VideoWebView: UIViewRepresentable {
 
         /// Mappt Ladefehler nach `loadFailed` → UI zeigt Alert
         func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            #if DEBUG
             print("❌ WKWebView Fehler:", error.localizedDescription)
+            #endif
             parent.loadFailed = true
         }
 
         /// Mappt Ladefehler nach `loadFailed` → UI zeigt Alert
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            #if DEBUG
             print("❌ WKWebView Fehler:", error.localizedDescription)
+            #endif
             parent.loadFailed = true
         }
     }

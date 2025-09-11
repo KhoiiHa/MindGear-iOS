@@ -14,10 +14,12 @@ import SwiftUI
 // Kurzzusammenfassung: Eingabefeld mit Lupe, Clear‑Button & optionalen horizontalen Vorschlägen.
 
 // MARK: - SearchField
-// Warum: Präsentiert Suchfeld kompakt; Vorschläge & Debounce laufen klar getrennt im ViewModel.
+// Warum: Einheitlicher Such-UI-Baustein; Tests greifen stabil über IDs zu.
 struct SearchField: View {
+    // MARK: - Properties
     // Gebundener Suchtext (Debounce im ViewModel via updateSearch(text:))
     @Binding var text: String
+    // Parameterreihenfolge: Textbindung zuerst, optionale Extras hinten – klare Call-Sites
     var placeholder: String = NSLocalizedString("search.title", comment: "")
     // Optionale Vorschläge (z. B. Verlauf oder Auto‑Suggest)
     var suggestions: [String] = []
@@ -30,6 +32,7 @@ struct SearchField: View {
     var accessibilityIdentifier: String? = nil
     @Environment(\.colorScheme) private var colorScheme
 
+    // MARK: - Body
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.s) {
             // Eingabefeld inkl. Lupe, Text, Clear‑Button
