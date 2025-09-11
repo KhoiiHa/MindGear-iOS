@@ -48,6 +48,19 @@
 
 ---
 
+## ❓ **Warum MindGear?**
+
+Die Idee für **MindGear** entstand aus meiner eigenen Auseinandersetzung mit mentaler Gesundheit und Persönlichkeitsentwicklung.  
+Ich wollte eine App schaffen, die:
+
+- Inhalte von internationalen Mentoren und Denkern **kuratieren** und leicht zugänglich machen.  
+- Männern (und allen Interessierten) eine **strukturierte Plattform** für Selbstreflexion und Inspiration bietet.  
+- Mir als Entwickler die Chance gab, **YouTube-API, SwiftData-Persistenz und modernes iOS-Design** (Dark Mode, AppTheme, Komponenten) **praxisnah zu erlernen**.
+
+> Dieses Projekt ist eine Kombination aus **persönlicher Motivation** und **technischem Lernziel** – eine App, die ich selbst gerne nutze und die gleichzeitig mein Können als Mobile Developer zeigt.
+
+---
+
 ## 🖼️ **Screenshots**
 
 <p align="center">
