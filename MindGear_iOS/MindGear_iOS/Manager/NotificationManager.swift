@@ -54,6 +54,6 @@ final class NotificationManager {
     /// Plant eine tägliche Erinnerung (Platzhalter, ausbaubar).
     /// Warum: Zeigt, wie Scheduling funktioniert; vorbereitet für echte Reminder‑Features.
     func scheduleDailyReminder() {
-        // TODO: Autorisierung anfragen, Content/Trigger definieren und Request hinzufügen.
+        // Offene Aufgabe: Autorisierung, Content & Trigger ergänzen, Request planen.
     }
 }

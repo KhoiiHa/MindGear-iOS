@@ -616,11 +616,14 @@ final class APIService: APIServiceProtocol {
         throw AppError.noData
     }
 
-    /// Lädt Details für bis zu 50 Video-IDs (status, contentDetails, optional snippet).
-    /// Aufrufer kann damit `privacyStatus`, `embeddable` und `uploadStatus` prüfen.
+    // MARK: - Public API
+    /// Ruft `videos.list (status, contentDetails, snippet)` ab, um Einbettbarkeit/Privatsphäre zu prüfen.
+    /// Hintergrund: YouTube-Inhalte ändern sich (privat/entfernt) – früh filtern, nicht im UI scheitern.
     func fetchVideoDetails(ids: [String], apiKey: String) async throws -> YouTubeVideosListResponse {
         guard isValidApiKey(apiKey) else {
+            #if DEBUG
             print("⚠️ [APIService] Kein gültiger YouTube API Key – überspringe Request (fetchVideoDetails).")
+            #endif
             throw AppError.apiKeyMissing
         }
         let chunk = ids.prefix(50) // YouTube API: max 50 IDs pro Request

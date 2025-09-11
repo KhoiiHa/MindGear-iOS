@@ -16,6 +16,7 @@ import SwiftUI
 // MARK: - SettingsView
 // Warum: Präsentiert App-Einstellungen; ViewModel kapselt Persistenz & System-Abfragen.
 struct SettingsView: View {
+    // MARK: - Properties
     @StateObject private var viewModel = SettingsViewModel()
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
@@ -40,7 +41,7 @@ struct SettingsView: View {
                             .textInputAutocapitalization(.words)
                             .font(.body)
                             .tint(AppTheme.Colors.primary)
-                            .accessibilityIdentifier("settings.username")
+                            .accessibilityIdentifier("settings.username") // UI-Test Hook
                     }
                 } header: {
                     SectionHeader(title: "settings.section.profile")
@@ -70,7 +71,7 @@ struct SettingsView: View {
                         viewModel.toggleNotifications()
                     }
                     // UI-Tests: stabiler Zugriff auf den Toggle
-                    .accessibilityIdentifier("notificationsToggle")
+                    .accessibilityIdentifier("notificationsToggle") // UI-Test Hook
                     .accessibilityHint(NSLocalizedString("a11y.notifications.toggle.hint", comment: ""))
                 } header: {
                     SectionHeader(title: "settings.section.notifications")
@@ -116,15 +117,16 @@ struct SettingsView: View {
                         Text("\(Bundle.main.appVersion) (\(Bundle.main.appBuild))")
                             .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
                             .monospacedDigit()
-                            .accessibilityIdentifier("settings.version.label")
+                            .accessibilityIdentifier("settings.version.label") // UI-Test Hook
                     }
+                    // Warum: Version & Build zeigen Release-Reife transparent
                 } header: {
                     SectionHeader(title: "settings.section.about")
                 }
                 .listRowBackground(AppTheme.Colors.surface)
 
                 Section {
-                    // Demo-Action: Onboarding-Flag zurücksetzen (zeigt Sequenz beim nächsten Start)
+                    // Demo/Test-Shortcut: Onboarding neu triggern
                     Button(role: .destructive) {
                         showResetAlert = true
                     } label: {
@@ -142,7 +144,7 @@ struct SettingsView: View {
                                 .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
                         }
                     }
-                    .accessibilityIdentifier("resetOnboardingButton")
+                    .accessibilityIdentifier("resetOnboardingButton") // UI-Test Hook
                     .alert(NSLocalizedString("settings.onboarding.reset.alert.title", comment: ""), isPresented: $showResetAlert) {
                         Button(NSLocalizedString("action.cancel", comment: ""), role: .cancel) {}
                         Button(NSLocalizedString("settings.onboarding.reset.alert.confirm", comment: ""), role: .destructive) {
@@ -161,7 +163,7 @@ struct SettingsView: View {
             .scrollIndicators(.hidden)
             .background(AppTheme.listBackground(for: colorScheme))
             .tint(AppTheme.Colors.primary)
-            .navigationTitle(LocalizedStringKey("settings.title"))
+            .navigationTitle(LocalizedStringKey("settings.title")) // i18n: settings.title
             .accessibilityIdentifier("settingsScreen")
             .toolbarBackground(.visible, for: .navigationBar)
             // Lifecycle: Beim Öffnen einmalig den echten System-Status der Notifications spiegeln

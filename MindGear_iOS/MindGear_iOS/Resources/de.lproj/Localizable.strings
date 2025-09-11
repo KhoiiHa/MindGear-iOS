@@ -116,3 +116,14 @@
 "a11y.favorites.add.playlist" = "Playlist zu Favoriten hinzufügen";
 "a11y.favorites.remove.playlist" = "Playlist aus Favoriten entfernen";
 "a11y.favorites.toggle.playlist" = "Favoritenstatus der Playlist umschalten.";
+
+"video.unavailable.title" = "Video nicht verfügbar";
+"video.unavailable.description" = "Dieses Video kann nicht geladen werden. Es könnte privat, blockiert oder entfernt sein.";
+"action.retry" = "Erneut versuchen";
+"action.openInYouTube" = "Auf YouTube öffnen";
+"error.invalidVideoURL" = "Ungültige Video-URL";
+"action.openInBrowser" = "Im Browser öffnen";
+"details.title" = "Details";
+"a11y.favorites.add.video" = "Video zu Favoriten hinzufügen";
+"a11y.favorites.remove.video" = "Video aus Favoriten entfernen";
+"a11y.favorites.toggle.video" = "Favoritenstatus des Videos umschalten.";

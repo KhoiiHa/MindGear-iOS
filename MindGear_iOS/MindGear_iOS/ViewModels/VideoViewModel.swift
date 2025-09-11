@@ -25,7 +25,7 @@ extension APIServiceProtocol {
 // Warum: Zentralisiert Playlist‑Video‑State; entlastet Views und hält UI konsistent.
 @MainActor
 class VideoViewModel: ObservableObject {
-    // MARK: - State
+    // MARK: - Properties
     // Session‑Guard: Welche Playlists wurden in dieser App‑Session schon initial geladen?
     private static var loadedOnce = Set<String>()
     // UI‑Daten & Fehlerstatus
@@ -129,19 +129,6 @@ class VideoViewModel: ObservableObject {
 
     private var searchWorkItem: DispatchWorkItem?
 
-    /// Debounce für die Suche (~250 ms), aus Views via `.onChange(of:)` oder Button‑Tap aufrufbar.
-    /// Warum: Verhindert teure Filterung bei schnellem Tippen; Suggestions werden konsistent aktualisiert.
-    func updateSearch(text: String) {
-        searchText = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        searchWorkItem?.cancel()
-        let task = DispatchWorkItem { [weak self] in
-            guard let self = self else { return }
-            self.applySearch()
-            self.suggestions = Self.makeSuggestions(from: self.filteredVideos, query: self.searchText)
-        }
-        searchWorkItem = task
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: task)
-    }
     @Published var offlineMessage: String? = nil
 
     // Pagination-Status
@@ -157,12 +144,29 @@ class VideoViewModel: ObservableObject {
     private let apiService: APIServiceProtocol
     private var context: ModelContext
 
+    // MARK: - Init
     init(playlistId: String, apiService: APIServiceProtocol = APIService.shared, context: ModelContext) {
         self.playlistId = playlistId
         self.apiService = apiService
         self.context = context
         self.loadSearchHistory()
     }
+    
+    // MARK: - Public API
+    /// Debounce für die Suche (~250 ms), aus Views via `.onChange(of:)` oder Button‑Tap aufrufbar.
+    /// Warum: Verhindert teure Filterung bei schnellem Tippen; Suggestions werden konsistent aktualisiert.
+    func updateSearch(text: String) {
+        searchText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        searchWorkItem?.cancel()
+        let task = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            self.applySearch()
+            self.suggestions = Self.makeSuggestions(from: self.filteredVideos, query: self.searchText)
+        }
+        searchWorkItem = task
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: task)
+    }
+    // MARK: - Helpers
     /// Erzeugt Vorschlagstitel (max. `max`), priorisiert Präfix‑Treffer, diakritik‑insensitiv.
     /// Warum: Bessere UX bei der Suche; dedupliziert stabil.
     static func makeSuggestions(from videos: [Video], query: String, max: Int = 6) -> [String] {
@@ -226,7 +230,9 @@ class VideoViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Internal
     /// Prüft Video-IDs via YouTube `videos.list` und liefert Set aller spielbaren IDs.
+    /// Warum: YouTube-Videos ändern Status – früh filtern statt im UI scheitern.
     private func fetchPlayableIDs(for ids: [String]) async -> Set<String> {
         let ids = Array(Set(ids)).filter { !$0.isEmpty }
         guard !ids.isEmpty, ConfigManager.isValid(apiKey) else { return Set(ids) }
@@ -246,7 +252,8 @@ class VideoViewModel: ObservableObject {
         }
     }
 
-    /// Filtert eine Videoliste auf spielbare Einträge (nutzt Cache + API-Check bei Bedarf)
+    /// Filtert auf „spielbar“ (public, embeddable, processed).
+    /// Fail-open: Bei API-Fehlern blocken wir nicht – UX bleibt stabil.
     private func filterPlayable(_ list: [Video]) async -> [Video] {
         if list.isEmpty { return list }
         // Erst Cache prüfen
@@ -267,10 +274,14 @@ class VideoViewModel: ObservableObject {
         nextPageToken = nil
         hasMore = true
         loadMoreError = nil
+        #if DEBUG
         print("📡 loadVideos start for playlist", playlistId)
+        #endif
         // Session‑Guard: Initial‑Load pro Playlist nur einmal (sofern nicht erzwungen)
         if !forceReload, Self.loadedOnce.contains(playlistId), !videos.isEmpty {
+            #if DEBUG
             print("🧠 Session-Guard: Initial-Load für \(playlistId) übersprungen (bereits geladen in dieser Session)")
+            #endif
             return
         }
         do {
@@ -287,11 +298,15 @@ class VideoViewModel: ObservableObject {
                     updatePlaylistMetaFromVideosIfNeeded()
                     Self.loadedOnce.insert(self.playlistId)
                     applySearch()
+                    #if DEBUG
                     print("✅ Remote JSON ok · items:\(playable.count) (gefiltert auf spielbar)")
+                    #endif
                     return
                 }
             } catch {
+                #if DEBUG
                 print("ℹ️ Remote JSON nicht verfügbar → Fallback API: \(error.localizedDescription)")
+                #endif
             }
 
             // Fallback: Direkter API‑Pfad (PlaylistItems)
@@ -299,7 +314,9 @@ class VideoViewModel: ObservableObject {
             let items = response.items
             self.nextPageToken = response.nextPageToken
             self.hasMore = (response.nextPageToken != nil) && !items.isEmpty
+            #if DEBUG
             print("✅ API ok · items:\(items.count) · nextToken:\(self.nextPageToken ?? "nil")")
+            #endif
             let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
             let mapped: [Video] = items.compactMap { item -> Video? in
                 guard
@@ -330,7 +347,9 @@ class VideoViewModel: ObservableObject {
         } catch let error as AppError {
             switch error {
             case .networkError, .timeout:
+                #if DEBUG
                 if let underlying = error.errorDescription { print("Network error:", underlying) }
+                #endif
                 let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
                 if favorites.isEmpty {
                     errorMessage = AppErrorPresenter.message(for: error)
@@ -438,7 +457,9 @@ class VideoViewModel: ObservableObject {
         } catch {
             // Weich fallen: Fehler mappen, dezente UI-Meldung, kein harter Abbruch
             let appErr = AppError.from(error)
+            #if DEBUG
             print("Mehr laden fehlgeschlagen:", appErr.localizedDescription)
+            #endif
             if offlineMessage == nil, let hint = AppErrorPresenter.hint(for: appErr) {
                 offlineMessage = hint
             }
