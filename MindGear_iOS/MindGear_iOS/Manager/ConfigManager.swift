@@ -147,6 +147,48 @@ struct ConfigManager {
         return arr
     }
 
+    // MARK: - Validation (YouTube URLs)
+
+    /// Grobe Validierung für YouTube-/youtu.be-Links (zur Fallback-Entscheidung).
+    /// - Akzeptiert: https://youtube.com, https://www.youtube.com, https://m.youtube.com, https://youtu.be
+    /// - Prüft rudimentär auf /watch?v=... oder youtu.be/<id>.
+    /// Hinweis: Keine Netzwerkprüfung – reine String/URL-Validierung.
+    static func isValid(_ urlString: String?) -> Bool {
+        guard let raw = urlString?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !raw.isEmpty,
+              let url = URL(string: raw),
+              let host = url.host?.lowercased() else {
+            return false
+        }
+
+        let allowedHosts: Set<String> = ["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"]
+
+        guard allowedHosts.contains(host) else { return false }
+
+        // youtu.be/<id>
+        if host == "youtu.be" {
+            // /<id> = 2 Komponenten, wobei die 2. nicht leer sein darf
+            let comps = url.pathComponents
+            return comps.count >= 2 && !comps[1].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+
+        // youtube.com/watch?v=...
+        if url.path.lowercased() == "/watch" {
+            let q = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems
+            let id = q?.first(where: { $0.name == "v" })?.value ?? ""
+            return !id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+
+        // Andere gültige Pfade (z. B. /shorts/<id>) grob zulassen:
+        if url.path.lowercased().hasPrefix("/shorts/") {
+            let comps = url.pathComponents
+            return comps.count >= 3 && !comps[2].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+
+        // Fallback: Host passt, Pfad leer – akzeptieren.
+        return true
+    }
+
     // MARK: - Helpers
     /// Liefert den Wert aus Config.plist, falls vorhanden; sonst `nil`.
     /// Warum: Für optionale Konfigurationswerte (nicht kritisch für den App‑Start).

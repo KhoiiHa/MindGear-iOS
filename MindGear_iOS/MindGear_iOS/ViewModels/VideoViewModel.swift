@@ -11,6 +11,14 @@
 //
 import Foundation
 import SwiftData
+
+// Bridge: ermöglicht `fetchVideoDetails` auch auf dem Protokolltyp
+extension APIServiceProtocol {
+    /// Bridge: ermöglicht `fetchVideoDetails` auch auf dem Protokolltyp
+    func fetchVideoDetails(ids: [String], apiKey: String) async throws -> YouTubeVideosListResponse {
+        try await APIService.shared.fetchVideoDetails(ids: ids, apiKey: apiKey)
+    }
+}
 // Kurzzusammenfassung: Erst Remote‑Cache, dann API; Suche mit Debounce; Favorites‑Sync; Paging mit Duplikat‑Schutz.
 
 // MARK: - Implementierung: VideoViewModel
@@ -33,6 +41,9 @@ class VideoViewModel: ObservableObject {
     @Published var playlistTitle: String = ""
     @Published var playlistThumbnailURL: String = ""
     private var searchTask: Task<Void, Never>? = nil
+
+    // Cache für Spielbarkeits-Prüfungen (VideoID → spielbar?)
+    private var playableCache: [String: Bool] = [:]
 
     /// Normalisiert Strings (diakritik‑insensitiv, case‑folded) für robuste Suche.
     /// Warum: Einheitliche Treffer auch bei ä/ö/ü und unterschiedlicher Groß‑/Kleinschreibung.
@@ -215,6 +226,38 @@ class VideoViewModel: ObservableObject {
         }
     }
 
+    /// Prüft Video-IDs via YouTube `videos.list` und liefert Set aller spielbaren IDs.
+    private func fetchPlayableIDs(for ids: [String]) async -> Set<String> {
+        let ids = Array(Set(ids)).filter { !$0.isEmpty }
+        guard !ids.isEmpty, ConfigManager.isValid(apiKey) else { return Set(ids) }
+        do {
+            let response = try await apiService.fetchVideoDetails(ids: ids, apiKey: apiKey)
+            let allowed: Set<String> = Set(response.items.compactMap { item in
+                let status = item.status
+                let isPublic = (status?.privacyStatus ?? "public") == "public"
+                let emb = (status?.embeddable ?? true) == true
+                let processed = (status?.uploadStatus ?? "processed") == "processed"
+                return (isPublic && emb && processed) ? item.id : nil
+            })
+            return allowed
+        } catch {
+            // Bei Fehler: Fail-open (nicht blockieren)
+            return Set(ids)
+        }
+    }
+
+    /// Filtert eine Videoliste auf spielbare Einträge (nutzt Cache + API-Check bei Bedarf)
+    private func filterPlayable(_ list: [Video]) async -> [Video] {
+        if list.isEmpty { return list }
+        // Erst Cache prüfen
+        let unknown = list.map { $0.videoURL }.filter { playableCache[$0] == nil }
+        if !unknown.isEmpty {
+            let allowed = await fetchPlayableIDs(for: unknown)
+            for id in unknown { playableCache[id] = allowed.contains(id) }
+        }
+        return list.filter { playableCache[$0.videoURL] ?? true }
+    }
+
     /// Lädt Videos für die Playlist (Remote‑Cache → API‑Fallback) und aktualisiert State.
     /// Warum: Schneller perceived Load über Remote; robuste Fehlerpfade inkl. Offline‑Favoriten.
     func loadVideos(forceReload: Bool = false) async {
@@ -236,14 +279,15 @@ class VideoViewModel: ObservableObject {
                 let remote = try await RemoteCacheService.loadVideos(playlistId: playlistId)
                 let mapped = mapFromRemote(remote)
                 if !mapped.isEmpty {
-                    self.videos = mapped
+                    let playable = await filterPlayable(mapped)
+                    self.videos = playable
                     // Remote enthält bereits die komplette Liste -> keine Pagination
                     self.nextPageToken = nil
                     self.hasMore = false
                     updatePlaylistMetaFromVideosIfNeeded()
                     Self.loadedOnce.insert(self.playlistId)
                     applySearch()
-                    print("✅ Remote JSON ok · items:\(mapped.count)")
+                    print("✅ Remote JSON ok · items:\(playable.count) (gefiltert auf spielbar)")
                     return
                 }
             } catch {
@@ -257,15 +301,13 @@ class VideoViewModel: ObservableObject {
             self.hasMore = (response.nextPageToken != nil) && !items.isEmpty
             print("✅ API ok · items:\(items.count) · nextToken:\(self.nextPageToken ?? "nil")")
             let favorites = FavoritesManager.shared.getAllVideoFavorites(context: context)
-            self.videos = items.compactMap { item -> Video? in
+            let mapped: [Video] = items.compactMap { item -> Video? in
                 guard
                     let snippet = item.snippet,
                     let videoId = snippet.resourceId?.videoId,
                     let title = snippet.title,
                     let description = snippet.description
-                else {
-                    return nil
-                }
+                else { return nil }
                 let cleanID = Video.extractVideoID(from: videoId)
                 let url = cleanID
                 let thumbnailURL = makeThumbnailURL(from: snippet.thumbnails, videoID: cleanID)
@@ -277,11 +319,11 @@ class VideoViewModel: ObservableObject {
                     videoURL: url,
                     category: "YouTube"
                 )
-                if favorites.contains(where: { $0.videoURL == url }) {
-                    video.isFavorite = true
-                }
+                if favorites.contains(where: { $0.videoURL == url }) { video.isFavorite = true }
                 return video
             }
+            let playable = await filterPlayable(mapped)
+            self.videos = playable
             updatePlaylistMetaFromVideosIfNeeded()
             Self.loadedOnce.insert(self.playlistId)
             applySearch()
@@ -383,7 +425,8 @@ class VideoViewModel: ObservableObject {
             // Duplikate vermeiden: existierende Video-URLs sammeln und nur neue anhängen
             let existingURLs = Set(self.videos.map { $0.videoURL })
             let uniqueNewVideos = newVideos.filter { !existingURLs.contains($0.videoURL) }
-            self.videos.append(contentsOf: uniqueNewVideos)
+            let playable = await filterPlayable(uniqueNewVideos)
+            self.videos.append(contentsOf: playable)
             // Falls noch keine Metadaten gesetzt sind, jetzt aus vorhandenen Videos ableiten
             if playlistTitle.isEmpty || playlistThumbnailURL.isEmpty {
                 updatePlaylistMetaFromVideosIfNeeded()

@@ -20,7 +20,6 @@ struct SettingsView: View {
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
     @State private var showResetAlert = false
-    @Environment(\.colorScheme) private var scheme
 
     // MARK: - Body
     var body: some View {
@@ -41,6 +40,7 @@ struct SettingsView: View {
                             .textInputAutocapitalization(.words)
                             .font(.body)
                             .tint(AppTheme.Colors.primary)
+                            .accessibilityIdentifier("settings.username")
                     }
                 } header: {
                     SectionHeader(title: "settings.section.profile")
@@ -60,7 +60,7 @@ struct SettingsView: View {
                             }
                             Text(NSLocalizedString("settings.notifications.enable", comment: ""))
                                 .font(.body)
-                                .foregroundStyle(AppTheme.textPrimary(for: scheme))
+                                .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
                         }
                     }
                     .tint(AppTheme.Colors.primary)
@@ -81,7 +81,7 @@ struct SettingsView: View {
                     // Warum: Verlauf als eigener Screen – Verantwortlichkeiten trennen
                     NavigationLink {
                         HistoryView()
-                            .navigationTitle("history.title")
+                            .navigationTitle(LocalizedStringKey("history.title"))
                     } label: {
                         HStack(spacing: 12) {
                             ZStack {
@@ -94,15 +94,32 @@ struct SettingsView: View {
                             }
                             Text(NSLocalizedString("history.title", comment: ""))
                                 .font(.body)
-                                .foregroundStyle(AppTheme.textPrimary(for: scheme))
+                                .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(AppTheme.textSecondary(for: scheme).opacity(0.6))
+                                .foregroundStyle(AppTheme.textSecondary(for: colorScheme).opacity(0.6))
                         }
                     }
                 } header: {
-                    SectionHeader(title: "history.title")
+                    SectionHeader(title: "settings.section.history")
+                }
+                .listRowBackground(AppTheme.Colors.surface)
+
+                // MARK: - Info
+                Section {
+                    HStack {
+                        Text(NSLocalizedString("settings.about.version", comment: ""))
+                            .font(.body)
+                            .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
+                        Spacer()
+                        Text("\(Bundle.main.appVersion) (\(Bundle.main.appBuild))")
+                            .foregroundStyle(AppTheme.textSecondary(for: colorScheme))
+                            .monospacedDigit()
+                            .accessibilityIdentifier("settings.version.label")
+                    }
+                } header: {
+                    SectionHeader(title: "settings.section.about")
                 }
                 .listRowBackground(AppTheme.Colors.surface)
 
@@ -122,7 +139,7 @@ struct SettingsView: View {
                             }
                             Text(NSLocalizedString("settings.onboarding.reset", comment: ""))
                                 .font(.body)
-                                .foregroundStyle(AppTheme.textPrimary(for: scheme))
+                                .foregroundStyle(AppTheme.textPrimary(for: colorScheme))
                         }
                     }
                     .accessibilityIdentifier("resetOnboardingButton")
@@ -144,7 +161,7 @@ struct SettingsView: View {
             .scrollIndicators(.hidden)
             .background(AppTheme.listBackground(for: colorScheme))
             .tint(AppTheme.Colors.primary)
-            .navigationTitle("settings.title")
+            .navigationTitle(LocalizedStringKey("settings.title"))
             .accessibilityIdentifier("settingsScreen")
             .toolbarBackground(.visible, for: .navigationBar)
             // Lifecycle: Beim Öffnen einmalig den echten System-Status der Notifications spiegeln
@@ -153,5 +170,15 @@ struct SettingsView: View {
             }
         }
         .preferredColorScheme(.dark)
+    }
+}
+
+// MARK: - Helpers
+private extension Bundle {
+    var appVersion: String {
+        infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+    }
+    var appBuild: String {
+        infoDictionary?["CFBundleVersion"] as? String ?? "1"
     }
 }

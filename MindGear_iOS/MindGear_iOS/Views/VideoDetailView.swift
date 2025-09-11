@@ -72,7 +72,7 @@ struct VideoDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.m) {
-                if let embedURL = makeYouTubeEmbedURL(from: video.videoURL) {
+                if let embedURL = makeYouTubeEmbedURL(from: video.videoURL), !loadError {
                     VideoWebView(url: embedURL, loadFailed: $loadError)
                         .frame(height: 200)
                         .cornerRadius(AppTheme.Radius.m)
@@ -82,6 +82,34 @@ struct VideoDetailView: View {
                         )
                         .accessibilityIdentifier("videoWebView")
                         .accessibilityHidden(true)
+                } else if loadError {
+                    ContentUnavailableView(
+                        "Video nicht verfügbar",
+                        systemImage: "exclamationmark.triangle",
+                        description: Text("Dieses Video kann nicht geladen werden. Es könnte privat, blockiert oder entfernt sein.")
+                    )
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .overlay(
+                        VStack(spacing: AppTheme.Spacing.s) {
+                            Button("Erneut versuchen") {
+                                if let embedURL = makeYouTubeEmbedURL(from: video.videoURL) {
+                                    loadError = false
+                                    NotificationCenter.default.post(name: .reloadVideoWebView, object: embedURL)
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .accessibilityIdentifier("retryButton")
+
+                            Button("Auf YouTube öffnen") {
+                                if let url = URL(string: video.videoURL) {
+                                    UIApplication.shared.open(url)
+                                }
+                            }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("openInYouTubeButton")
+                        }
+                    )
                 } else {
                     Text("Ungültige Video-URL")
                         .foregroundStyle(AppTheme.Colors.accent)
@@ -152,18 +180,6 @@ struct VideoDetailView: View {
                 .accessibilityAddTraits(.isButton)
                 .contentShape(Rectangle())
             }
-        }
-        .alert("Video konnte nicht geladen werden", isPresented: $loadError) {
-            Button("Erneut versuchen") {
-                if let embedURL = makeYouTubeEmbedURL(from: video.videoURL) {
-                    loadError = false
-                    // Trigger reload of the WebView
-                    NotificationCenter.default.post(name: .reloadVideoWebView, object: embedURL)
-                }
-            }
-            Button("Abbrechen", role: .cancel) { }
-        } message: {
-            Text("Bitte überprüfe deine Internetverbindung oder die Video-URL.")
         }
         .onAppear {
             isFavorite = favoritesViewModel.isFavorite(video: video)

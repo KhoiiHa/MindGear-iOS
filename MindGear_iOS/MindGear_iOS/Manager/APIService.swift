@@ -464,6 +464,105 @@ final class APIService: APIServiceProtocol {
         throw AppError.from(lastError)
     }
 
+    // MARK: - Videos (Details/Status Lookup ohne Cache)
+    /// Low-Level-Fetch für das `videos`-Endpoint, z. B. um `status.embeddable`/`privacyStatus` zu prüfen.
+    private func performVideosFetch(queryItems: [URLQueryItem]) async throws -> YouTubeVideosListResponse {
+        let hosts = [
+            "https://www.googleapis.com/youtube/v3/videos",
+            "https://youtube.googleapis.com/youtube/v3/videos"
+        ]
+        var lastError: Error = AppError.networkError
+
+        for endpoint in hosts {
+            var attempt = 0
+            while attempt < 3 {
+                attempt += 1
+                do {
+                    var components = URLComponents(string: endpoint)!
+                    components.queryItems = queryItems + [
+                        URLQueryItem(name: "prettyPrint", value: "false"),
+                        URLQueryItem(name: "alt", value: "json")
+                    ]
+                    guard let url = components.url else { throw AppError.invalidURL }
+
+                    var request = URLRequest(url: url)
+                    request.httpMethod = "GET"
+                    request.setValue("application/json", forHTTPHeaderField: "Accept")
+                    request.cachePolicy = .reloadIgnoringLocalCacheData
+
+                    #if DEBUG
+                    print("🔎 VIDEOS URL:", url.absoluteString)
+                    #endif
+
+                    let (data, response) = try await APIService.session.data(for: request)
+                    guard let http = response as? HTTPURLResponse else {
+                        lastError = AppError.invalidResponse
+                        break
+                    }
+
+                    #if DEBUG
+                    print("🌐 STATUS:", http.statusCode)
+                    print("🌐 HEADERS:", http.allHeaderFields)
+                    #endif
+
+                    if let text = String(data: data.prefix(200), encoding: .utf8),
+                       text.contains("<html") || text.contains("<!DOCTYPE html") {
+                        let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
+                        print("❗️HTML statt JSON (Videos). Vorschau:\n\(preview)")
+                        lastError = AppError.invalidResponse
+                        break
+                    }
+
+                    if !(200..<300).contains(http.statusCode) {
+                        if let yt = try? JSONDecoder().decode(YouTubeAPIErrorEnvelope.self, from: data) {
+                            print("❗️YouTube VIDEOS-Fehler:", yt.error.code, yt.error.message)
+                        } else {
+                            let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
+                            print("❗️HTTP \(http.statusCode). VIDEOS KÖRPER-Vorschau:\n\(preview)")
+                        }
+                        switch http.statusCode {
+                        case 401, 403: lastError = AppError.unauthorized
+                        case 404: lastError = AppError.httpStatus(404)
+                        case 429:
+                            let retry = http.value(forHTTPHeaderField: "Retry-After").flatMap(Int.init)
+                            lastError = AppError.rateLimited(retryAfter: retry)
+                        case 500...599: lastError = AppError.httpStatus(http.statusCode)
+                        default: lastError = AppError.httpStatus(http.statusCode)
+                        }
+                        break
+                    }
+
+                    do {
+                        let response = try JSONDecoder().decode(YouTubeVideosListResponse.self, from: data)
+                        return response
+                    } catch {
+                        let preview = String(data: data.prefix(400), encoding: .utf8) ?? "<non-utf8>"
+                        print("❗️Dekodierung fehlgeschlagen (Videos). Vorschau:\n\(preview)")
+                        lastError = AppError.decodingError
+                        break
+                    }
+                } catch {
+                    print("❗️Transportfehler VIDEOS (Attempt #\(attempt)):", error.localizedDescription)
+                    lastError = AppError.from(error)
+                    if let urlError = error as? URLError {
+                        switch urlError.code {
+                        case .cannotParseResponse, .badServerResponse:
+                            break
+                        case .timedOut, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost, .notConnectedToInternet:
+                            let delay = pow(2.0, Double(attempt - 1)) * 0.5
+                            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                            continue
+                        default:
+                            break
+                        }
+                    }
+                    break
+                }
+            }
+        }
+        throw AppError.from(lastError)
+    }
+
     // Strips any leading '@' from a handle string to keep callers flexible
     private func sanitizeHandle(_ raw: String) -> String {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -515,6 +614,22 @@ final class APIService: APIServiceProtocol {
             if let first = resp.items.first { return first }
         }
         throw AppError.noData
+    }
+
+    /// Lädt Details für bis zu 50 Video-IDs (status, contentDetails, optional snippet).
+    /// Aufrufer kann damit `privacyStatus`, `embeddable` und `uploadStatus` prüfen.
+    func fetchVideoDetails(ids: [String], apiKey: String) async throws -> YouTubeVideosListResponse {
+        guard isValidApiKey(apiKey) else {
+            print("⚠️ [APIService] Kein gültiger YouTube API Key – überspringe Request (fetchVideoDetails).")
+            throw AppError.apiKeyMissing
+        }
+        let chunk = ids.prefix(50) // YouTube API: max 50 IDs pro Request
+        let idList = chunk.joined(separator: ",")
+        return try await performVideosFetch(queryItems: [
+            URLQueryItem(name: "part", value: "status,contentDetails,snippet"),
+            URLQueryItem(name: "id", value: idList),
+            URLQueryItem(name: "key", value: apiKey)
+        ])
     }
 
     // MARK: - Playlist Info (YouTube Playlist Lookup)
@@ -656,4 +771,39 @@ struct YouTubeChannelStatistics: Decodable {
     let subscriberCount: String?
     let viewCount: String?
     let videoCount: String?
+}
+
+// MARK: - Response Models (Videos)
+struct YouTubeVideosListResponse: Decodable {
+    let items: [YouTubeVideoDetailsItem]
+}
+
+struct YouTubeVideoDetailsItem: Decodable {
+    let id: String
+    let snippet: YouTubeVideoSnippet?
+    let status: YouTubeVideoStatus?
+    let contentDetails: YouTubeVideoContentDetails?
+}
+
+struct YouTubeVideoSnippet: Decodable {
+    let title: String?
+    let description: String?
+    let channelTitle: String?
+}
+
+struct YouTubeVideoStatus: Decodable {
+    let uploadStatus: String?
+    let privacyStatus: String?
+    let embeddable: Bool?
+    let license: String?
+}
+
+struct YouTubeVideoContentDetails: Decodable {
+    let duration: String?
+    let regionRestriction: YouTubeRegionRestriction?
+}
+
+struct YouTubeRegionRestriction: Decodable {
+    let allowed: [String]?
+    let blocked: [String]?
 }

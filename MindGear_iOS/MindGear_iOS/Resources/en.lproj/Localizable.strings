@@ -70,6 +70,10 @@
 "settings.title" = "Settings";
 "action.cancel" = "Cancel";
 
+"settings.section.history" = "History";
+"settings.section.about" = "About";
+"settings.about.version" = "Version";
+
 /* Onboarding */
 "onboarding.skip" = "Skip";
 "onboarding.page1.title" = "Welcome to MindGear";
