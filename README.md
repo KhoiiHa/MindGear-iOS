@@ -2,7 +2,7 @@
   <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1747665413/ChatGPT_Image_18._Mai_2025_16_37_57_rkbu11.png" alt="MindGear Icon" width="120" />
 </p>
 
-# **MindGear – Mentale Stärke für moderne Männer** 🧠🎧  
+# **MindGear – iOS-App für mentale Stärke & Selbstentwicklung** 🧠🎧  
 *iOS-App zur Selbstentwicklung und mentalen Gesundheit – speziell für Männer*
 
 > ✨ Dieses Projekt zeigt sowohl **technische Tiefe** als auch **gestalterische Stärke**:  
