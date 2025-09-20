@@ -1,13 +1,13 @@
 {
   "playlistId": "PLkL7BvJXiqSQu3i72hSrG4vUkDuaneHuB",
-  "fetchedAt": "2025-09-19T12:29:43.690Z",
+  "fetchedAt": "2025-09-20T01:04:31.861Z",
   "count": 500,
   "videos": [
     {
-      "id": "TbzJ9rIWF7g",
+      "id": "8u-NYRyDPrc",
       "title": "Private video",
       "description": "This video is private.",
-      "publishedAt": "2025-09-18T19:45:31Z",
+      "publishedAt": "2025-09-19T20:41:29Z",
       "position": 0,
       "channelTitle": "Chris Williamson",
       "thumbnails": {
@@ -17,10 +17,10 @@
       }
     },
     {
-      "id": "8u-NYRyDPrc",
+      "id": "TbzJ9rIWF7g",
       "title": "Private video",
       "description": "This video is private.",
-      "publishedAt": "2025-09-18T19:43:50Z",
+      "publishedAt": "2025-09-18T19:45:31Z",
       "position": 1,
       "channelTitle": "Chris Williamson",
       "thumbnails": {
