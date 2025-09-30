@@ -2,8 +2,8 @@
   <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1747665413/ChatGPT_Image_18._Mai_2025_16_37_57_rkbu11.png" alt="MindGear Icon" width="120" />
 </p>
 
-# **MindGear – iOS-App für mentale Stärke & Selbstentwicklung** 🧠🎧  
-*iOS-App zur Selbstentwicklung und mentalen Gesundheit – speziell für Männer*
+# **MindGear – iOS-App für Mentoring & Video-Learning** 🧠🎧  
+*iOS-App zur Selbstentwicklung und mentalen Gesundheit – speziell für Männer*  
 
 > ✨ Dieses Projekt zeigt sowohl **technische Tiefe** als auch **gestalterische Stärke**:  
 > Von AppTheme-Architektur bis hin zum Dark-Mode-Redesign – alle UI-Komponenten wurden konsistent und portfolio-reif umgesetzt.  
@@ -18,23 +18,23 @@
 
 ## 🚀 **Highlights**
 
-- Native iOS-App mit **SwiftUI + MVVM**
-- **Favoriten, Verlauf & Kategorien** mit SwiftData
-- **YouTube API Integration** (Videos, Playlists, Mentoren)
-- **Dark Mode & konsistentes Design** via AppTheme
-- **Zweisprachige UI (DE/EN)** über Localizable.strings
-- **Offline-fähig** dank Caching & Retry
-- **Unit Tests** mit grünem Status ✅
+- Native iOS-App mit **SwiftUI + MVVM**  
+- **Favoriten, Verlauf & Kategorien** mit SwiftData  
+- **YouTube API Integration** (Videos, Playlists, Mentoren)  
+- **Dark Mode & konsistentes Design** via AppTheme  
+- **Zweisprachige UI (DE/EN)** über Localizable.strings  
+- **Offline-fähig** dank Caching & Retry  
+- **Unit Tests** mit grünem Status ✅  
 
 ---
 
 ## 🧩 **Features**
 
-- **Intuitive Navigation** über Tabs: Start, Videos, Favoriten, Kategorien, Mentoren, Playlists, Verlauf, Einstellungen  
-- **Kuratiertes Home**: empfohlene Playlists mit Offline-Cache  
-- **Video-Listen & Detailansicht**: Suche mit Autovervollständigung, Verlauf & Favoriten-Option  
-- **Mentoren-Profilseiten**: Bio, Social Links & empfohlene Playlists (inkl. Hinweis: *„Inhalt auf Englisch“*)  
-- **Dark-Mode Design**: konsistente Farben, Typografie & Spacing-Tokens  
+- **Intuitive Navigation** (Tabs: Start, Videos, Favoriten, Kategorien, Mentoren, Playlists, Verlauf, Einstellungen)  
+- **Empfohlene Playlists** mit Offline-Cache  
+- **Video-Listen & Detailansicht**: Suche mit Autovervollständigung, Verlauf & Favoriten  
+- **Mentoren-Profile** mit Bio, Social Links & Playlists (*Inhalt auf Englisch*)  
+- **Dark-Mode Design** & moderne Typografie  
 - **Offline-Fallbacks**: Seed-Daten, Response-Caching, Network-Retry  
 
 ---
@@ -44,19 +44,6 @@
 - **App-UI vollständig lokalisiert**: Deutsch & Englisch  
 - **API-Inhalte bewusst im Original** (z. B. Mentoren & YouTube-Beschreibungen)  
 - **UX-Hinweis im UI**: *„Inhalt auf Englisch“* klar gekennzeichnet  
-
----
-
-## ❓ **Warum MindGear?**
-
-Die Idee für **MindGear** entstand aus meiner eigenen Auseinandersetzung mit mentaler Gesundheit und Persönlichkeitsentwicklung.  
-Ich wollte eine App schaffen, die:
-
-- Inhalte von internationalen Mentoren und Denkern **leicht zugänglich** macht.  
-- Männern (und allen Interessierten) eine **strukturierte Plattform** für Selbstreflexion bietet.  
-- Mir die Chance gab, **YouTube-API, SwiftData-Persistenz und modernes iOS-Design** (Dark Mode, AppTheme, Komponenten) **praxisnah zu erlernen**.
-
-> Dieses Projekt ist eine Kombination aus **persönlicher Motivation** und **technischem Lernziel** – eine App, die ich selbst gerne nutze und die gleichzeitig mein Können als Mobile Developer zeigt.
 
 ---
 
@@ -79,7 +66,7 @@ Ich wollte eine App schaffen, die:
 - **SwiftData** – Persistenz für Favoriten, Playlists & Watch-History  
 - **YouTube API v3** – dynamische Inhalte (Videos, Channels, Playlists)  
 - **WebKit/WebView** – YouTube-Player nahtlos integriert  
-- **Manager & Services**: `APIService`, `NetworkManager`, `FavoritesManager`, `VideoManager`, `ConfigManager`, `NotificationManager`, `AnalyticsManager`
+- **Manager & Services**: `APIService`, `NetworkManager`, `FavoritesManager`, `VideoManager`, `ConfigManager`, `NotificationManager`, `AnalyticsManager`  
 
 ---
 
@@ -98,7 +85,7 @@ Screenshots und Case Study PDF zeigen die wichtigsten Funktionen.
 
 > Ohne API-Key werden automatisch **Seed-Daten** oder **Caches** genutzt.  
 > Debugger zeigt klare Logs, z. B.:  
-> `⚠️ [APIService] Kein gültiger API Key – nutze Seed/Cache.`
+> `⚠️ [APIService] Kein gültiger API Key – nutze Seed/Cache.`  
 
 ---
 
@@ -134,8 +121,12 @@ Die Gestaltung basiert auf hochwertigen Figma UI-Kits, angepasst an Zielgruppe &
 ## 🤝 **Kontakt & Links**
 
 💼 [LinkedIn](www.linkedin.com/in/minh-khoi-ha-209561142)  
-🌐 [GitHub Repo](https://github.com/KhoiiHa/MindGear-iOS)
+🌐 [GitHub Repo](https://github.com/KhoiiHa/MindGear-iOS)  
 
+---
+
+**🚀 MindGear – Denkanstöße. Klarheit. Stärke.**  
+👉 Entwickelt als Teil meines iOS-Portfolios (SwiftUI · SwiftData · YouTube API).
 ---
 
 **🚀 MindGear – Denkanstöße. Klarheit. Stärke.**  
