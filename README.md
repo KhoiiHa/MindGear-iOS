@@ -23,7 +23,7 @@
 - **YouTube API Integration** (Videos, Playlists, Mentoren)  
 - **Dark Mode & konsistentes Design** via AppTheme  
 - **Zweisprachige UI (DE/EN)** über Localizable.strings  
-- **Offline-fähig** dank Caching & Retry  
+- **Offline-fähig** dank Seed-Daten & einfachem Caching  
 - **Unit Tests** mit grünem Status ✅  
 
 ---
@@ -31,18 +31,18 @@
 ## 🧩 **Features**
 
 - **Intuitive Navigation** (Tabs: Start, Videos, Favoriten, Kategorien, Mentoren, Playlists, Verlauf, Einstellungen)  
-- **Empfohlene Playlists** mit Offline-Cache  
+- **Empfohlene Playlists** mit optionalem Fallback auf Seed-Daten  
 - **Video-Listen & Detailansicht**: Suche mit Autovervollständigung, Verlauf & Favoriten  
 - **Mentoren-Profile** mit Bio, Social Links & Playlists (*Inhalt auf Englisch*)  
 - **Dark-Mode Design** & moderne Typografie  
-- **Offline-Fallbacks**: Seed-Daten, Response-Caching, Network-Retry  
+- **Offline-Fallbacks**: statische Seed-Daten, einfache Response-Caches  
 
 ---
 
 ## 🌍 **Mehrsprachigkeit**
 
 - **App-UI vollständig lokalisiert**: Deutsch & Englisch  
-- **API-Inhalte bewusst im Original** (z. B. Mentoren & YouTube-Beschreibungen)  
+- **API-Inhalte bewusst im Original** (z. B. Mentoren & YouTube-Beschreibungen)  
 - **UX-Hinweis im UI**: *„Inhalt auf Englisch“* klar gekennzeichnet  
 
 ---
@@ -66,7 +66,9 @@
 - **SwiftData** – Persistenz für Favoriten, Playlists & Watch-History  
 - **YouTube API v3** – dynamische Inhalte (Videos, Channels, Playlists)  
 - **WebKit/WebView** – YouTube-Player nahtlos integriert  
-- **Manager & Services**: `APIService`, `NetworkManager`, `FavoritesManager`, `VideoManager`, `ConfigManager`, `NotificationManager`, `AnalyticsManager`  
+- **Manager & Services**:  
+  `APIService`, `NetworkManager`, `FavoritesManager`, `VideoManager`, `ConfigManager`,  
+  `NotificationManager (optional)`, `AnalyticsManager (vorbereitet)`  
 
 ---
 
@@ -83,8 +85,8 @@ Screenshots und Case Study PDF zeigen die wichtigsten Funktionen.
    (Optional: zusätzliche Channel-/Playlist-IDs einfügen)  
 3. Build & Run in Xcode.  
 
-> Ohne API-Key werden automatisch **Seed-Daten** oder **Caches** genutzt.  
-> Debugger zeigt klare Logs, z. B.:  
+> Ohne API-Key werden automatisch **Seed-Daten** oder **Cache-Fallbacks** genutzt.  
+> Debugger zeigt klare Logs, z. B.:  
 > `⚠️ [APIService] Kein gültiger API Key – nutze Seed/Cache.`  
 
 ---
@@ -120,14 +122,11 @@ Die Gestaltung basiert auf hochwertigen Figma UI-Kits, angepasst an Zielgruppe &
 
 ## 🤝 **Kontakt & Links**
 
-💼 [LinkedIn](www.linkedin.com/in/minh-khoi-ha-209561142)  
+💼 [LinkedIn](https://www.linkedin.com/in/minh-khoi-ha-209561142)  
 🌐 [GitHub Repo](https://github.com/KhoiiHa/MindGear-iOS)  
 
 ---
 
 **🚀 MindGear – Denkanstöße. Klarheit. Stärke.**  
 👉 Entwickelt als Teil meines iOS-Portfolios (SwiftUI · SwiftData · YouTube API).
----
-
-**🚀 MindGear – Denkanstöße. Klarheit. Stärke.**  
 *Entdecke deine mentale Power – täglich neu.*
