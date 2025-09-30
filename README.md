@@ -11,6 +11,11 @@
 
 ---
 
+## 📄 **Case Study**
+👉 [MindGear Case Study (PDF)](./MindGear%20Case%20Study.pdf)
+
+---
+
 ## 🚀 **Highlights**
 
 - Native iOS-App mit **SwiftUI + MVVM**
@@ -18,7 +23,6 @@
 - **YouTube API Integration** (Videos, Playlists, Mentoren)
 - **Dark Mode & konsistentes Design** via AppTheme
 - **Zweisprachige UI (DE/EN)** über Localizable.strings
-- **Hinweis für englischsprachige Inhalte** (Video- & Mentor-Detailansichten)
 - **Offline-fähig** dank Caching & Retry
 - **Unit Tests** mit grünem Status ✅
 
@@ -30,21 +34,16 @@
 - **Kuratiertes Home**: empfohlene Playlists mit Offline-Cache  
 - **Video-Listen & Detailansicht**: Suche mit Autovervollständigung, Verlauf & Favoriten-Option  
 - **Mentoren-Profilseiten**: Bio, Social Links & empfohlene Playlists (inkl. Hinweis: *„Inhalt auf Englisch“*)  
-- **Favoriten**: Videos, Playlists & Mentoren speichern und verwalten  
-- **Kategorien**: thematische Entdeckung von Inhalten  
-- **Verlauf**: zuletzt gesehene Videos inkl. Löschfunktion  
-- **Einstellungen**: Benutzername, Benachrichtigungen (Stub), Link zum Verlauf  
 - **Dark-Mode Design**: konsistente Farben, Typografie & Spacing-Tokens  
-- **Suche mit Debounce & Vorschlägen**: modernes `SearchField`  
 - **Offline-Fallbacks**: Seed-Daten, Response-Caching, Network-Retry  
 
 ---
 
 ## 🌍 **Mehrsprachigkeit**
 
-- **App-UI vollständig lokalisiert**: Deutsch & Englisch (Tabs, Onboarding, Settings, Empty States)  
-- **API-Inhalte bewusst im Original**: Internationale Mentoren & YouTube-Beschreibungen bleiben Englisch  
-- **UX-Hinweis im UI**: Klare Kennzeichnung *„Inhalt auf Englisch“*, um Nutzer zu informieren  
+- **App-UI vollständig lokalisiert**: Deutsch & Englisch  
+- **API-Inhalte bewusst im Original** (z. B. Mentoren & YouTube-Beschreibungen)  
+- **UX-Hinweis im UI**: *„Inhalt auf Englisch“* klar gekennzeichnet  
 
 ---
 
@@ -53,29 +52,21 @@
 Die Idee für **MindGear** entstand aus meiner eigenen Auseinandersetzung mit mentaler Gesundheit und Persönlichkeitsentwicklung.  
 Ich wollte eine App schaffen, die:
 
-- Inhalte von internationalen Mentoren und Denkern **kuratieren** und leicht zugänglich machen.  
-- Männern (und allen Interessierten) eine **strukturierte Plattform** für Selbstreflexion und Inspiration bietet.  
-- Mir als Entwickler die Chance gab, **YouTube-API, SwiftData-Persistenz und modernes iOS-Design** (Dark Mode, AppTheme, Komponenten) **praxisnah zu erlernen**.
+- Inhalte von internationalen Mentoren und Denkern **leicht zugänglich** macht.  
+- Männern (und allen Interessierten) eine **strukturierte Plattform** für Selbstreflexion bietet.  
+- Mir die Chance gab, **YouTube-API, SwiftData-Persistenz und modernes iOS-Design** (Dark Mode, AppTheme, Komponenten) **praxisnah zu erlernen**.
 
 > Dieses Projekt ist eine Kombination aus **persönlicher Motivation** und **technischem Lernziel** – eine App, die ich selbst gerne nutze und die gleichzeitig mein Können als Mobile Developer zeigt.
 
 ---
 
-## 🖼️ **Screenshots**
+## 🖼️ **Screenshots (5 Kern-Views)**
 
 <p align="center">
   <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505241/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.44.35_ugmxun.png" alt="Onboarding" width="220" />
   <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505278/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.46.08_fsic9x.png" alt="Home – Empfohlene Playlists" width="220" />
   <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505291/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.46.24_ptjhih.png" alt="Kategorien-Übersicht" width="220" />
-</p>
-
-<p align="center">
   <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505331/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.47.12_q2zdkh.png" alt="Mentoren-Liste" width="220" />
-  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505364/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.47.26_ptjvdy.png" alt="Favoriten – leerer Zustand" width="220" />
-  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505388/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.47.41_i2ye10.png" alt="Favoriten – mit Inhalten" width="220" />
-</p>
-
-<p align="center">
   <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505409/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.48.33_j0afix.png" alt="Video-Detailansicht (Englischer Inhalt)" width="220" />
 </p>
 
@@ -88,22 +79,18 @@ Ich wollte eine App schaffen, die:
 - **SwiftData** – Persistenz für Favoriten, Playlists & Watch-History  
 - **YouTube API v3** – dynamische Inhalte (Videos, Channels, Playlists)  
 - **WebKit/WebView** – YouTube-Player nahtlos integriert  
-- **Manager & Services**  
-  - `APIService` – YouTube-Requests mit Caching, Retry & Guard-Logik  
-  - `NetworkManager` & `NetworkMonitor` – Offline-Erkennung & API-Key-Checks  
-  - `FavoritesManager` – zentrales Favoriten-Handling  
-  - `VideoManager` – Video-/Playlist-Utilities  
-  - `ConfigManager` – Zugriff auf API-Key & Playlist-IDs aus `Config.plist`  
-  - `NotificationManager`, `AnalyticsManager` – vorbereitet für künftige Features  
+- **Manager & Services**: `APIService`, `NetworkManager`, `FavoritesManager`, `VideoManager`, `ConfigManager`, `NotificationManager`, `AnalyticsManager`
 
 ---
 
-## 🔐 **Setup & Secrets**
+## 🔐 **Setup & Nutzung**
 
-Die App nutzt eine **lokale `Config.plist`** für API-Keys & IDs.  
-Die echte Datei ist **nicht im Repo** – stattdessen liegt eine Vorlage (`Config.sample.plist`) bei.
+Dieses Projekt ist ein **Portfolio-Showcase**.  
+Screenshots und Case Study PDF zeigen die wichtigsten Funktionen.  
 
-**Setup in 3 Schritten:**
+👉 Wer die App lokal starten möchte, findet hier die Setup-Anleitung:
+
+### ⚙️ Setup in Xcode
 1. Kopiere `MindGear_iOS/Config/Config.sample.plist` → `Config.plist`.  
 2. Trage deinen **YouTube Data API v3** Key bei `YOUTUBE_API_KEY` ein.  
    (Optional: zusätzliche Channel-/Playlist-IDs einfügen)  
@@ -144,12 +131,10 @@ Die Gestaltung basiert auf hochwertigen Figma UI-Kits, angepasst an Zielgruppe &
 
 ---
 
-## 🤝 **Kontakt & Mitwirken**
+## 🤝 **Kontakt & Links**
 
-Dieses Projekt ist Teil meines Portfolios als Mobile App Developer.  
-Ich freue mich über Feedback, Hinweise oder Kooperationen:
-
-📫 GitHub Issues | 📬 Xing / LinkedIn (auf Anfrage)
+💼 [LinkedIn](www.linkedin.com/in/minh-khoi-ha-209561142)  
+🌐 [GitHub Repo](https://github.com/KhoiiHa/MindGear-iOS)
 
 ---
 
