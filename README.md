@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1759330282/MindGear_README_SlideWide_1600x900_nilt0u.png" alt="MindGear Header" width="100%" />
+  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1759330282/MindGear_README_SlideWide_1600x900_nilt0u.png" alt="MindGear Logo" width="600" />
 </p>
 
 # 🧠 **MindGear – iOS-App für Mentoring & Video-Learning**
