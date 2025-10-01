@@ -1,100 +1,69 @@
 <p align="center">
-  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1747665413/ChatGPT_Image_18._Mai_2025_16_37_57_rkbu11.png" alt="MindGear Icon" width="120" />
+  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1759330282/MindGear_README_SlideWide_1600x900_nilt0u.png" alt="MindGear Header" width="100%" />
 </p>
 
-# **MindGear – iOS-App für Mentoring & Video-Learning** 🧠🎧  
-*iOS-App zur Selbstentwicklung und mentalen Gesundheit – speziell für Männer*  
+# 🧠 **MindGear – iOS-App für Mentoring & Video-Learning**
 
-> ✨ Dieses Projekt zeigt sowohl **technische Tiefe** als auch **gestalterische Stärke**:  
-> Von AppTheme-Architektur bis hin zum Dark-Mode-Redesign – alle UI-Komponenten wurden konsistent und portfolio-reif umgesetzt.  
-> **Neu:** Die gesamte **App-UI ist zweisprachig (Deutsch/Englisch)**, während internationale Inhalte (YouTube, Mentoren-Bios) bewusst im **Original (Englisch)** angezeigt werden – inkl. klarer Hinweis im UI.  
+*iOS-App zur Selbstentwicklung & mentalen Klarheit – speziell für Männer.*
 
----
-
-## 📄 **Case Study**
-👉 [MindGear Case Study (PDF)](./MindGear%20Case%20Study.pdf)
+> ✨ Dieses Projekt verbindet **technische Tiefe** mit **klarer UI**:  
+> SwiftUI, YouTube API, Offline-Strategien & Dark Mode – alles in einer durchdachten MVVM-Architektur.  
+> Die App ist **zweisprachig (DE/EN)** – Inhalte wie Mentoren-Bios und Videos bleiben bewusst im englischen Original, inkl. UX-Hinweis im Interface.
 
 ---
 
-## 🚀 **Highlights**
+## 📄 Case Study
 
-- Native iOS-App mit **SwiftUI + MVVM**  
-- **Favoriten, Verlauf & Kategorien** mit SwiftData  
-- **YouTube API Integration** (Videos, Playlists, Mentoren)  
-- **Dark Mode & konsistentes Design** via AppTheme  
-- **Zweisprachige UI (DE/EN)** über Localizable.strings  
-- **Offline-fähig** dank Seed-Daten & einfachem Caching  
-- **Unit Tests** mit grünem Status ✅  
+📘 [PDF ansehen → MindGear Case Study Final.pdf](./MindGear%20Case%20Study%20Final.pdf)
+
+Enthält technische Highlights, Designentscheidungen & Learnings.
 
 ---
 
-## 🧩 **Features**
+## 🚀 Highlights
 
-- **Intuitive Navigation** (Tabs: Start, Videos, Favoriten, Kategorien, Mentoren, Playlists, Verlauf, Einstellungen)  
-- **Empfohlene Playlists** mit optionalem Fallback auf Seed-Daten  
-- **Video-Listen & Detailansicht**: Suche mit Autovervollständigung, Verlauf & Favoriten  
-- **Mentoren-Profile** mit Bio, Social Links & Playlists (*Inhalt auf Englisch*)  
-- **Dark-Mode Design** & moderne Typografie  
-- **Offline-Fallbacks**: statische Seed-Daten, einfache Response-Caches  
-
----
-
-## 🌍 **Mehrsprachigkeit**
-
-- **App-UI vollständig lokalisiert**: Deutsch & Englisch  
-- **API-Inhalte bewusst im Original** (z. B. Mentoren & YouTube-Beschreibungen)  
-- **UX-Hinweis im UI**: *„Inhalt auf Englisch“* klar gekennzeichnet  
+- 🔍 YouTube-Integration mit Playlists & Mentoren
+- ❤️ Favoriten, Watch-History & Seed-Fallbacks (SwiftData)
+- 🌘 Dark Mode only – modern & clean
+- 🗂️ Strukturierte Architektur (Views, ViewModels, Services)
+- 🌍 DE/EN UI mit `Localizable.strings`
+- ✅ Unit Tests auf Kernlogik (z. B. Config, Favoriten, Suche)
 
 ---
 
-## 🖼️ **Screenshots (5 Kern-Views)**
+## 🧩 Features
 
-<p align="center">
-  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505241/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.44.35_ugmxun.png" alt="Onboarding" width="220" />
-  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505278/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.46.08_fsic9x.png" alt="Home – Empfohlene Playlists" width="220" />
-  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505291/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.46.24_ptjhih.png" alt="Kategorien-Übersicht" width="220" />
-  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505331/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.47.12_q2zdkh.png" alt="Mentoren-Liste" width="220" />
-  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1757505409/Simulator_Screenshot_-_iPhone_16_Pro_-_2025-09-10_at_13.48.33_j0afix.png" alt="Video-Detailansicht (Englischer Inhalt)" width="220" />
-</p>
+- Autovervollständigung für Video-Suche 🎯  
+- Mentoren-Profilseiten mit Playlist & Biografie  
+- Kategorien- und Playlists-Ansicht (dynamisch oder Fallback)  
+- Verlauf, Favoriten & lokale Caches  
+- YouTube-Videos via WebView, mit Fallback bei Offline-Zugriff  
 
 ---
 
-## 🛠️ **Tech Stack & Architektur**
+## 🛠️ Tech Stack & Architektur
 
-- **SwiftUI** – modernes UI-Framework  
-- **MVVM-Architektur** – saubere Trennung von UI & Logik  
-- **SwiftData** – Persistenz für Favoriten, Playlists & Watch-History  
-- **YouTube API v3** – dynamische Inhalte (Videos, Channels, Playlists)  
-- **WebKit/WebView** – YouTube-Player nahtlos integriert  
-- **Manager & Services**:  
-  `APIService`, `NetworkManager`, `FavoritesManager`, `VideoManager`, `ConfigManager`,  
-  `NotificationManager (optional)`, `AnalyticsManager (vorbereitet)`  
+- **SwiftUI**, **MVVM**, **SwiftData**
+- **YouTube API v3** – Playlists, Channels, Videos
+- **Cloudinary** + `SDWebImageSwiftUI` (Mentoren-Avatare)
+- **WebKit** für Video-Einbettung (YouTube-Player)
+- **Fallback & Caching** mit `URLSession`, Seed JSONs & Manager-Struktur
+- **Optional**: `AnalyticsManager`, `NotificationManager`
 
 ---
 
-## 🔐 **Setup & Nutzung**
+## ⚙️ Setup in Xcode
 
-Dieses Projekt ist ein **Portfolio-Showcase**.  
-Screenshots und Case Study PDF zeigen die wichtigsten Funktionen.  
+1. `Config/Config.sample.plist` → kopieren als `Config.plist`
+2. `YOUTUBE_API_KEY` eintragen (und optional Channel-/Playlist-IDs)
+3. Build & Run
 
-👉 Wer die App lokal starten möchte, findet hier die Setup-Anleitung:
-
-### ⚙️ Setup in Xcode
-1. Kopiere `MindGear_iOS/Config/Config.sample.plist` → `Config.plist`.  
-2. Trage deinen **YouTube Data API v3** Key bei `YOUTUBE_API_KEY` ein.  
-   (Optional: zusätzliche Channel-/Playlist-IDs einfügen)  
-3. Build & Run in Xcode.  
-
-> Ohne API-Key werden automatisch **Seed-Daten** oder **Cache-Fallbacks** genutzt.  
-> Debugger zeigt klare Logs, z. B.:  
-> `⚠️ [APIService] Kein gültiger API Key – nutze Seed/Cache.`  
+> 🔄 Kein Key? → App nutzt automatisch Seed-Daten oder Caches.  
+> 🛠 Logs zeigen: `⚠️ Kein gültiger API Key – nutze Seed/Cache.`
 
 ---
 
-## ✅ **Testabdeckung**
-
-Alle Kernkomponenten sind mit **Unit Tests** abgesichert  
-(ConfigManager, FavoritesManager, MentorSearch).  
+## ✅ Testabdeckung
 
 <p align="center">
   <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1756995107/Unit_Tests_vavwls.png" alt="Unit Tests – alle grün" width="600" />
@@ -102,31 +71,29 @@ Alle Kernkomponenten sind mit **Unit Tests** abgesichert
 
 ---
 
-## 🎨 **Design-Inspiration (Figma)**
+## 🧠 UX & Design
 
-Die Gestaltung basiert auf hochwertigen Figma UI-Kits, angepasst an Zielgruppe & Dark-Mode:  
-- 🥇 Onboarding Screens – Simple & Smart  
-- 🥈 Freud – Mental Health App Kit  
-- 🥉 Meditation App (DesignWave Studio)  
-- 🧩 Lumina – Productivity App (Dark Mode)  
-- 🔄 Mental Wellness Mobile App – Modern UI Kit  
+- Dark Mode UI mit sanfter Typografie  
+- Figma-Kits: *Freud*, *Onboarding Smart*, *Lumina*, *DesignWave Studio*  
+- Fokus auf „Klartext statt UI-Lärm“  
+- Mentoren-Avatare: Cloudinary CDN & LazyLoad
 
 ---
 
-## 📆 **Projektstatus**
+## 📆 Projektstatus
 
-- 🔄 **Letztes Update:** September 2025  
-- ✅ **Aktueller Stand:** iOS-Version fertig für Portfolio (inkl. API-Härtung, Onboarding & Mehrsprachigkeit)  
+- 🔄 Letztes Update: September 2025  
+- ✅ Status: Fertig für Portfolio + Case Study + Unit Tests
 
 ---
 
-## 🤝 **Kontakt & Links**
+## 👋 Kontakt
 
-💼 [LinkedIn](https://www.linkedin.com/in/minh-khoi-ha-209561142)  
-🌐 [GitHub Repo](https://github.com/KhoiiHa/MindGear-iOS)  
+Minh Khoi Ha · Mobile App Developer (iOS/Android)  
+[💼 LinkedIn](https://www.linkedin.com/in/minh-khoi-ha-209561142)  
+[🌐 GitHub Profil](https://github.com/KhoiiHa)
 
 ---
 
 **🚀 MindGear – Denkanstöße. Klarheit. Stärke.**  
-👉 Entwickelt als Teil meines iOS-Portfolios (SwiftUI · SwiftData · YouTube API).
-*Entdecke deine mentale Power – täglich neu.*
+👉 Entwickelt als Portfolio-Projekt (SwiftUI · SwiftData · YouTube API)
