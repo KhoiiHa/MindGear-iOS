@@ -1,5 +1,7 @@
 <p align="center">
-  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1759330282/MindGear_README_SlideWide_1600x900_nilt0u.png" alt="MindGear App Banner" width="640" />
+  <img src="https://res.cloudinary.com/dpaehynl2/image/upload/v1763902395/mindgear_banner_1600x900_o2bius.png"
+       alt="MindGear App Banner"
+       width="640" />
 </p>
 
 <h1 align="center">🧠 MindGear – iOS App für Mentoring & mentale Stärke</h1>
