@@ -9,68 +9,68 @@
 
 ## 🇩🇪 Einführung  
 MindGear ist eine minimalistische iOS-App zur **Selbstentwicklung und mentalen Klarheit**, entwickelt mit **SwiftUI**, **SwiftData** und der **YouTube-API**.  
-Sie kombiniert Fokus-Videos, Mentoren-Profile und Offline-Caching in einer klaren, modernen MVVM-Architektur.
+Die App kombiniert Fokus-Videos, Mentorenprofile und Offline-Caching in einer klaren, modernen MVVM-Architektur.
 
-> Ziel: Eine App schaffen, die Struktur, Ruhe und technische Präzision vereint – für Menschen, die mentale Stärke trainieren möchten.
+> Ziel: Eine ruhige, strukturierte Umgebung schaffen – für Menschen, die ihre mentale Stärke gezielt trainieren möchten.
 
 ## 🇬🇧 Introduction  
 MindGear is a minimalist iOS app for **self-development and mental clarity**, built using **SwiftUI**, **SwiftData**, and the **YouTube API**.  
-It combines focus videos, mentor profiles, and offline caching within a clean and modern MVVM architecture.
+It combines focus videos, mentor profiles, and offline caching in a clean, modern MVVM architecture.
 
-> Goal: To create an app that blends structure, calmness, and technical precision – designed for people who want to strengthen their mindset.
+> Goal: Provide a calm and structured space for people who want to grow their mindset intentionally.
 
 ---
 
 ## 📄 Case Study  
-📘 [PDF ansehen / View PDF → MindGear Case Study Final.pdf](./MindGear%20Case%20Study%20Final.pdf)
+📘 [PDF ansehen / View PDF → MindGear Case Study](./MindGear_CaseStudy.pdf)
 
 ### 🇩🇪  
-Die Case Study enthält technische Architektur, Designentscheidungen und persönliche Learnings – ideal für Portfolio und Bewerbungsgespräche.  
+Die Case Study zeigt Architektur, Designentscheidungen und Learnings – ideal für Portfolio und Bewerbungsgespräche.  
 
 ### 🇬🇧  
-The case study includes technical architecture, design decisions, and personal learnings – ideal for portfolios and interviews.
+The case study outlines architecture, design decisions and learnings – ideal for portfolios and interviews.
 
 ---
 
 ## 🚀 Highlights  
 
 ### 🇩🇪  
-- 🎥 **YouTube API v3** – Playlists & Mentoren mit Filterung  
-- ❤️ **Favoriten + Verlauf** – Speicherung & Caching mit SwiftData  
-- 🧩 **Offline-First Strategie** – Seed-Fallbacks & lokale Datenhaltung  
-- 🌘 **Dark Mode only** – klar, ruhig, professionell  
-- 🌍 **Zweisprachige UI (DE/EN)** mit `Localizable.strings`  
-- 🗂 **MVVM-Struktur** mit klaren ViewModels und Managern  
-- ✅ **Unit Tests** für Kernlogik (Config, Favoriten, Suche)
+- 🎥 **YouTube API v3** – kuratierte Playlists & Mentoren  
+- ❤️ **Favoriten + Verlauf** – SwiftData-Persistenz  
+- 🧩 **Offline-First** – Seed-Fallbacks & Caching  
+- 🌘 **Dark Mode only** – ruhiges, fokussiertes UI  
+- 🌍 **Deutsch & Englisch** über `Localizable.strings`  
+- 🗂 **MVVM-Struktur** mit klaren Verantwortlichkeiten  
+- ✅ **Unit Tests** für Config, Favoriten & Suche
 
 ### 🇬🇧  
 - 🎥 **YouTube API v3** – curated playlists & mentors  
-- ❤️ **Favorites + History** – stored & cached via SwiftData  
-- 🧩 **Offline-First Strategy** – seed fallbacks & local persistence  
-- 🌘 **Dark Mode only** – clean, focused and professional  
-- 🌍 **Bilingual UI (DE/EN)** via `Localizable.strings`  
-- 🗂 **MVVM Architecture** with clear ViewModels and managers  
-- ✅ **Unit Tests** for core logic (Config, Favorites, Search)
+- ❤️ **Favorites + History** – persisted via SwiftData  
+- 🧩 **Offline-First** – seed fallbacks & caching  
+- 🌘 **Dark Mode only** – calm, focused UI  
+- 🌍 **Bilingual UI (DE/EN)** with `Localizable.strings`  
+- 🗂 **MVVM architecture** with clear responsibilities  
+- ✅ **Unit tests** for config, favorites & search
 
 ---
 
 ## 🧩 Features  
 
 ### 🇩🇪  
-- 🔎 Autovervollständigung & Debounce-Suche für Videos  
-- 🧘 Mentorenprofile mit Biografie & zugehörigen Playlists  
-- 🗂 Kategorien-Ansicht & dynamische Playlists  
-- 🕒 Verlauf & Favoriten lokal gespeichert mit SwiftData  
+- 🔎 Autovervollständigung & Debounce-Suche  
+- 🧘 Mentorenprofile mit Biografie & Playlists  
+- 🗂 Kategorienansicht & dynamische Playlists  
+- 🕒 Verlauf & Favoriten mittels SwiftData  
 - 📶 Offline-Modus mit automatischer Seed-Umschaltung  
-- 🌐 YouTube-Player via WebView (inkl. Retry-Logik)
+- 🌐 YouTube-WebPlayer mit Retry-Logik
 
 ### 🇬🇧  
-- 🔎 Autocomplete & debounced search for videos  
-- 🧘 Mentor profiles with bio & related playlists  
-- 🗂 Category view and dynamic playlists  
-- 🕒 History and favorites stored locally with SwiftData  
-- 📶 Offline mode with automatic seed switching  
-- 🌐 Embedded YouTube player via WebView (with retry logic)
+- 🔎 Autocomplete & debounced search  
+- 🧘 Mentor profiles with bio & playlists  
+- 🗂 Category view & dynamic playlist loading  
+- 🕒 History & favorites stored with SwiftData  
+- 📶 Offline mode with automatic seed fallback  
+- 🌐 Embedded YouTube player with retry logic
 
 ---
 
@@ -79,18 +79,18 @@ The case study includes technical architecture, design decisions, and personal l
 ### 🇩🇪  
 - **SwiftUI · MVVM · SwiftData**  
 - **YouTube API v3** für Video-Inhalte  
-- **Cloudinary + SDWebImageSwiftUI** für Mentor-Avatare  
-- **NetworkMonitor & URLCache** für stabile Offline-Erfahrung  
-- **AppTheme** für Farben, Abstände und Typografie  
+- **Cloudinary + SDWebImageSwiftUI** für Mentorenbilder  
+- **NetworkMonitor & URLCache** für Offline/Retry  
+- **AppTheme** für Farben, Abstände, Typografie  
 - **Optionale Module:** `AnalyticsManager`, `NotificationManager`
 
 ### 🇬🇧  
 - **SwiftUI · MVVM · SwiftData**  
 - **YouTube API v3** for video content  
 - **Cloudinary + SDWebImageSwiftUI** for mentor avatars  
-- **NetworkMonitor & URLCache** for resilient offline experience  
-- **AppTheme** for colors, spacing, and typography  
-- **Optional modules:** `AnalyticsManager`, `NotificationManager`
+- **NetworkMonitor & URLCache** for offline & retry  
+- **AppTheme** for colors, spacing & typography  
+- **Optional:** `AnalyticsManager`, `NotificationManager`
 
 ---
 
@@ -98,19 +98,17 @@ The case study includes technical architecture, design decisions, and personal l
 
 ### 🇩🇪  
 1. `Config/Config.sample.plist` → kopieren als `Config.plist`  
-2. Trage deinen `YOUTUBE_API_KEY` ein (optional Channel-/Playlist-IDs)  
+2. `YOUTUBE_API_KEY` eintragen  
 3. Build & Run  
 
-> 🔄 Kein Key? → App nutzt automatisch Seed- oder Cache-Daten.  
-> 🧾 Log: `⚠️ Kein gültiger API Key – nutze Seed/Cache.`
+> 🔄 Kein Key? → App nutzt automatisch Seeds oder Cache.
 
 ### 🇬🇧  
 1. Copy `Config/Config.sample.plist` → rename to `Config.plist`  
-2. Insert your `YOUTUBE_API_KEY` (optional channel/playlist IDs)  
+2. Add your `YOUTUBE_API_KEY`  
 3. Build & Run  
 
-> 🔄 No API key? → The app automatically uses seed or cached data.  
-> 🧾 Log: `⚠️ No valid API key – using seed/cache mode.`
+> 🔄 No API key? → Seeds or cached data will be used.
 
 ---
 
@@ -121,54 +119,48 @@ The case study includes technical architecture, design decisions, and personal l
 </p>
 
 ### 🇩🇪  
-- **Unit Tests:** ConfigManager · FavoritesManager · SearchService  
-- **Manuelle Tests:** Offline-Fallback · Ladefehler · Lokalisierung  
-- **Geplant:** Snapshot- und Offline-Simulationstests  
+- **Unit Tests:** ConfigManager, FavoritesManager, SearchService  
+- **Manuelle Tests:** Offline, Fehlerfälle, Lokalisierung  
+- **Geplant:** Snapshot-Tests & Offline-Simulation
 
 ### 🇬🇧  
-- **Unit Tests:** ConfigManager · FavoritesManager · SearchService  
-- **Manual Tests:** Offline fallback · YouTube load errors · Localization  
-- **Planned:** Snapshot and offline simulation tests  
+- **Unit Tests:** ConfigManager, FavoritesManager, SearchService  
+- **Manual tests:** offline behaviour, load errors, localization  
+- **Planned:** snapshot tests & offline simulation
 
 ---
 
 ## 🧠 UX & Design  
 
 ### 🇩🇪  
-- Dark Mode UI mit ruhiger Typografie & stimmiger Farbpalette  
+- Dark Mode only  
+- Ruhige Typografie & klare Layouts  
 - Figma-Kits: *Freud*, *Onboarding Smart*, *Lumina*, *DesignWave Studio*  
-- Fokus auf Lesbarkeit & Struktur statt visueller Ablenkung  
-- Mentoren-Avatare: Cloudinary CDN + Lazy Loading  
+- Cloudinary-CDN + Lazy Loading für Avatare  
 
 ### 🇬🇧  
-- Dark Mode UI with calm typography and consistent color palette  
+- Dark mode only  
+- Calm typography & clear layouts  
 - Figma kits: *Freud*, *Onboarding Smart*, *Lumina*, *DesignWave Studio*  
-- Focus on clarity and readability instead of visual overload  
-- Mentor avatars: Cloudinary CDN + Lazy Loading  
+- Cloudinary CDN + lazy loading for avatars
 
 ---
 
-## 🔍 Codex Review Insights / Verbesserungsvorschläge  
+## 🔍 Codex Review Insights  
 
 ### 🇩🇪  
-> Diese Punkte stammen aus einem **Senior-Review durch Codex**.  
-> Sie sind nicht zwingend notwendig, zeigen aber **technisches Verständnis und Weiterentwicklungspotenzial** – ein Pluspunkt bei Bewerbungen.
-
-- **Dependency Injection:** Ersetze Singletons (`APIService.shared`) schrittweise durch Injektion (z. B. Environment Container) für bessere Testbarkeit.  
-- **Error Handling:** Detailliertere Fehlerdifferenzierung in `NetworkManager` (z. B. APIError, TimeoutError).  
-- **Unit Tests:** Erweiterung der Testabdeckung (SwiftData Sync, Offline Simulation).  
-- **Naming Consistency:** Einheitliche englische Bezeichnungen für Views & Dateien.  
-- **README-Erweiterung:** Dokumentation dieser Verbesserungen (du liest sie gerade 😉).  
+- Dependency Injection statt Singletons  
+- Feineres Error Handling  
+- Mehr Unit Tests (SwiftData/Offline)  
+- Konsistente englische Namensgebung  
+- README zeigt Verbesserungen transparent  
 
 ### 🇬🇧  
-> These insights come from a **senior-level Codex review**.  
-> They are not mandatory but demonstrate **technical awareness and growth potential** – a strong advantage in job applications.
-
-- **Dependency Injection:** Gradually replace singletons (`APIService.shared`) with injected dependencies (e.g., Environment Container) to improve testability.  
-- **Error Handling:** Add more granular error types in `NetworkManager` (e.g., APIError, TimeoutError).  
-- **Unit Tests:** Expand test coverage (SwiftData sync, offline simulation).  
-- **Naming Consistency:** Ensure consistent English naming for all views and files.  
-- **README Extension:** Document these improvements (you’re reading them now 😉).  
+- Dependency injection instead of singletons  
+- More granular error handling  
+- Expand unit tests (SwiftData/offline)  
+- Consistent English naming  
+- README highlights improvements clearly  
 
 ---
 
@@ -176,20 +168,20 @@ The case study includes technical architecture, design decisions, and personal l
 
 ### 🇩🇪  
 - 🔄 Letztes Update: **September 2025**  
-- ✅ Status: **Fertig für Portfolio / Case Study / Testing**
+- ✅ Bereit für Portfolio, Case Study & Testing
 
 ### 🇬🇧  
 - 🔄 Last update: **September 2025**  
-- ✅ Status: **Ready for portfolio, case study, and testing**
+- ✅ Ready for portfolio, case study & testing
 
 ---
 
 ## 👋 Kontakt / Contact  
 
-**Vu Minh Khoi Ha** · Mobile App Developer (iOS / Android)  
+**Vu Minh Khoi Ha** – Mobile App Developer (iOS / Android)  
 [💼 LinkedIn](https://www.linkedin.com/in/minh-khoi-ha-209561142) • [🌐 GitHub](https://github.com/KhoiiHa)
 
 ---
 
-<h3 align="center">🚀 MindGear – Denkanstöße. Klarheit. Stärke.</h3>
-<p align="center"><em>Developed as a portfolio project using SwiftUI · SwiftData · YouTube API.</em></p>
+<h3 align="center">🚀 MindGear – Klarheit. Fokus. Mentale Stärke.</h3>
+<p align="center"><em>Built with SwiftUI · SwiftData · YouTube API.</em></p>
