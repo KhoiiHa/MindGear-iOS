@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-02-05T12:51:53.704Z",
+  "fetchedAt": "2026-02-06T01:43:23.748Z",
   "playlists": [
     {
       "id": "PLkL7BvJXiqSQu3i72hSrG4vUkDuaneHuB",
@@ -7,9 +7,9 @@
       "description": "Every Modern Wisdom podcast episode, back to back, uninterrupted. Enjoy.",
       "channelTitle": "Chris Williamson",
       "thumbnails": {
-        "default": "https://i.ytimg.com/vi/NgazxADZdhQ/default.jpg",
-        "medium": "https://i.ytimg.com/vi/NgazxADZdhQ/mqdefault.jpg",
-        "high": "https://i.ytimg.com/vi/NgazxADZdhQ/hqdefault.jpg"
+        "default": "https://i.ytimg.com/vi/_Zk31GLXFUs/default.jpg",
+        "medium": "https://i.ytimg.com/vi/_Zk31GLXFUs/mqdefault.jpg",
+        "high": "https://i.ytimg.com/vi/_Zk31GLXFUs/hqdefault.jpg"
       },
       "mentor": "Chris Williamson"
     },
