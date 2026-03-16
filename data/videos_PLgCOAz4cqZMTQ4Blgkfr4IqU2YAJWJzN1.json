@@ -1,6 +1,6 @@
 {
   "playlistId": "PLgCOAz4cqZMTQ4Blgkfr4IqU2YAJWJzN1",
-  "fetchedAt": "2026-03-15T12:41:17.105Z",
+  "fetchedAt": "2026-03-16T01:58:37.226Z",
   "count": 87,
   "videos": [
     {
@@ -44,8 +44,8 @@
     },
     {
       "id": "SXQEc5wAIMo",
-      "title": "Private video",
-      "description": "This video is private.",
+      "title": "Deleted video",
+      "description": "This video is unavailable.",
       "publishedAt": "2026-02-10T03:29:06Z",
       "position": 3,
       "channelTitle": "Simon Sinek",
